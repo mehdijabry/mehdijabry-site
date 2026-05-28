@@ -76,7 +76,7 @@ app.use("/api", router);
 // Any non-/api route that wasn't matched by static files falls back to
 // index.html so client-side routing (wouter) works correctly.
 if (hasPortfolioBuild) {
-  app.get("*", (req: Request, res: Response, next: NextFunction) => {
+  app.get(/.*/, (req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
