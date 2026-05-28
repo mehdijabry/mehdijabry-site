@@ -216,10 +216,11 @@ export default function About() {
             <div className="mt-6 space-y-3 text-lg">
               {[
                 { label: "LinkedIn", href: "https://www.linkedin.com/in/mehdijabry/", external: true },
-                { label: "GitHub", href: "#", external: false },
-                { label: "Twitter / X", href: "#", external: false },
+                { label: "GitHub", href: "https://github.com/mehdijabry/mehdijabry", external: true },
+                { label: "Twitter / X", href: "https://x.com/mehdijabry", external: true },
                 { label: "Email", href: "mailto:hi@mehdijabry.dev", external: false },
                 { label: "Other project: ds-ai-manager.com", href: "https://ds-ai-manager.com", external: true },
+                { label: "Other project: salwaeljaouhari.art", href: "https://salwaeljaouhari.art", external: true },
               ].map(({ label, href, external }) => (
                 <a
                   key={label}

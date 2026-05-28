@@ -19,9 +19,10 @@ export function Footer() {
             <h4 className="font-sans text-xs font-semibold uppercase tracking-widest text-muted-foreground">Connect</h4>
             <div className="flex flex-col gap-3">
               <a href="https://www.linkedin.com/in/mehdijabry/" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">LinkedIn</a>
-              <a href="#" className="text-sm hover:text-primary transition-colors">GitHub</a>
-              <a href="#" className="text-sm hover:text-primary transition-colors">Twitter/X</a>
+              <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">GitHub</a>
+              <a href="https://x.com/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">Twitter / X</a>
               <a href="https://ds-ai-manager.com" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">ds-ai-manager.com</a>
+              <a href="https://salwaeljaouhari.art" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">salwaeljaouhari.art</a>
             </div>
           </div>
           
@@ -38,7 +39,7 @@ export function Footer() {
         <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© 2026 Mohamed Mehdi Jabry</p>
           <p>Built with Next.js + Supabase + Resend</p>
-          <p>Source on GitHub</p>
+          <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Source on GitHub</a>
         </div>
       </div>
     </footer>
