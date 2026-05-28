@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Mehdi Jabry Independent Web Studio
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: quote
+    description: Quote request operations
+  - name: contact
+    description: Contact form operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /quote:
+    post:
+      operationId: submitQuote
+      tags: [quote]
+      summary: Submit a quote request
+      description: Store quote in database and send emails via Resend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Quote submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit a contact form
+      description: Store contact message and send email notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Contact message submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +103,91 @@ components:
       required:
         - status
 
+    QuoteInput:
+      type: object
+      required:
+        - projectType
+        - timeline
+        - addons
+        - name
+        - email
+        - projectBrief
+        - preferredCurrency
+      properties:
+        projectType:
+          type: string
+          enum: [landing, showcase, booking, app]
+        timeline:
+          type: string
+          enum: [standard, express, rush]
+        addons:
+          type: array
+          items:
+            type: string
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        company:
+          type: ["string", "null"]
+        existingUrl:
+          type: ["string", "null"]
+        projectBrief:
+          type: string
+          minLength: 1
+          maxLength: 500
+        deadline:
+          type: ["string", "null"]
+        preferredCurrency:
+          type: string
+          enum: [CAD, USD, EUR, GBP]
+        source:
+          type: ["string", "null"]
+
+    QuoteResponse:
+      type: object
+      required:
+        - quoteNumber
+        - totalUSD
+      properties:
+        quoteNumber:
+          type: string
+        totalUSD:
+          type: number
+
+    ContactInput:
+      type: object
+      required:
+        - name
+        - email
+        - message
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        message:
+          type: string
+          minLength: 1
+        source:
+          type: ["string", "null"]
+
+    ContactResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string

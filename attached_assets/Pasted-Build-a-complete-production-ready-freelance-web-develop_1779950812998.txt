@@ -1,0 +1,882 @@
+Build a complete production-ready freelance web developer portfolio site
+for "Mehdi Jabry — Independent Web Studio" based in Montréal, Québec.
+
+═══════════════════════════════════════════════════════════════════════
+STACK & ARCHITECTURE — STRICT REQUIREMENTS
+═══════════════════════════════════════════════════════════════════════
+
+- Framework: Next.js 14+ with App Router (NOT Pages Router)
+- Language: TypeScript strict mode
+- Styling: Tailwind CSS v3
+- Components: shadcn/ui (install: Button, Card, Input, Textarea, Select,
+  RadioGroup, Checkbox, Accordion, Tabs, Toast, Dialog, Label,
+  Form)
+- Forms: react-hook-form + zod for validation
+- Animation: framer-motion (subtle fade-in on scroll only)
+- Database: Supabase (postgres) via @supabase/supabase-js
+- Email: Resend via resend package
+- Analytics: Plausible (script tag, cookieless)
+- Fonts (load via next/font/google in app/layout.tsx):
+  - 'EB Garamond' (subsets: ['latin'], style: ['normal', 'italic'],
+    weight: ['400', '500', '600'], variable: '--font-serif')
+  - 'Inter' (subsets: ['latin'], weight: ['400', '500', '600', '700'],
+    variable: '--font-sans')
+  - 'JetBrains Mono' (subsets: ['latin'], weight: ['400', '500'],
+    variable: '--font-mono')
+  Map them in tailwind.config.ts theme.extend.fontFamily:
+    serif: ['var(--font-serif)', 'serif']
+    sans: ['var(--font-sans)', 'system-ui']
+    mono: ['var(--font-mono)', 'monospace')
+- Package manager: npm
+- Node version: 20.x
+
+═══════════════════════════════════════════════════════════════════════
+PROJECT STRUCTURE
+═══════════════════════════════════════════════════════════════════════
+
+/
+├── app/
+│   ├── layout.tsx              (root layout with fonts + nav + footer)
+│   ├── page.tsx                (home one-page with anchored sections)
+│   ├── globals.css             (Tailwind + custom CSS variables)
+│   ├── work/page.tsx           (portfolio detailed case studies)
+│   ├── pricing/page.tsx        (pricing tiers + comparison)
+│   ├── start/page.tsx          (quote configurator - interactive)
+│   ├── about/page.tsx          (founder bio)
+│   ├── thanks/page.tsx         (post-submit confirmation)
+│   ├── legal/page.tsx          (legal mentions + privacy)
+│   └── api/
+│       ├── quote/route.ts      (POST: store quote in Supabase + send Resend emails)
+│       └── contact/route.ts    (POST: simple contact form handler)
+├── components/
+│   ├── ui/                     (shadcn components)
+│   ├── nav.tsx
+│   ├── footer.tsx
+│   ├── hero.tsx
+│   ├── trust-bar.tsx
+│   ├── process.tsx
+│   ├── featured-work.tsx
+│   ├── pricing-cards.tsx
+│   ├── faq.tsx
+│   ├── final-cta.tsx
+│   └── quote-configurator/
+│       ├── index.tsx           (main wrapper, state management)
+│       ├── step-project.tsx
+│       ├── step-timeline.tsx
+│       ├── step-addons.tsx
+│       ├── step-contact.tsx
+│       ├── step-review.tsx
+│       └── price-panel.tsx     (sticky pricing display)
+├── lib/
+│   ├── supabase.ts             (Supabase client - server + browser variants)
+│   ├── resend.ts               (Resend client)
+│   ├── pricing.ts              (pricing logic + calculations + types)
+│   └── utils.ts                (cn helper, formatters)
+├── public/
+│   ├── og.png                  (Open Graph image, generate placeholder for now)
+│   └── favicon.ico
+├── .env.local.example          (template with all required env vars)
+├── .gitignore                  (standard Next.js + .env.local)
+├── tailwind.config.ts
+├── tsconfig.json
+├── next.config.js
+├── package.json
+└── README.md                   (setup instructions)
+
+═══════════════════════════════════════════════════════════════════════
+DESIGN SYSTEM
+═══════════════════════════════════════════════════════════════════════
+
+Visual tone: PREMIUM EDITORIAL, DARK-MODE FIRST, SOPHISTICATED.
+Inspired by ds-ai-manager.com (the founder's other product). Elegant
+serif headings, deep black background, warm gold accent. Anti-startup
+clichés — this is a craft-oriented studio, not a SaaS landing.
+
+Colors (CSS vars in globals.css, DARK MODE IS DEFAULT):
+
+  Dark mode (default — applied to <html>):
+    --color-bg: #0A0A0A          (deep black, ds-ai-manager-style)
+    --color-bg-elevated: #141414  (cards, elevated surfaces)
+    --color-fg: #F5F5F0           (warm off-white text)
+    --color-muted: #8A8A85        (muted gray-warm for secondary text)
+    --color-accent: #D4A464       (warm gold — for CTAs, highlights, hover)
+    --color-accent-hover: #E0B584
+    --color-border: #2A2A28       (very subtle warm-tinted border)
+
+  Light mode (optional toggle):
+    --color-bg: #FAFAF7
+    --color-fg: #0A0A0A
+    --color-muted: #6A6A66
+    --color-accent: #B89154       (slightly deeper gold for contrast on light)
+    --color-border: #E8E5DD
+
+Dark mode is DEFAULT. Toggle in nav allows light mode. Use Tailwind's
+dark: variant inverted: `class="bg-zinc-50 dark:bg-[#0A0A0A]"` etc.
+Detect dark mode via `<html class="dark">` on initial load.
+
+Typography:
+  - HEADINGS (h1, h2, hero text): 'EB Garamond' from next/font/google
+    weight 400-600. Italic variant available for emphasis.
+    Use SERIF feel — elegant, editorial, NOT monospace.
+  - SECTION HEADERS (small caps labels): 'Inter' uppercase
+    tracking-widest text-xs text-muted (style: "FOUNDER",
+    "HOW IT WORKS", "PRICING — TRANSPARENT")
+  - BODY TEXT: 'Inter' from next/font/google, regular weight
+  - CODE / NUMERIC values: 'JetBrains Mono' (for tech stack logos,
+    code blocks, the env vars in legal page)
+  - Hero H1: text-5xl md:text-7xl font-serif font-medium leading-[1.1]
+    Add italic on one key word (e.g., "shipped" or "72 hours") to
+    echo ds-ai-manager.com's "powered by AI." styling
+  - Letter-spacing: tracking-tight on headings, tracking-widest on
+    uppercase labels
+
+Logo (top-left of nav):
+  - Use simple typographic logo for now: "Mehdi Jabry" in EB Garamond
+    medium, with a small gold dot or accent
+  - Below: small uppercase "INDEPENDENT WEB STUDIO" in Inter
+    tracking-widest text-xs text-muted
+  - Mehdi will replace with custom emblem later
+
+Layout:
+  - max-w-6xl mx-auto px-6 lg:px-8
+  - Section spacing: py-24 md:py-32 (generous, editorial-magazine feel)
+  - Generous whitespace, NO box-shadows, NO heavy borders
+  - Use very subtle gold-tinted borders (--color-border) for separation
+  - Smooth scroll behavior
+  - Tag-style chips for badges: "CLAUDE AI · 13 SPECIALIZED SKILLS"
+    style — uppercase, letter-spaced, subtle border
+
+Animations (minimal but elegant):
+  - Fade-in + slight translate-y on scroll (framer-motion useInView)
+  - Hover: accent gold underline appears on links (animated width)
+  - Hover scale 1.01 on cards (very subtle)
+  - NO carousels, NO parallax, NO floating elements
+  - Buttons: subtle bg-accent → bg-accent-hover transition on hover
+
+═══════════════════════════════════════════════════════════════════════
+PAGE CONTENT — VERBATIM (do not paraphrase, keep the voice)
+═══════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────
+NAV (top, sticky, dark bg with subtle bottom border, backdrop-blur)
+────────────────────────────────────────
+Left: Logo "Mehdi Jabry" in EB Garamond medium with a small gold
+      dot/period after (e.g., "Mehdi Jabry.") in --color-accent
+      Below logo on hover or as subtitle: "INDEPENDENT WEB STUDIO"
+      tracking-widest text-xs text-muted
+
+Right (desktop): Work · Pricing · About · [Try a quote →] (gold button)
+Right (mobile): hamburger menu (Dialog from shadcn)
+
+Style: sticky top-0 z-50 bg-[--color-bg]/80 backdrop-blur-md
+       border-b border-[--color-border]
+       transition height on scroll (shrink slightly when scrolled)
+
+Add: dark/light mode toggle (small icon, sun/moon, in nav right)
+
+────────────────────────────────────────
+FOOTER
+────────────────────────────────────────
+3 columns on desktop, stacked on mobile:
+
+Col 1 — Site:
+  Work
+  Pricing
+  About
+  Legal & Privacy
+
+Col 2 — Connect:
+  LinkedIn: https://www.linkedin.com/in/mehdijabry/
+  GitHub: https://github.com/mehdijabry (TODO)
+  Twitter / X: (placeholder)
+  Other project: ds-ai-manager.com
+
+Col 3 — Contact:
+  hi@mehdijabry.dev
+  Book a 15-min call (Calendly link)
+  Montréal, QC · Canada
+
+Bottom: © 2026 Mohamed Mehdi Jabry · Built with Next.js + Supabase + Resend · Source on GitHub
+
+────────────────────────────────────────
+PAGE: / (HOME)
+────────────────────────────────────────
+
+[Hero Section]
+Above the H1, small uppercase chip:
+  [INDEPENDENT WEB STUDIO · MONTRÉAL]
+  (style: tag/chip with subtle gold border, tracking-widest, text-xs)
+
+H1 (text-5xl md:text-7xl, font-serif font-medium leading-[1.05]):
+  Production-ready websites,
+  <i class="font-italic">shipped in 72 hours.</i>
+
+(Note: "shipped in 72 hours." should be styled in italic to echo
+ds-ai-manager.com's "powered by AI." treatment. Use <em> tag or
+italic class. Slight letter-spacing adjustment on the italic line.)
+
+Subtitle (text-lg md:text-xl text-muted, max-w-2xl):
+  Custom code. No subscription. No templates. From $1,290 CAD.
+
+CTAs (gap-4, stack on mobile):
+  Primary (gold accent button): "Try a quote →" → /start
+    Style: bg-accent text-bg, hover:bg-accent-hover, px-6 py-3,
+    rounded-md, font-medium
+  Secondary (ghost button with underline animation): "See my work" → #work
+    Style: text-fg, underline-offset-4, hover:text-accent
+
+[Trust Bar]
+Small section under hero (mt-16 mb-24), subtle border-t border-b
+with --color-border, py-12.
+
+Small label (text-xs uppercase tracking-widest text-muted, centered):
+"BUILT WITH THE SAME STACK I TRUST IN PRODUCTION"
+
+Below, horizontal flex (gap-8, wrap on mobile), centered:
+Display each tech name in font-mono text-sm with subtle separator:
+  next.js · supabase · stripe · resend · render
+
+Then below the row of tech names, centered (mt-8):
+"See an example I shipped — ds-ai-manager.com →"
+Link styled with gold accent underline animation on hover.
+
+[Process — HOW IT WORKS section]
+Section header: HOW IT WORKS
+
+3-column grid (1 column mobile):
+
+  DAY 0 — BRIEF
+  30-minute call. I capture the scope,
+  deadlines, and required assets.
+
+  DAY 1-2 — BUILD
+  Custom Next.js + Supabase code.
+  I share progress on Day 1 evening.
+
+  DAY 3 — SHIP
+  Live on your domain. Source code
+  transferred to your GitHub.
+
+[Featured Work — id="work"]
+Section header: SELECTED WORK
+
+3 cards in a 3-column grid (1 col mobile, 2 col tablet):
+
+Card 1 — DS AI Manager
+  Tagline: "AI agent for serious marketers — 13 specialised skills"
+  Stack: "Next.js · TypeScript · Supabase · Stripe"
+  → ds-ai-manager.com
+
+Card 2 — [Placeholder: Mehdi will fill]
+  Use generic "Project name" + filler text for now.
+
+Card 3 — [Placeholder]
+
+Each card: hover lifts slightly (scale 1.02), border-gold (--color-accent) on hover.
+
+[Pricing teaser]
+Section header: PRICING — TRANSPARENT
+
+3-column card grid, prices in CAD by default (Mehdi is in Québec):
+
+  LAUNCHPAD               STUDIO (recommended)        SIGNATURE
+  $1,290 CAD              $2,490 CAD                  $4,990 CAD
+  Landing page            Showcase site (3-5 pages)   Custom site or mini-app
+  72-hour delivery        5-7 day delivery            10-14 day delivery
+  ✓ Custom Next.js code   ✓ All Launchpad             ✓ All Studio
+  ✓ Mobile-responsive     ✓ 3-5 pages                 ✓ Booking system
+  ✓ Resend form           ✓ Supabase form            ✓ Stripe integration
+  ✓ 1 revision round      ✓ 2 revision rounds         ✓ 3 revision rounds
+                          ✓ SEO setup                 ✓ 30 days post-launch support
+                          ✓ Plausible analytics
+
+Bottom CTA: "Configure your quote →" → /start
+
+Add a small currency switcher at the top of the section :
+  Display in: [CAD ▾] USD · EUR · GBP
+Conversion rates hardcoded for now (May 2026):
+  CAD ↔ USD: 0.74
+  CAD ↔ EUR: 0.67
+  CAD ↔ GBP: 0.58
+
+[About teaser]
+Section header: ABOUT
+
+4 lines:
+"I'm Mohamed Mehdi Jabry. 35. Based in Montréal.
+3 master's degrees (Business · Brand Marketing · Project Management)
+and 10+ years building digital products end-to-end.
+I build websites the way I'd want one built for myself —
+fast, custom, no subscription trap, source code yours from day one."
+
+→ Link "More about me" → /about
+
+[FAQ]
+Section header: FAQ
+
+Use shadcn Accordion. 8 items:
+
+1. What's actually included in the 72-hour delivery?
+   72 hours covers Launchpad tier (1-page landing). The timer starts
+   the moment I have your deposit AND all required assets (copy,
+   images, domain access, brief). Studio and Signature tiers take
+   5-7 days and 10-14 days respectively. Live on your domain at
+   the end, source code transferred to your GitHub.
+
+2. Do I own the code?
+   Yes. Source code is transferred to your GitHub repository on the
+   day of delivery. You can host it anywhere, modify it, hire any
+   other developer to maintain it. No vendor lock-in, ever.
+
+3. What if you miss the deadline?
+   I guarantee it in writing. Miss Day 3 on Launchpad and the
+   project is reduced by 50%. Miss the deadline on Studio or
+   Signature and it's reduced by 25%. The clock starts when I have
+   all your assets — client delays shift D0 by the same amount.
+
+4. Can I host the site myself instead of using Render?
+   Absolutely. I can deploy to Vercel, Render, your own VPS,
+   anything Node-compatible. The code is portable.
+
+5. Do you do logo design and copywriting?
+   Logo: optional add-on (typographic, simple — $250). Anything more
+   complex, I'll refer you to a designer I trust.
+   Copywriting: I can write it (+$400 add-on) or you provide it.
+   Either way, the brief call sets the tone.
+
+6. Do you do e-commerce (Shopify)?
+   Only on the Signature tier and only as a custom quote. Shopify
+   theme customization is fine; full custom Shopify dev requires
+   more than 14 days for a serious build.
+
+7. What payment methods do you accept?
+   Stripe (cards CAD/USD/EUR/GBP) and Wise (bank transfer with
+   local accounts in UK/US/EU/CA). 50% on order, 50% on delivery.
+
+8. Do you sign NDAs?
+   Yes. Mutual NDA template available on request — happy to sign
+   yours if reasonable.
+
+[Final CTA — id="contact"]
+Section header: READY TO SHIP?
+
+Two large buttons side by side (stack on mobile):
+  "→ Configure your quote" (gold (--color-accent) primary, large)
+     Subtitle: "5 minutes · Instant pricing"
+
+  "→ Book a 15-min discovery call" (ghost button)
+     Subtitle: "Calendly · Same-week availability"
+
+────────────────────────────────────────
+PAGE: /work
+────────────────────────────────────────
+
+H1: SELECTED WORK
+Subtitle: "Projects I've shipped end-to-end. More on GitHub."
+
+Then 3-6 case study sections stacked vertically. Each :
+
+  [Project name]
+  [1-line tagline]
+
+  WHAT I BUILT
+  2-3 paragraphs describing the project (placeholder lorem ipsum
+  for projects 2-3, but write real content for DS AI Manager).
+
+  STACK
+  Next.js · TypeScript · Supabase · Stripe · Resend
+
+  TIMELINE / INVESTMENT
+  Delivered in [X] days · [Tier]
+
+  HIGHLIGHTS
+  - Bullet 1
+  - Bullet 2
+  - Bullet 3
+
+  [Visit live →] [Code on GitHub →]
+
+  ────── (separator)
+
+For DS AI Manager specifically use REAL CONTENT:
+  Tagline: "AI agent for serious marketers — 13 specialised skills"
+  What I built: "DS AI Manager is a production AI agent system that
+  produces marketing deliverables (articles, social posts, email
+  sequences, market research) with brand discipline, source
+  validation, and quality control. It packages 13 specialised skills
+  into one coherent system, each enforcing my background in Business,
+  Brand Marketing, and Project Management."
+  Stack: Next.js · TypeScript · Tailwind · Supabase
+  Visit: ds-ai-manager.com
+
+────────────────────────────────────────
+PAGE: /pricing
+────────────────────────────────────────
+
+H1: PRICING — Transparent. Predictable. No surprises.
+
+3 large pricing cards (similar to home pricing teaser but more
+detailed). Then below:
+
+Section: ADD-ONS
+Table with the 10 add-ons listed in lib/pricing.ts
+
+Section: WHY FIXED PRICE?
+3 short paragraphs:
+
+  TIME IS NOT THE PRODUCT.
+  Most freelancers bill hourly. You pay for slow days. With fixed
+  price, the only person who pays for inefficiency is me — which
+  is why I work fast.
+
+  YOU KNOW THE BUDGET BEFORE WE START.
+  No "scope creep" surprises, no "this will take 2 more weeks"
+  conversations. The price is the price.
+
+  YOU OWN THE CODE.
+  Fixed-price projects ship with full GitHub transfer at delivery.
+  You're never trapped in a maintenance contract.
+
+Section: COMPARISON
+Table comparing Me · Agency · DesignJoy · Awesomic on price,
+speed, custom code, one-off vs subscription.
+
+Final CTA: "→ Configure your quote" (gold (--color-accent) button) → /start
+
+────────────────────────────────────────
+PAGE: /start — QUOTE CONFIGURATOR (CRITICAL)
+────────────────────────────────────────
+
+Multi-step form with REAL-TIME PRICE CALCULATION in a sticky panel.
+
+Layout:
+  - Desktop: form 70% left, sticky price panel 30% right
+  - Mobile: form full-width, price panel sticky bottom
+
+Use react-hook-form + zod for validation. State managed in parent
+component (no external state lib needed).
+
+STEP 1 — What are you building?
+Radio cards (4 options). On select, base price updates immediately.
+
+  ○ Landing page (1 page)             Base: $990 USD
+  ○ Showcase site (3-5 pages)         Base: $1,890 USD
+  ○ Site with booking/forms (5+)      Base: $2,790 USD
+  ○ Mini-app or custom (login/dash)   Base: $3,790 USD
+
+STEP 2 — How urgent?
+Radio cards (3 options). Updates surcharge multiplier.
+
+  ○ Standard timeline (72h to 14d)    Included
+  ○ Express (-2 days)                 +30%
+  ○ Rush (50% faster)                 +50% (subject to availability)
+
+STEP 3 — Add-ons
+Checkboxes. Each toggles its price into total.
+
+  □ Copywriting included (FR or EN)      +$400
+  □ Additional language                  +$320 per lang
+  □ Stripe payment integration           +$320
+  □ Migration from existing platform     +$250
+  □ Logo (typographic, simple)           +$250
+  □ Curated stock photos (10-20)         +$120
+  □ Resend transactional emails setup    +$250
+  □ 1h training for content updates      +$120
+  □ Monthly maintenance retainer         +$129/mo (separate billing)
+
+STEP 4 — Tell me about your project
+  - Your name *
+  - Email * (validate format)
+  - Company / handle / brand (optional)
+  - Existing website URL (optional)
+  - What's the project about? * (textarea, 500 chars max)
+  - Deadline (optional date picker)
+  - Preferred currency: [CAD ▾] (USD/EUR/GBP)
+  - How did you find me? (select: Cold email · LinkedIn · Twitter · Referral · Google · Other)
+
+STEP 5 — Review & submit
+Recap card showing all selections + final total in preferred currency.
+"Submit request →" button (gold (--color-accent), large).
+
+STICKY PRICE PANEL (right desktop / bottom mobile):
+Shows :
+  TIER LABEL
+  Base price + add-ons breakdown
+  Surcharge if Express/Rush
+  ─────────
+  TOTAL: $X,XXX [currency]
+  
+  Estimated delivery: [X] days
+  Currency: [selector]
+
+On submit:
+1. Validate all fields (zod schema)
+2. POST to /api/quote with the form data
+3. /api/quote :
+   - Generate quote_number via Supabase function
+   - INSERT into quote_requests table
+   - Send 2 Resend emails (to lead + to Mehdi)
+4. On success, router.push(`/thanks?quote=${quote_number}`)
+5. Show toast on error if any
+
+────────────────────────────────────────
+PAGE: /thanks
+────────────────────────────────────────
+
+Read `quote` query param.
+
+Display:
+  H1: Thanks!
+  
+  Your quote request [QUOTE-NUMBER] has been received.
+  
+  I'll get back to you within 4 hours during weekdays
+  (8am-8pm Eastern Time, Montréal).
+  
+  In the meantime, you can also book a 15-min discovery
+  call directly:
+  
+  [Calendly inline embed using src from NEXT_PUBLIC_CALENDLY_URL]
+  
+  → Or go back to home
+
+────────────────────────────────────────
+PAGE: /about
+────────────────────────────────────────
+
+Reuse the structure of ds-ai-manager.com/about, but content
+focused on web dev :
+
+H1: FOUNDER
+
+About me
+
+The developer who ships in 72 hours.
+
+Mohamed Mehdi Jabry
+Founder · Independent Web Studio
+
+I'm Mohamed Mehdi Jabry, 35. Based in Montréal.
+
+My background is unusual for a developer — 3 master's degrees in
+Business Management, Brand Marketing, and Project Management. That
+combination matters: it's why I can scope a project precisely,
+deliver on time, and ship sites that actually convert — not just
+sites that look good.
+
+I've spent 10+ years building digital products end-to-end. The
+common thread: a frustration with how slow most agencies are, and
+how generic most freelance work is. Agencies take 6 weeks. Freelance
+gigs ship templates. There had to be a middle path.
+
+That middle path is what I do now: production-ready custom websites,
+shipped in 72 hours, fixed price.
+
+I use AI as a co-pilot — not as a replacement for craft. Next.js for
+the frontend, Supabase for the database, Resend for email, Render
+for deployment. Same stack I'd recommend to a senior dev hire.
+
+I also build other products — see ds-ai-manager.com, an AI agent for
+serious marketers. Same philosophy: rigorous, on-brand, no shortcuts.
+
+Founder · Independent Web Studio · MBA Brand Marketing · MSc Business · MSc Project Mgmt
+
+[Section] HOW MY BACKGROUND MAPS TO YOUR WEBSITE
+
+📊 Master's in Business Management
+   → I understand what your site actually needs to do for your
+     business (lead capture, demos booked, signups, sales).
+
+🎯 MBA in Brand Marketing
+   → I treat your visual identity, tone, and positioning as
+     coherent — not as decoration applied on top of code.
+
+⚙️ Master's in Project Management
+   → 72-hour deliveries don't happen by accident. They happen
+     because the brief is precise and the workflow is engineered.
+
+The result: a website that ships fast, looks built (not generated),
+and actually moves a metric.
+
+— Mohamed Mehdi Jabry, Founder
+
+[Section] CONNECT
+
+  → LinkedIn (https://www.linkedin.com/in/mehdijabry/)
+  → GitHub (placeholder, Mehdi will fill)
+  → Twitter / X (placeholder)
+  → Email (mailto:hi@mehdijabry.dev)
+  → Other project: ds-ai-manager.com
+
+────────────────────────────────────────
+PAGE: /legal
+────────────────────────────────────────
+
+H1: LEGAL & PRIVACY
+
+Operator
+  Mohamed Mehdi Jabry, Travailleur autonome
+  Montréal, Québec, Canada
+  Contact : hi@mehdijabry.dev
+
+Hosting
+  Render Inc. (San Francisco, USA) - render.com
+  Database: Supabase (data center in EU)
+
+Taxes
+  TPS / TVQ not applicable (under 30,000 CAD annual revenue threshold).
+  No tax added to invoices until threshold reached.
+
+Privacy
+  This site stores form submissions (name, email, project details)
+  in Supabase to follow up on your inquiry. Data is never sold,
+  shared, or used for purposes other than responding to your
+  request. Form data is retained for 24 months then deleted.
+
+  You can request deletion of your data anytime by emailing
+  hi@mehdijabry.dev.
+
+Analytics
+  This site uses Plausible Analytics (plausible.io), a
+  privacy-respecting alternative to Google Analytics. No cookies are
+  set, no personal data is collected, and no information is shared
+  with third parties.
+
+Cookies
+  This site sets no tracking cookies. Only essential session cookies
+  may be used during form submission and discarded after.
+
+═══════════════════════════════════════════════════════════════════════
+PRICING LOGIC (lib/pricing.ts)
+═══════════════════════════════════════════════════════════════════════
+
+Export typed constants:
+
+export const PROJECT_TYPES = {
+  landing:  { label: 'Landing page (1 page)',             baseUSD: 990 },
+  showcase: { label: 'Showcase site (3-5 pages)',         baseUSD: 1890 },
+  booking:  { label: 'Site with booking/forms (5+)',      baseUSD: 2790 },
+  app:      { label: 'Mini-app or custom (login/dash)',   baseUSD: 3790 }
+} as const
+
+export const TIMELINES = {
+  standard: { label: 'Standard (72h to 14 days)', multiplier: 1.0 },
+  express:  { label: 'Express (-2 days)',         multiplier: 1.3 },
+  rush:     { label: 'Rush (50% faster)',         multiplier: 1.5 }
+} as const
+
+export const ADDONS = {
+  copywriting:    { label: 'Copywriting included (FR or EN)',   usd: 400 },
+  language:       { label: 'Additional language',               usd: 320 },
+  stripe:         { label: 'Stripe payment integration',         usd: 320 },
+  migration:      { label: 'Migration from existing platform',   usd: 250 },
+  logo:           { label: 'Logo (typographic, simple)',         usd: 250 },
+  photos:         { label: 'Curated stock photos (10-20)',       usd: 120 },
+  resend:         { label: 'Resend transactional emails setup',  usd: 250 },
+  training:       { label: '1h training for content updates',    usd: 120 },
+  maintenance:    { label: 'Monthly maintenance retainer',       usd: 129, recurring: true }
+} as const
+
+export const CURRENCIES = {
+  CAD: { symbol: 'CAD', rate: 1.36 },   // 1 USD = 1.36 CAD
+  USD: { symbol: 'USD', rate: 1.00 },
+  EUR: { symbol: 'EUR', rate: 0.92 },
+  GBP: { symbol: 'GBP', rate: 0.79 }
+} as const
+
+export function calculateQuote(
+  projectType: ProjectType,
+  timeline: Timeline,
+  addonKeys: AddonKey[]
+): { baseUSD: number; addonsUSD: number; subtotalUSD: number; totalUSD: number; recurringUSD: number } {
+  const base = PROJECT_TYPES[projectType].baseUSD
+  const oneOffAddons = addonKeys
+    .filter(k => !ADDONS[k].recurring)
+    .reduce((sum, k) => sum + ADDONS[k].usd, 0)
+  const recurring = addonKeys
+    .filter(k => ADDONS[k].recurring)
+    .reduce((sum, k) => sum + ADDONS[k].usd, 0)
+  const subtotal = base + oneOffAddons
+  const total = subtotal * TIMELINES[timeline].multiplier
+  return { baseUSD: base, addonsUSD: oneOffAddons, subtotalUSD: subtotal, totalUSD: total, recurringUSD: recurring }
+}
+
+export function convertCurrency(amountUSD: number, currency: Currency): number {
+  return Math.round(amountUSD * CURRENCIES[currency].rate)
+}
+
+═══════════════════════════════════════════════════════════════════════
+API ROUTES
+═══════════════════════════════════════════════════════════════════════
+
+/app/api/quote/route.ts (POST):
+  1. Validate request body with zod schema (same as form schema)
+  2. Calculate quote total server-side (NEVER trust client price)
+  3. Call Supabase RPC `generate_quote_number()` to get next quote #
+  4. INSERT into quote_requests with all fields + generated quote_number
+  5. Send 2 emails via Resend:
+     a. Confirmation to lead (use HTML template, professional, signed Mehdi)
+     b. Notification to Mehdi at RESEND_TO_EMAIL with quote details
+  6. Return { quoteNumber, totalUSD } or { error } with 4xx/5xx
+
+/app/api/contact/route.ts (POST):
+  Simpler version for direct contact (if you add a contact widget).
+  Just store + send email.
+
+═══════════════════════════════════════════════════════════════════════
+SUPABASE SETUP — IN README.md, INCLUDE THIS SQL
+═══════════════════════════════════════════════════════════════════════
+
+-- Run this in Supabase SQL Editor to set up the database schema:
+
+CREATE TABLE quote_requests (
+  id              SERIAL PRIMARY KEY,
+  quote_number    TEXT UNIQUE NOT NULL,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  project_type    TEXT NOT NULL,
+  timeline        TEXT NOT NULL,
+  addons          JSONB DEFAULT '[]'::jsonb,
+  base_price_usd  NUMERIC(10,2) NOT NULL,
+  total_usd       NUMERIC(10,2) NOT NULL,
+  preferred_currency TEXT DEFAULT 'CAD',
+  name            TEXT NOT NULL,
+  email           TEXT NOT NULL,
+  company         TEXT,
+  existing_url    TEXT,
+  project_brief   TEXT,
+  deadline        DATE,
+  source          TEXT,
+  status          TEXT DEFAULT 'new',
+  notes           TEXT
+);
+
+CREATE INDEX idx_quote_email ON quote_requests(email);
+CREATE INDEX idx_quote_created ON quote_requests(created_at DESC);
+
+CREATE TABLE contact_form (
+  id          SERIAL PRIMARY KEY,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  source      TEXT
+);
+
+CREATE OR REPLACE FUNCTION generate_quote_number()
+RETURNS TEXT AS $$
+DECLARE
+  next_num INT;
+  year_part TEXT;
+BEGIN
+  year_part := 'M' || EXTRACT(YEAR FROM NOW())::TEXT || '-';
+  SELECT COALESCE(MAX(CAST(SUBSTRING(quote_number FROM '\d+$') AS INT)), 0) + 1
+    INTO next_num FROM quote_requests
+    WHERE quote_number LIKE year_part || '%';
+  RETURN year_part || LPAD(next_num::TEXT, 3, '0');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Enable Row Level Security (RLS) for safety:
+ALTER TABLE quote_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_form ENABLE ROW LEVEL SECURITY;
+
+-- Allow insert from authenticated server (using service_role key):
+CREATE POLICY "Service role can insert" ON quote_requests
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Service role can insert" ON contact_form
+  FOR INSERT WITH CHECK (true);
+
+═══════════════════════════════════════════════════════════════════════
+ENVIRONMENT VARIABLES (.env.local.example)
+═══════════════════════════════════════════════════════════════════════
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+
+# Resend
+RESEND_API_KEY=re_YOUR_API_KEY
+RESEND_FROM_EMAIL=hi@mehdijabry.dev
+RESEND_TO_EMAIL=hi@mehdijabry.dev
+
+# Site
+NEXT_PUBLIC_SITE_URL=https://mehdijabry.dev
+NEXT_PUBLIC_CALENDLY_URL=https://calendly.com/mehdijabry/discovery
+
+# Analytics (Plausible)
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN=mehdijabry.dev
+
+═══════════════════════════════════════════════════════════════════════
+README.md REQUIREMENTS
+═══════════════════════════════════════════════════════════════════════
+
+Generate a complete README.md that includes:
+
+1. Project description (2-3 lines)
+2. Stack used
+3. Local dev setup:
+   - clone repo
+   - npm install
+   - copy .env.local.example to .env.local and fill values
+   - npm run dev
+4. Supabase setup (the SQL above)
+5. Resend setup (add and verify domain mehdijabry.dev)
+6. Plausible setup (add domain in Plausible dashboard)
+7. Deployment to Render:
+   - connect GitHub repo
+   - add env vars in Render dashboard
+   - set build command: npm run build
+   - set start command: npm start
+   - set node version 20.x
+8. DNS configuration:
+   - in Porkbun, add CNAME pointing mehdijabry.dev to Render's URL
+   - or A record to Render's IP
+9. License: MIT (or Mehdi can change)
+
+═══════════════════════════════════════════════════════════════════════
+DEFINITION OF DONE — DO NOT STOP UNTIL ALL ARE TRUE
+═══════════════════════════════════════════════════════════════════════
+
+[ ] All 7 pages exist and render without errors
+[ ] All 8 shadcn components are installed and used correctly
+[ ] /start configurator updates price in real-time as user clicks
+[ ] /start submission writes to Supabase AND sends 2 Resend emails
+[ ] Form validation works (zod + react-hook-form, error messages shown)
+[ ] /thanks displays the quote_number from URL param
+[ ] Currency switcher on /pricing works (4 currencies)
+[ ] Dark mode toggle in nav works
+[ ] Mobile responsive (test at 375px, 768px, 1024px, 1440px)
+[ ] All env vars are read from process.env (no hardcoded keys)
+[ ] .gitignore excludes .env.local, node_modules, .next
+[ ] README.md is complete with setup instructions
+[ ] No TypeScript errors (npm run build succeeds)
+[ ] Plausible script tag in root layout (with NEXT_PUBLIC_PLAUSIBLE_DOMAIN)
+[ ] Lighthouse score ≥ 95 on home page
+
+After building, run `npm run build` to confirm zero errors.
+
+═══════════════════════════════════════════════════════════════════════
+TONE & WRITING RULES — STRICT
+═══════════════════════════════════════════════════════════════════════
+
+- First person ("I build", "I deliver", NOT "we" or "our team")
+- Em-dashes (—) for rhythm, used sparingly
+- Section headers in CAPS with letter-spacing (HOW IT WORKS, PRICING)
+- No agency-speak: NEVER use "synergies", "elevate your brand",
+  "leverage", "drive growth", "best-in-class"
+- Concrete over abstract: "$1,290 CAD, 72h delivery" not "competitive pricing, fast turnaround"
+- Specificity wins: name the technology, name the price, name the day
+- Confidence without arrogance: state facts, no hedging ("typically", "we believe")
+- Empty space is design: don't fill every section with copy
+
+═══════════════════════════════════════════════════════════════════════
+END OF PROMPT — START BUILDING
+═══════════════════════════════════════════════════════════════════════
+
+After scaffolding everything, please :
+1. Confirm the structure matches above
+2. Confirm `npm run build` succeeds
+3. Initialize git with `git init` and create an initial commit
+4. Output instructions for me to connect this Replit to my GitHub
+   account, push the repo, and then deploy on Render.
