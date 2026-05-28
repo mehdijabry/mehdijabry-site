@@ -1,4 +1,9 @@
-import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "node:path";
@@ -41,21 +46,26 @@ app.use(express.urlencoded({ extended: true }));
 //   - artifacts/api-server/dist/index.mjs   (this file's compiled output)
 //   - artifacts/portfolio/dist/             (the Vite static build)
 // So from the compiled api-server, the portfolio dist is at: ../../portfolio/dist
-const portfolioDistPath = path.resolve(__dirname, "../../portfolio/dist");
+const portfolioDistPath = path.resolve(
+  __dirname,
+  "../../portfolio/dist/public",
+);
 const portfolioIndexHtml = path.join(portfolioDistPath, "index.html");
 const hasPortfolioBuild = existsSync(portfolioIndexHtml);
 
 if (hasPortfolioBuild) {
   logger.info({ portfolioDistPath }, "Serving portfolio static build");
-  app.use(express.static(portfolioDistPath, {
-    index: false, // we handle index.html in the catch-all below
-    maxAge: "1d",
-  }));
+  app.use(
+    express.static(portfolioDistPath, {
+      index: false, // we handle index.html in the catch-all below
+      maxAge: "1d",
+    }),
+  );
 } else {
   logger.warn(
     { portfolioDistPath },
     "Portfolio build not found — static serving disabled. " +
-    "Run `pnpm --filter @workspace/portfolio build` before starting in production.",
+      "Run `pnpm --filter @workspace/portfolio build` before starting in production.",
   );
 }
 
