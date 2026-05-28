@@ -27,8 +27,8 @@ export const submitQuoteBodyProjectBriefMax = 500;
 
 
 export const SubmitQuoteBody = zod.object({
-  "projectType": zod.enum(['landing', 'showcase', 'booking', 'app']),
-  "timeline": zod.enum(['standard', 'express', 'rush']),
+  "projectType": zod.enum(['spark', 'vitrine', 'vitrineplus']),
+  "timeline": zod.enum(['standard', 'express']),
   "addons": zod.array(zod.string()),
   "name": zod.string().min(1),
   "email": zod.string().email(),

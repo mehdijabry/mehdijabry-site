@@ -12,5 +12,4 @@ export type QuoteInputTimeline = typeof QuoteInputTimeline[keyof typeof QuoteInp
 export const QuoteInputTimeline = {
   standard: 'standard',
   express: 'express',
-  rush: 'rush',
 } as const;

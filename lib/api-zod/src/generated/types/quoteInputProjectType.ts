@@ -10,8 +10,7 @@ export type QuoteInputProjectType = typeof QuoteInputProjectType[keyof typeof Qu
 
 
 export const QuoteInputProjectType = {
-  landing: 'landing',
-  showcase: 'showcase',
-  booking: 'booking',
-  app: 'app',
+  spark: 'spark',
+  vitrine: 'vitrine',
+  vitrineplus: 'vitrineplus',
 } as const;

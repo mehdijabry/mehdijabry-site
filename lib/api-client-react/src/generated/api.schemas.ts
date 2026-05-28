@@ -13,10 +13,9 @@ export type QuoteInputProjectType = typeof QuoteInputProjectType[keyof typeof Qu
 
 
 export const QuoteInputProjectType = {
-  landing: 'landing',
-  showcase: 'showcase',
-  booking: 'booking',
-  app: 'app',
+  spark: 'spark',
+  vitrine: 'vitrine',
+  vitrineplus: 'vitrineplus',
 } as const;
 
 export type QuoteInputTimeline = typeof QuoteInputTimeline[keyof typeof QuoteInputTimeline];
@@ -25,7 +24,6 @@ export type QuoteInputTimeline = typeof QuoteInputTimeline[keyof typeof QuoteInp
 export const QuoteInputTimeline = {
   standard: 'standard',
   express: 'express',
-  rush: 'rush',
 } as const;
 
 export type QuoteInputPreferredCurrency = typeof QuoteInputPreferredCurrency[keyof typeof QuoteInputPreferredCurrency];

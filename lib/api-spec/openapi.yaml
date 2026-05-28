@@ -116,10 +116,10 @@ components:
       properties:
         projectType:
           type: string
-          enum: [landing, showcase, booking, app]
+          enum: [spark, vitrine, vitrineplus]
         timeline:
           type: string
-          enum: [standard, express, rush]
+          enum: [standard, express]
         addons:
           type: array
           items:

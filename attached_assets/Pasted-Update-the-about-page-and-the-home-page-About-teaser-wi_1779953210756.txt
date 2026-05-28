@@ -1,0 +1,287 @@
+Update the /about page and the home page About teaser with the developed
+biography below. Replace the current generic text completely.
+
+═══════════════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════════════
+
+- app/about/page.tsx     (full About page rewrite)
+- app/page.tsx           (home About teaser short version)
+
+═══════════════════════════════════════════════════════════════════════
+STYLE RULES (UNCHANGED, JUST RESPECT THEM)
+═══════════════════════════════════════════════════════════════════════
+
+- First person ("I'm", "I build", "I learned"). NEVER "we".
+- Em-dashes (—) used as in the source text below. Keep them exactly.
+- Section headers in ALL CAPS with tracking-widest text-muted (small label style).
+- EB Garamond serif for page H1 and major body text.
+- Inter sans-serif for small uppercase labels.
+- Bullets use arrow character "→" not generic dots.
+- Emojis only where shown (📊 🎯 ⚙️ 🤖) — small, used as section anchors.
+- Generous whitespace between sections (mt-16 minimum between major blocks).
+- Dark mode is default — bio reads on #0A0A0A background with #F5F5F0 text.
+- Italic emphasis on key phrases — use the <em> tag where indicated.
+
+═══════════════════════════════════════════════════════════════════════
+NEW /about PAGE CONTENT — REPLACE EVERYTHING
+═══════════════════════════════════════════════════════════════════════
+
+Layout:
+- max-w-3xl mx-auto (slightly narrower than other pages for editorial reading)
+- py-24 md:py-32
+- Generous mt-16 between major sections
+
+Small uppercase label (text-xs tracking-widest text-muted):
+FOUNDER
+
+H1 (font-serif text-4xl md:text-6xl mt-4):
+About me
+
+Subtitle (font-serif text-xl md:text-2xl text-muted mt-2 italic):
+The developer who ships in 72 hours.
+
+Then a mt-12 block:
+
+Name (font-serif text-2xl):
+Mohamed Mehdi Jabry
+
+Role (Inter text-sm uppercase tracking-widest text-muted mt-1):
+FOUNDER · INDEPENDENT WEB STUDIO
+
+(then mt-12 first paragraph)
+
+I'm Mohamed Mehdi Jabry, 35. Based in Montréal, Québec.
+
+(p mt-6)
+
+Three master's degrees: Business Management, Brand Marketing,
+Project Management. None of them in computer science. I learned
+to code the way I learned everything else worth knowing —
+<em>because I needed to ship something, and waiting on someone
+else was no longer an option.</em>
+
+────────── (section break, subtle border-t border-[--color-border])
+
+Small label: MY PATH
+
+(p mt-6)
+
+<strong>2021–2024.</strong> I worked across several industries —
+marketing, operations, consulting. I was looking for the right
+combination of skills to work on what I actually cared about.
+Most of those years were spent learning what I didn't want to do
+as much as what I did.
+
+(p mt-6)
+
+<strong>2023.</strong> I went deep on AI. Not as a user — as an
+operator. Formal training, certifications, hands-on building. The
+pace of the field told me one thing clearly: the gap between what
+AI can do and what businesses actually ship is going to widen.
+The people who can close that gap will be in unusual demand.
+
+(p mt-6)
+
+<strong>2025–now.</strong> I joined Cradly UK as marketing
+consultant. Responsible for social media strategy and AI
+automation: I build custom AI skills aligned to Cradly's brand
+identity and operational workflows. Production AI, not demos —
+agents that ship deliverables a marketer can publish without
+rewriting.
+
+(p mt-6)
+
+<strong>2025.</strong> I launched <a href="https://ds-ai-manager.com"
+class="underline decoration-[--color-accent] underline-offset-4">
+ds-ai-manager.com</a> — a productized AI agent for serious
+marketers. 13 specialised skills, brand-aware, source-validated.
+It's the proof I can package complex AI workflows into a coherent
+product, not just one-off automations.
+
+(p mt-6)
+
+<strong>2026.</strong> I launched this studio. mehdijabry.dev.
+The execution arm of everything above — focused on shipping
+websites: landing pages, showcase sites, and small-team digital
+fronts that go live in days, not weeks.
+
+────────── (section break)
+
+Small label: WHY I LAUNCHED THIS STUDIO
+
+(p mt-6)
+
+I've watched too many small businesses and indie founders get the
+wrong deal:
+
+(ul mt-6, gap-y-3, each item starts with "→  " in --color-accent gold)
+
+→  Pay <strong>$4,000 for a WordPress site delivered in 8 weeks</strong>
+   they could have built themselves in a weekend.
+
+→  Hire "fast freelancers" only to receive Webflow templates
+   with three colors swapped.
+
+→  Sit through a <strong>$500 paid consultation</strong> with a
+   Québec agency before they'll even quote a price.
+
+(p mt-8)
+
+The middle path — fast, custom, transparently priced, ships in days —
+doesn't exist for most clients. <em>That's what this studio is.</em>
+
+────────── (section break)
+
+Small label: HOW I WORK
+
+(ul mt-6, gap-y-4, each starts with "→  " in accent gold,
+text leading-relaxed)
+
+→  <strong>No fuzzy briefs.</strong> No clear brief, no quote.
+   I've lost three deals on this rule. I keep it.
+
+→  <strong>Source code transferred to your GitHub on delivery day.</strong>
+   Not optional. Not a paywall. Not buried in fine print.
+
+→  <strong>No page builders. No Wix. No Squarespace.</strong>
+   Custom React, every time. The code is yours, portable,
+   debuggable, modifiable.
+
+→  <strong>Quality over volume.</strong> I'd rather ship one site
+   this week that actually converts than three sites that look
+   "fine" and don't.
+
+────────── (section break)
+
+Small label: HOW MY BACKGROUND MAPS TO YOUR WEBSITE
+
+(p mt-6 text-muted, small italic)
+I didn't take the standard path to building websites. The detour
+turned out to matter.
+
+(grid mt-8, gap-y-8, each item: large emoji + bold title + arrow + paragraph)
+
+📊  <strong>Master's in Business Management</strong>
+    →  I understand what a website actually has to do for your
+       business: capture leads, book demos, close sales — not
+       just look good.
+
+🎯  <strong>MBA in Brand Marketing</strong>
+    →  I read your brand as a coherent system before I touch the
+       code. Visual identity, tone, positioning — they inform the
+       structure, not the other way around.
+
+⚙️  <strong>Master's in Project Management</strong>
+    →  72-hour deliveries don't happen by accident. They happen
+       because the scope is precise, the workflow is engineered,
+       and the dependencies are mapped before Day 0.
+
+🤖  <strong>AI-accelerated execution (since 2023)</strong>
+    →  I use AI as a senior pair, not as a replacement for craft.
+       It's what lets me ship in days what most agencies ship in
+       weeks — without cutting corners on the parts that matter.
+
+────────── (section break)
+
+Small label: WHERE I'M GOING
+
+(p mt-6)
+
+This studio is the first node of a larger plan:
+
+(ul mt-6, gap-y-4)
+
+→  <strong>Grow to a 2-3 person team</strong> — a designer and a
+   second developer — so I can keep the delivery promise as
+   demand grows.
+
+→  <strong>Specialise vertically.</strong> Right now I serve any
+   small business or indie founder; in 12 months I want to be
+   the obvious choice for one or two specific verticals.
+
+→  <strong>Integrate with ds-ai-manager.</strong> Websites that
+   ship in days, AI automation that runs them — same studio, two
+   products. The same client gets both, or one, or whatever they
+   need.
+
+(p mt-8 italic)
+
+The thread connecting it all: <em>small teams shouldn't have to
+pick between speed and quality, between custom and affordable,
+between "shipped" and "shipped right."</em> I'm building the
+alternative.
+
+(p mt-10 font-serif text-lg, right-aligned or centered)
+— Mohamed Mehdi Jabry, Founder
+
+────────── (section break)
+
+Small label: CONNECT
+
+(grid mt-6, gap-y-3, each is a link with hover gold underline)
+→ <a href="https://www.linkedin.com/in/mehdijabry/">LinkedIn</a>
+→ <a href="[GITHUB_URL placeholder]">GitHub</a>
+→ <a href="[TWITTER_URL placeholder]">Twitter / X</a>
+→ <a href="mailto:hi@mehdijabry.dev">Email</a>
+→ <a href="https://ds-ai-manager.com">Other project: ds-ai-manager.com</a>
+
+═══════════════════════════════════════════════════════════════════════
+NEW HOME PAGE ABOUT TEASER — REPLACE THE CURRENT SHORT BIO
+═══════════════════════════════════════════════════════════════════════
+
+In app/page.tsx, find the About section (small label "ABOUT") and
+replace its body with this shorter teaser version:
+
+Small label: ABOUT
+
+(p font-serif text-lg leading-relaxed mt-4)
+
+I'm Mohamed Mehdi Jabry. 35. Based in Montréal.
+Three master's degrees (Business · Brand Marketing · Project Management),
+hands-on AI training since 2023, and right now I serve as marketing
+consultant at <a href="https://cradly.co.uk">Cradly UK</a> while running
+two products: <a href="https://ds-ai-manager.com">ds-ai-manager.com</a>
+and this studio.
+
+(p mt-4 text-muted)
+
+I build websites the way I'd want one built for myself — fast,
+custom, the code is yours from day one.
+
+(link mt-6, with gold accent arrow)
+→ More about me
+
+═══════════════════════════════════════════════════════════════════════
+SMALL VISUAL TWEAKS
+═══════════════════════════════════════════════════════════════════════
+
+On the /about page :
+- Use <strong> tags for the year markers (2021–2024, 2023, etc.) —
+  render them in slight bolder weight, not gold (gold is for arrows + links only)
+- Keep the section breaks subtle: <hr class="border-[--color-border] my-16"/>
+- All arrows "→" at start of bullets should be in --color-accent (gold)
+- Hover on any external link: animated gold underline (transitions width)
+- Mobile: pad px-6, reduce text sizes proportionally, keep readability
+
+═══════════════════════════════════════════════════════════════════════
+DEFINITION OF DONE
+═══════════════════════════════════════════════════════════════════════
+
+[ ] /about page renders the complete new biography (no lorem ipsum, no leftover placeholder)
+[ ] All <strong>, <em>, and <a> tags render correctly (no raw HTML showing)
+[ ] All 4 emoji + arrow blocks render with the right hierarchy
+[ ] The "MY PATH" section shows 5 dated paragraphs
+[ ] The "WHY I LAUNCHED THIS STUDIO" section shows 3 bullets and the closing italic line
+[ ] The "HOW I WORK" section shows 4 bold-led bullets
+[ ] The "WHERE I'M GOING" section shows 3 bullets and the closing italic line
+[ ] The signature "— Mohamed Mehdi Jabry, Founder" displays at the bottom
+[ ] The CONNECT section has 5 links (LinkedIn, GitHub, Twitter, Email, ds-ai-manager)
+[ ] Home page ABOUT teaser is updated with the shorter new version
+[ ] Dark mode renders correctly (light text on black, gold accents visible)
+[ ] Mobile responsive — readable at 375px width
+[ ] No TypeScript errors after change — npm run build passes
+
+After applying the changes, run `npm run dev` and screenshot both
+the home (About teaser section) and the full /about page so I can
+review the result.
