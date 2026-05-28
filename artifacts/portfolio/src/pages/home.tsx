@@ -97,25 +97,15 @@ export default function Home() {
               </div>
             </a>
             
-            <div className="group block h-full cursor-not-allowed">
-              <div className="border border-border bg-card p-6 h-full flex flex-col gap-4 transition-all duration-300">
-                <h3 className="font-serif text-2xl text-muted-foreground">Project Placeholder</h3>
-                <p className="text-muted-foreground text-sm flex-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <a href="https://salwaeljaouhari.art" target="_blank" rel="noopener noreferrer" className="group block h-full">
+              <div className="border border-border bg-card p-6 h-full flex flex-col gap-4 transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:shadow-lg">
+                <h3 className="font-serif text-2xl group-hover:text-primary transition-colors">Salwa El Jaouhari</h3>
+                <p className="text-muted-foreground text-sm flex-1">Portfolio artistique — peinture, illustration et art contemporain</p>
                 <div className="font-mono text-xs text-muted-foreground mt-4 pt-4 border-t border-border/50">
-                  React · Node.js
+                  Next.js · TypeScript · Tailwind
                 </div>
               </div>
-            </div>
-
-            <div className="group block h-full cursor-not-allowed">
-              <div className="border border-border bg-card p-6 h-full flex flex-col gap-4 transition-all duration-300">
-                <h3 className="font-serif text-2xl text-muted-foreground">Project Placeholder</h3>
-                <p className="text-muted-foreground text-sm flex-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                <div className="font-mono text-xs text-muted-foreground mt-4 pt-4 border-t border-border/50">
-                  Vue · Firebase
-                </div>
-              </div>
-            </div>
+            </a>
           </div>
         </FadeIn>
       </section>
