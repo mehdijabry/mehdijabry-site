@@ -11,7 +11,7 @@ export default function About() {
             {/* Header */}
             <p className="font-sans text-xs uppercase tracking-widest text-muted-foreground">FOUNDER</p>
             <h1 className="font-display text-4xl md:text-6xl mt-4 tracking-tight">About me</h1>
-            <p className="font-serif text-xl md:text-2xl text-muted-foreground mt-2 italic">The developer who ships in 72 hours.</p>
+            <p className="font-display-wonk text-xl md:text-2xl text-muted-foreground mt-2 italic">The developer who ships in 72 hours.</p>
 
             {/* Photo + Name block */}
             <div className="mt-12 flex flex-col sm:flex-row gap-8 items-start">

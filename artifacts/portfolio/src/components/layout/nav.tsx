@@ -43,7 +43,7 @@ export function Nav() {
             <span className="font-display text-lg font-medium tracking-tight leading-tight">
               Mehdi Jabry<span className="text-primary">.</span>
             </span>
-            <span className="font-sans text-[10px] uppercase tracking-widest text-muted-foreground">
+            <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
               Independent Web Studio
             </span>
           </div>

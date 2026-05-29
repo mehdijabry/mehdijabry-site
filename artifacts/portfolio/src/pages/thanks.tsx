@@ -11,7 +11,7 @@ export default function Thanks() {
     <Layout>
       <div className="container mx-auto px-4 py-24 md:py-32 flex justify-center text-center">
         <FadeIn className="max-w-2xl">
-          <h1 className="font-serif text-5xl md:text-7xl mb-8 tracking-tight">Thanks!</h1>
+          <h1 className="font-display text-5xl md:text-7xl mb-8 tracking-tight">Thanks!</h1>
           
           <div className="space-y-6 text-lg text-muted-foreground mb-12">
             <p>

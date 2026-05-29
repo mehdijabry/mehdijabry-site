@@ -56,7 +56,7 @@ export default function Home() {
           </div>
           <h1 className="font-display text-5xl md:text-7xl leading-[1.05] tracking-tight max-w-4xl mb-6">
             Production-ready websites,<br />
-            <em className="text-primary italic">shipped in 72 hours.</em>
+            <em className="text-primary italic font-display-wonk">shipped in 72 hours.</em>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-10">
             Custom code. No subscription. No templates. From $390 CAD.

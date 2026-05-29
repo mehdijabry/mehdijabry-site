@@ -118,7 +118,7 @@ export default function Start() {
         {/* Form Area */}
         <div className="lg:w-[70%]">
           <FadeIn>
-            <h1 className="font-serif text-4xl mb-2">Configure your quote</h1>
+            <h1 className="font-display text-4xl mb-2">Configure your quote</h1>
             <p className="text-muted-foreground mb-12">Select your options below. The price updates in real-time.</p>
 
             <div className="space-y-16">
