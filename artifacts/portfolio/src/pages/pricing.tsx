@@ -77,7 +77,7 @@ export default function Pricing() {
       <div className="container mx-auto px-4 py-12 md:py-24">
         <FadeIn>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <h1 className="font-serif text-4xl md:text-6xl tracking-tight max-w-3xl">
+            <h1 className="font-display text-4xl md:text-6xl tracking-tight max-w-3xl">
               PRICING — Transparent. Predictable. No surprises.
             </h1>
             <div className="flex bg-card border border-border p-1 shrink-0">

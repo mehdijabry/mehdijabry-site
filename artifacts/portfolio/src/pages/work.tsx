@@ -7,7 +7,7 @@ export default function Work() {
     <Layout>
       <div className="container mx-auto px-4 py-12 md:py-24">
         <FadeIn>
-          <h1 className="font-serif text-5xl md:text-6xl tracking-tight mb-4">SELECTED WORK</h1>
+          <h1 className="font-display text-5xl md:text-6xl tracking-tight mb-4">SELECTED WORK</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-16">
             Projects I've shipped end-to-end. More on <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-4">GitHub</a>.
           </p>

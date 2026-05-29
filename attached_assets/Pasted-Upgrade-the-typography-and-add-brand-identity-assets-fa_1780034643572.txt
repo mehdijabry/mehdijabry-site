@@ -1,0 +1,214 @@
+Upgrade the typography and add brand identity assets (favicon + logo)
+to the portfolio site WITHOUT changing the color palette. Keep the
+existing dark background #0A0A0A + warm gold accent #D4A464.
+
+═══════════════════════════════════════════════════════════════════════
+SCOPE
+═══════════════════════════════════════════════════════════════════════
+
+3 areas of improvement:
+1. Typography refinement: add Playfair Display as the display font for
+   hero/H1/large headings (more editorial-magazine feel). Keep EB
+   Garamond for body serif paragraphs. Keep Inter for UI/small caps.
+2. Add brand favicon.svg in public/ with proper HTML references.
+3. Replace the text-only "Mehdi Jabry." logo in the nav with an
+   inline SVG mini-monogram for visual identity.
+
+═══════════════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════════════
+
+- artifacts/portfolio/index.html              (font preconnect + favicon links)
+- artifacts/portfolio/src/main.tsx OR similar (font CSS imports if used there)
+- artifacts/portfolio/src/index.css OR globals.css (font-family CSS variables)
+- artifacts/portfolio/tailwind.config.ts OR vite tailwind config (font family mapping)
+- artifacts/portfolio/src/components/nav.tsx OR similar (logo replacement)
+- NEW FILE: artifacts/portfolio/public/favicon.svg
+- NEW FILE: artifacts/portfolio/public/logo-mono.svg (the monogram for nav)
+
+═══════════════════════════════════════════════════════════════════════
+STEP 1 — Add the favicon.svg to public/
+═══════════════════════════════════════════════════════════════════════
+
+Create the file artifacts/portfolio/public/favicon.svg with this exact
+content (a rounded-corner square, dark background, light serif "M",
+warm gold accent dot on the right):
+
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="36" fill="#0A0A0A"/>
+  <text x="78" y="135" text-anchor="middle" font-family="Georgia, 'EB Garamond', 'Times New Roman', serif" font-size="124" font-weight="500" fill="#F5F5F0" letter-spacing="-2">M</text>
+  <circle cx="138" cy="125" r="8" fill="#D4A464"/>
+</svg>
+
+Also create artifacts/portfolio/public/logo-mono.svg (smaller, for nav
+or other uses — same monogram but without the rounded square background,
+so it sits cleanly on the existing dark nav):
+
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <text x="18" y="36" text-anchor="middle" font-family="Georgia, 'EB Garamond', 'Times New Roman', serif" font-size="38" font-weight="500" fill="currentColor" letter-spacing="-1">M</text>
+  <circle cx="36" cy="32" r="3" fill="#D4A464"/>
+</svg>
+
+Note the logo-mono.svg uses fill="currentColor" on the letter so it
+adapts to the surrounding text color (light in dark mode, dark in
+light mode), while the gold dot stays gold in both modes.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 2 — Reference favicon in index.html
+═══════════════════════════════════════════════════════════════════════
+
+Open artifacts/portfolio/index.html and update the <head> section.
+Make sure these tags are present (add or replace existing favicon
+references):
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/favicon.svg" />
+<meta name="theme-color" content="#0A0A0A" />
+
+Also update the <title> if it's still placeholder:
+<title>Mehdi Jabry · Independent Web Studio</title>
+
+And the description meta:
+<meta name="description" content="Production-ready websites shipped in 72 hours. Custom code, no subscription, no templates. From $390 CAD." />
+
+═══════════════════════════════════════════════════════════════════════
+STEP 3 — Upgrade the typography stack
+═══════════════════════════════════════════════════════════════════════
+
+Goal: introduce Playfair Display as the DISPLAY font (used for big hero
+H1 only), keep EB Garamond for body serif text, keep Inter for UI.
+Mapping:
+  --font-display:  Playfair Display, EB Garamond, Georgia, serif
+  --font-serif:    EB Garamond, Georgia, serif (unchanged)
+  --font-sans:     Inter, system-ui, sans-serif (unchanged)
+  --font-mono:     JetBrains Mono, monospace (unchanged)
+
+In index.html <head>, add the Google Fonts preconnect + import for
+Playfair Display (keep all existing font imports):
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+In artifacts/portfolio/src/index.css (or whichever global CSS file
+defines the CSS custom properties), add or update:
+
+:root {
+  --font-display: 'Playfair Display', 'EB Garamond', Georgia, serif;
+  --font-serif:   'EB Garamond', Georgia, serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+In artifacts/portfolio/tailwind.config.ts (or wherever the Tailwind
+fontFamily theme is configured — could be inside vite.config.ts via
+@tailwindcss/vite plugin), update the fontFamily theme:
+
+theme: {
+  extend: {
+    fontFamily: {
+      display: ['var(--font-display)'],
+      serif:   ['var(--font-serif)'],
+      sans:    ['var(--font-sans)'],
+      mono:    ['var(--font-mono)'],
+    },
+    // ... existing extend config (colors, spacing, etc.) preserved
+  },
+},
+
+If the project uses Tailwind v4 inline config (in vite.config.ts via
+@tailwindcss/vite), add the same mapping there using their syntax.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 4 — Apply the new display font where it matters
+═══════════════════════════════════════════════════════════════════════
+
+Find the HERO H1 of the homepage (likely in
+artifacts/portfolio/src/pages/home.tsx OR
+artifacts/portfolio/src/components/hero.tsx).
+
+Change its className from `font-serif` (or whatever it has) to
+`font-display`. Keep the italic emphasis on "shipped in 72 hours" if
+present.
+
+Example before:
+<h1 className="text-5xl md:text-7xl font-serif font-medium leading-[1.05]">
+  Production-ready websites,<br/>
+  <em className="italic">shipped in 72 hours.</em>
+</h1>
+
+Example after:
+<h1 className="text-5xl md:text-7xl font-display font-medium leading-[1.05]">
+  Production-ready websites,<br/>
+  <em className="italic">shipped in 72 hours.</em>
+</h1>
+
+Do the SAME on the /about page H1 ("About me") and /pricing H1
+("PRICING — Transparent. Predictable. No surprises.") and /work H1
+("SELECTED WORK"). Switch font-serif → font-display ONLY on H1s.
+
+Keep H2, H3, paragraphs, and section labels using their existing
+classes (most are font-serif or font-sans). DO NOT change those.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 5 — Replace the nav text logo with the SVG monogram
+═══════════════════════════════════════════════════════════════════════
+
+Find the NAV component (likely
+artifacts/portfolio/src/components/nav.tsx).
+
+Currently the left side of the nav displays the text "Mehdi Jabry."
+in EB Garamond with a gold dot. Replace it with a combination of the
+SVG monogram + the text (or pure SVG if cleaner).
+
+Option A (recommended) — SVG icon + text:
+
+import logoMono from '/logo-mono.svg';
+
+<a href="/" className="flex items-center gap-3 group">
+  <img
+    src={logoMono}
+    alt="Mehdi Jabry"
+    className="w-8 h-8 transition-transform group-hover:scale-105"
+  />
+  <div className="flex flex-col">
+    <span className="font-display text-lg font-medium tracking-tight">
+      Mehdi Jabry<span className="text-[--color-accent]">.</span>
+    </span>
+    <span className="font-sans text-[10px] uppercase tracking-widest text-muted-foreground">
+      Independent Web Studio
+    </span>
+  </div>
+</a>
+
+If the SVG <img> import path causes Vite issues, fallback to inline
+SVG directly in the JSX:
+
+<a href="/" className="flex items-center gap-3 group">
+  <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="18" y="36" textAnchor="middle" fontFamily="Georgia, serif" fontSize="38" fontWeight="500" fill="currentColor" letterSpacing="-1">M</text>
+    <circle cx="36" cy="32" r="3" fill="#D4A464"/>
+  </svg>
+  {/* same text as above */}
+</a>
+
+═══════════════════════════════════════════════════════════════════════
+DEFINITION OF DONE
+═══════════════════════════════════════════════════════════════════════
+
+[ ] artifacts/portfolio/public/favicon.svg exists with the M+dot design
+[ ] artifacts/portfolio/public/logo-mono.svg exists with the no-bg monogram
+[ ] index.html references /favicon.svg correctly + has title + description
+[ ] Google Fonts preconnect + Playfair Display + EB Garamond + Inter + JetBrains Mono are all loaded
+[ ] --font-display CSS variable is defined and mapped to Tailwind
+[ ] All page H1s use font-display (home, about, pricing, work)
+[ ] Body paragraphs still use font-serif (EB Garamond)
+[ ] Section labels (FOUNDER, HOW IT WORKS, etc.) still use Inter uppercase tracking-widest
+[ ] Nav left side shows the SVG monogram + "Mehdi Jabry." text + subtitle
+[ ] No color changes made — palette stays #0A0A0A, #F5F5F0, #D4A464, #8A8A85
+[ ] npm run build succeeds (or pnpm equivalent) with no errors
+[ ] Browser tab shows the new favicon (M + gold dot on black square)
+
+After changes, run `pnpm --filter @workspace/portfolio build` and
+show the output. Then take a screenshot of the homepage at desktop
+width so I can review the new typography.

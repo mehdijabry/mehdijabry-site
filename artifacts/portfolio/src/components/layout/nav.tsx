@@ -33,13 +33,19 @@ export function Nav() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex flex-col gap-0">
-          <span className="font-serif text-xl font-medium tracking-tight">
-            Mehdi Jabry<span className="text-primary">.</span>
-          </span>
-          <span className="font-sans text-[10px] uppercase tracking-widest text-muted-foreground">
-            Independent Web Studio
-          </span>
+        <Link href="/" className="flex items-center gap-3 group">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform group-hover:scale-105 shrink-0">
+            <text x="18" y="36" textAnchor="middle" fontFamily="Georgia, serif" fontSize="38" fontWeight="500" fill="currentColor" letterSpacing="-1">M</text>
+            <circle cx="36" cy="32" r="3" fill="#D4A464"/>
+          </svg>
+          <div className="flex flex-col gap-0">
+            <span className="font-display text-lg font-medium tracking-tight leading-tight">
+              Mehdi Jabry<span className="text-primary">.</span>
+            </span>
+            <span className="font-sans text-[10px] uppercase tracking-widest text-muted-foreground">
+              Independent Web Studio
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Nav */}

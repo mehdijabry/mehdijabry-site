@@ -54,7 +54,7 @@ export default function Home() {
           <div className="inline-flex items-center border border-border/60 px-3 py-1 text-[10px] font-sans uppercase tracking-widest text-muted-foreground mb-6">
             INDEPENDENT WEB STUDIO · MONTRÉAL
           </div>
-          <h1 className="font-serif text-5xl md:text-7xl leading-[1.05] tracking-tight max-w-4xl mb-6">
+          <h1 className="font-display text-5xl md:text-7xl leading-[1.05] tracking-tight max-w-4xl mb-6">
             Production-ready websites,<br />
             <em className="text-primary italic">shipped in 72 hours.</em>
           </h1>

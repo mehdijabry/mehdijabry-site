@@ -10,7 +10,7 @@ export default function About() {
 
             {/* Header */}
             <p className="font-sans text-xs uppercase tracking-widest text-muted-foreground">FOUNDER</p>
-            <h1 className="font-serif text-4xl md:text-6xl mt-4 tracking-tight">About me</h1>
+            <h1 className="font-display text-4xl md:text-6xl mt-4 tracking-tight">About me</h1>
             <p className="font-serif text-xl md:text-2xl text-muted-foreground mt-2 italic">The developer who ships in 72 hours.</p>
 
             {/* Photo + Name block */}
