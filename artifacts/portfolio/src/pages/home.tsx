@@ -79,7 +79,6 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
-
       {/* Trust Bar */}
       <section className="border-y border-border/50 bg-muted/30 py-12">
         <div className="container mx-auto px-4 text-center">
@@ -105,7 +104,6 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
-
       {/* Process */}
       <section className="container mx-auto px-4 py-24">
         <FadeIn>
@@ -129,7 +127,6 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
-
       {/* Featured Work */}
       <section id="work" className="container mx-auto px-4 py-24 border-t border-border/50">
         <FadeIn>
@@ -141,7 +138,7 @@ export default function Home() {
             <a href="https://ds-ai-manager.com" target="_blank" rel="noopener noreferrer" className="group block h-full">
               <div className="border border-border bg-card p-6 h-full flex flex-col gap-4 transition-all duration-300 hover:scale-[1.02] hover:border-primary hover:shadow-lg">
                 <h3 className="font-serif text-2xl group-hover:text-primary transition-colors">DS AI Manager</h3>
-                <p className="text-muted-foreground text-sm flex-1">AI agent for serious marketers — 13 specialised skills</p>
+                <p className="text-muted-foreground text-sm flex-1">My personal project — AI agent for serious marketers — 13 specialised skills dedicated and brand aligned to your brand.</p>
                 <div className="font-mono text-xs text-muted-foreground mt-4 pt-4 border-t border-border/50">
                   Next.js · TypeScript · Supabase · Stripe
                 </div>
@@ -159,7 +156,6 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
-
       {/* Pricing Teaser */}
       <section className="bg-muted/30 py-24 border-y border-border/50">
         <div className="container mx-auto px-4">
@@ -223,7 +219,6 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
-
       {/* About Teaser */}
       <section className="container mx-auto px-4 py-24">
         <FadeIn>
@@ -253,7 +248,6 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
-
       {/* FAQ */}
       <section className="container mx-auto px-4 py-24 border-t border-border/50">
         <FadeIn>
@@ -330,7 +324,6 @@ export default function Home() {
           </div>
         </FadeIn>
       </section>
-
       {/* Final CTA */}
       <section id="contact" className="bg-muted/30 py-32 border-t border-border/50 text-center">
         <FadeIn>
