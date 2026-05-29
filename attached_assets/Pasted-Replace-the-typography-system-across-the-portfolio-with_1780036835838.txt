@@ -1,0 +1,232 @@
+Replace the typography system across the portfolio with a DISTINCTIVE,
+professional combo: Fraunces (variable serif) for display + body
+serif, and Geist + Geist Mono (by Vercel) for UI and code. This is
+a SIGNIFICANT visual change — the goal is for users to immediately
+feel a different typographic character compared to before. NOT a
+subtle refinement.
+
+DO NOT change colors. Palette stays #0A0A0A bg, #F5F5F0 text,
+#D4A464 gold accent, #8A8A85 muted.
+
+═══════════════════════════════════════════════════════════════════════
+WHY FRAUNCES + GEIST
+═══════════════════════════════════════════════════════════════════════
+
+- Fraunces is a variable serif by Phaedra Charles (Google Fonts free).
+  It has personality axes: opsz (optical size), SOFT (softness of
+  serifs), WONK (irregular vs symmetric letters). We use these to
+  give the site a distinctive editorial-craft feel — not generic
+  "elegant serif" like Playfair.
+
+- Geist is Vercel's free sans-serif. Precise, technical, modern. The
+  "Helvetica of 2026". Perfectly contrasts Fraunces' organic warmth.
+
+- The contrast between organic-serif Fraunces and geometric-sans Geist
+  creates IMMEDIATE visual hierarchy. That's what makes it feel
+  professional vs amateur.
+
+═══════════════════════════════════════════════════════════════════════
+FILES TO MODIFY
+═══════════════════════════════════════════════════════════════════════
+
+- artifacts/portfolio/index.html
+- artifacts/portfolio/src/index.css (or globals.css — wherever CSS vars live)
+- artifacts/portfolio/tailwind.config.ts OR vite.config.ts (Tailwind v4 config)
+- ALL components that use font-serif on display headings (H1, H2 hero)
+- artifacts/portfolio/src/components/nav.tsx (if logo text uses old font)
+
+═══════════════════════════════════════════════════════════════════════
+STEP 1 — Replace Google Fonts imports in index.html
+═══════════════════════════════════════════════════════════════════════
+
+In <head> of artifacts/portfolio/index.html, REMOVE any existing
+@import or <link href="...fonts.googleapis.com..."> tags.
+
+REPLACE them with:
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+
+<!-- Fraunces variable font (display + body serif) -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&display=swap" rel="stylesheet">
+
+<!-- Geist + Geist Mono (sans + mono) — served by Bunny Fonts (free, GDPR-safe alternative to Google) -->
+<link href="https://fonts.bunny.net/css?family=geist:100,200,300,400,500,600,700,800,900|geist-mono:100,200,300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+
+═══════════════════════════════════════════════════════════════════════
+STEP 2 — Update CSS variables in index.css
+═══════════════════════════════════════════════════════════════════════
+
+In artifacts/portfolio/src/index.css (or wherever :root vars are):
+
+:root {
+  /* DISPLAY: Fraunces for big headings — uses variable font axes */
+  --font-display: 'Fraunces', 'EB Garamond', Georgia, serif;
+
+  /* SERIF: Fraunces also for body serif (same family, weight 400, no soft/wonk axes) */
+  --font-serif: 'Fraunces', 'EB Garamond', Georgia, serif;
+
+  /* SANS: Geist for all UI, buttons, labels, navigation */
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* MONO: Geist Mono for code blocks, tech stack, numbers */
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+}
+
+Add font-feature settings for Fraunces to enable the personality axes
+when it's used at display sizes. Add this at the bottom of the global
+CSS:
+
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 0;
+  letter-spacing: -0.025em;
+}
+
+.font-display-wonk {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.02em;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+  font-variation-settings: 'opsz' 14, 'SOFT' 30, 'WONK' 0;
+}
+
+The 'opsz' (optical size) axis tells Fraunces to render at display vs
+body proportions. 'SOFT' makes the serifs more or less rounded.
+'WONK' adds character variation (italic and irregular letters) for a
+crafted feel.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 3 — Update Tailwind config to map the new variables
+═══════════════════════════════════════════════════════════════════════
+
+In artifacts/portfolio/tailwind.config.ts (or wherever Tailwind theme
+is configured — check vite.config.ts if using @tailwindcss/vite):
+
+theme: {
+  extend: {
+    fontFamily: {
+      display: ['var(--font-display)', 'serif'],
+      serif:   ['var(--font-serif)', 'serif'],
+      sans:    ['var(--font-sans)', 'system-ui', 'sans-serif'],
+      mono:    ['var(--font-mono)', 'monospace'],
+    },
+    // ... preserve ALL existing theme.extend (colors, spacing, animations)
+  },
+},
+
+═══════════════════════════════════════════════════════════════════════
+STEP 4 — Apply font-display to ALL major H1s and hero text
+═══════════════════════════════════════════════════════════════════════
+
+Find ALL H1 elements across pages. They are likely on:
+- artifacts/portfolio/src/pages/home.tsx (hero H1)
+- artifacts/portfolio/src/pages/about.tsx (H1 "About me")
+- artifacts/portfolio/src/pages/pricing.tsx (H1)
+- artifacts/portfolio/src/pages/work.tsx (H1)
+- artifacts/portfolio/src/pages/start.tsx (H1)
+- artifacts/portfolio/src/pages/thanks.tsx (H1 "Thanks!")
+
+For EACH H1, change the className from `font-serif` (or whatever it has)
+to `font-display`. Also increase size if currently text-5xl to be
+text-6xl on desktop for more impact. Example:
+
+BEFORE:
+<h1 className="font-serif text-4xl md:text-6xl font-medium leading-tight">
+
+AFTER:
+<h1 className="font-display text-5xl md:text-7xl font-medium leading-[1.05]">
+
+═══════════════════════════════════════════════════════════════════════
+STEP 5 — Apply font-display-wonk to the italic emphasis spans
+═══════════════════════════════════════════════════════════════════════
+
+In hero H1s where there's an italic emphasis (like "shipped in
+72 hours." or "The developer who ships in 72 hours."), add the
+font-display-wonk class to the italic span to give it personality:
+
+BEFORE:
+<em className="italic">shipped in 72 hours.</em>
+
+AFTER:
+<em className="italic font-display-wonk">shipped in 72 hours.</em>
+
+This uses Fraunces' WONK axis on italic, which makes the lowercase
+letters slightly irregular (a 'k' with a curlier tail, etc.) — VERY
+distinctive on display sizes.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 6 — Apply font-sans (Geist) to all UI elements
+═══════════════════════════════════════════════════════════════════════
+
+In artifacts/portfolio/src/index.css, set the body to use Geist by
+default. Add or update the body rule:
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01', 'cv11', 'cv02';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+The font-feature-settings enable Geist's stylistic alternates (ss01,
+cv11, cv02 are alternate letterforms that give it more character).
+
+Make sure section labels and small uppercase chips (FOUNDER, HOW IT
+WORKS, PRICING, etc.) explicitly use `font-sans` and add letter-spacing:
+
+className="font-sans text-xs uppercase tracking-[0.2em] text-muted-foreground"
+
+═══════════════════════════════════════════════════════════════════════
+STEP 7 — Body paragraphs stay in Fraunces (font-serif)
+═══════════════════════════════════════════════════════════════════════
+
+Long-form body text (About page paragraphs, FAQ answers, etc.) should
+keep font-serif (which is now also Fraunces but at body opsz). Don't
+change those classNames — they'll automatically pick up Fraunces via
+the CSS variable.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 8 — Update the nav logo styling
+═══════════════════════════════════════════════════════════════════════
+
+In artifacts/portfolio/src/components/nav.tsx, make sure the "Mehdi
+Jabry." text uses font-display (not font-serif) for impact:
+
+<span className="font-display text-lg md:text-xl font-medium tracking-tight">
+  Mehdi Jabry<span className="text-[#D4A464]">.</span>
+</span>
+<span className="font-sans text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+  Independent Web Studio
+</span>
+
+═══════════════════════════════════════════════════════════════════════
+DEFINITION OF DONE
+═══════════════════════════════════════════════════════════════════════
+
+[ ] index.html loads Fraunces + Geist + Geist Mono (and only those)
+[ ] No EB Garamond / Playfair / Inter / JetBrains Mono google import remaining
+[ ] :root CSS vars reference Fraunces and Geist
+[ ] tailwind.config.ts has font-display, font-serif, font-sans, font-mono mapped
+[ ] ALL page H1s use font-display
+[ ] Italic emphasis spans use font-display-wonk
+[ ] body uses font-sans (Geist) with font-feature-settings
+[ ] Section labels (FOUNDER, etc.) use font-sans uppercase tracking-[0.2em]
+[ ] Body paragraphs use font-serif (which is now Fraunces at body size)
+[ ] Nav logo "Mehdi Jabry." uses font-display
+[ ] Color palette UNCHANGED (#0A0A0A, #F5F5F0, #D4A464, #8A8A85)
+[ ] No layout/structure changes — only typography
+[ ] pnpm --filter @workspace/portfolio build succeeds
+
+After all changes, run the build, then take a screenshot of:
+1. The homepage hero
+2. The About page
+3. The Pricing page
+
+So I can review the typography. THE GOAL IS A SIGNIFICANT, IMMEDIATELY
+VISIBLE CHANGE in how the site reads — more editorial, more crafted,
+more distinctive. NOT a subtle refinement.

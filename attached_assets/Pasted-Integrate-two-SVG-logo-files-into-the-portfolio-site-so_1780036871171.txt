@@ -1,0 +1,191 @@
+Integrate two SVG logo files into the portfolio site so they swap
+automatically based on the dark/light theme toggle. Also reference
+them properly as image assets. DO NOT change colors, typography,
+layout, or anything else.
+
+═══════════════════════════════════════════════════════════════════════
+ASSETS PROVIDED (already uploaded by user in public/)
+═══════════════════════════════════════════════════════════════════════
+
+- artifacts/portfolio/public/logo-light.svg
+  → BLACK logo, intended for LIGHT mode of the site (light background,
+    dark logo for contrast)
+
+- artifacts/portfolio/public/logo-dark.svg
+  → WHITE logo, intended for DARK mode of the site (dark background,
+    light logo for contrast)
+
+═══════════════════════════════════════════════════════════════════════
+SCOPE
+═══════════════════════════════════════════════════════════════════════
+
+1. Verify both SVG files exist at the paths above. If either is
+   missing, STOP and tell me.
+2. Create a reusable <Logo /> React component that swaps the source
+   automatically based on theme.
+3. Replace the current text-based "Mehdi Jabry." logo in the nav
+   with this <Logo /> component.
+4. Also handle favicon: provide a smart favicon strategy that adapts
+   to system theme using <link media> queries.
+5. Preserve the existing typography upgrade (Fraunces, Geist, etc.),
+   color palette, and all other content.
+
+═══════════════════════════════════════════════════════════════════════
+FILES TO MODIFY OR CREATE
+═══════════════════════════════════════════════════════════════════════
+
+- NEW FILE: artifacts/portfolio/src/components/logo.tsx
+- MODIFY:   artifacts/portfolio/src/components/nav.tsx (or wherever
+            the nav header is — find the file that renders the top
+            navigation with "Mehdi Jabry." text)
+- MODIFY:   artifacts/portfolio/index.html (favicon references)
+
+═══════════════════════════════════════════════════════════════════════
+STEP 1 — Create the <Logo /> component
+═══════════════════════════════════════════════════════════════════════
+
+Create artifacts/portfolio/src/components/logo.tsx with EXACTLY this
+content:
+
+import { cn } from "@/lib/utils"; // adjust import if utils is elsewhere
+
+interface LogoProps {
+  className?: string;
+  alt?: string;
+}
+
+/**
+ * Renders the brand logo, automatically swapping between the
+ * light-mode (black) and dark-mode (white) variants based on the
+ * current theme. Uses Tailwind's `dark:` variant which is toggled by
+ * the theme provider (next-themes adds a `dark` class on <html>).
+ *
+ * Both SVGs are loaded simultaneously; CSS hides the one that doesn't
+ * match the current theme. This avoids flash-of-wrong-logo during
+ * theme transitions.
+ */
+export function Logo({ className, alt = "Mehdi Jabry — Independent Web Studio" }: LogoProps) {
+  return (
+    <span className={cn("inline-block", className)}>
+      {/* Light mode logo (black) — shown when html does NOT have .dark */}
+      <img
+        src="/logo-light.svg"
+        alt={alt}
+        className="block dark:hidden h-full w-auto select-none"
+        draggable={false}
+      />
+      {/* Dark mode logo (white) — shown when html has .dark */}
+      <img
+        src="/logo-dark.svg"
+        alt={alt}
+        className="hidden dark:block h-full w-auto select-none"
+        draggable={false}
+      />
+    </span>
+  );
+}
+
+If "@/lib/utils" doesn't exist or `cn` is not the project's standard
+helper, use a basic className concat instead. Example fallback:
+
+const cn = (...classes: (string | undefined)[]) => classes.filter(Boolean).join(" ");
+
+═══════════════════════════════════════════════════════════════════════
+STEP 2 — Replace the nav logo
+═══════════════════════════════════════════════════════════════════════
+
+Find the nav component (search for the text "Mehdi Jabry" in
+artifacts/portfolio/src/components/ — likely nav.tsx, header.tsx, or
+similar).
+
+Locate the part of the JSX that currently renders the brand text. It
+probably looks something like:
+
+<a href="/" className="...">
+  <span className="font-display ...">
+    Mehdi Jabry<span className="text-[#D4A464]">.</span>
+  </span>
+  <span className="font-sans ... uppercase tracking-widest">
+    Independent Web Studio
+  </span>
+</a>
+
+REPLACE the entire <a> contents (the brand block, not the link itself)
+with the Logo component. Keep the link wrapping. Final result:
+
+<a href="/" className="flex items-center group" aria-label="Mehdi Jabry — Home">
+  <Logo className="h-8 md:h-10 transition-opacity group-hover:opacity-80" />
+</a>
+
+At the top of nav.tsx, add the import:
+
+import { Logo } from "@/components/logo"; // adjust path to your alias
+
+If "@/components/logo" doesn't resolve, use relative path:
+
+import { Logo } from "./logo";
+
+═══════════════════════════════════════════════════════════════════════
+STEP 3 — Smart favicon for both light and dark system themes
+═══════════════════════════════════════════════════════════════════════
+
+In artifacts/portfolio/index.html, inside <head>, REPLACE any existing
+favicon <link> tags with these adaptive ones:
+
+<!-- Favicon: serves logo-dark.svg (white) to users with dark OS theme,
+     logo-light.svg (black) to users with light OS theme.
+     Falls back to existing favicon.svg (the monogram M + gold dot)
+     for browsers that don't support media queries on favicons. -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/svg+xml" media="(prefers-color-scheme: light)" href="/logo-light.svg" />
+<link rel="icon" type="image/svg+xml" media="(prefers-color-scheme: dark)" href="/logo-dark.svg" />
+<link rel="apple-touch-icon" href="/favicon.svg" />
+
+NOTE: The existing /favicon.svg (the M monogram with gold dot on a
+black rounded square) is KEPT as the universal fallback because it
+has its own background that works on any browser tab color. The
+adaptive media-query links are an enhancement for browsers that
+support them (Chrome 105+, Safari 16+).
+
+If the user provided horizontal-style logos that won't render well as
+a tab favicon, this fallback strategy still ensures a clean icon is
+shown.
+
+═══════════════════════════════════════════════════════════════════════
+STEP 4 — Sanity checks
+═══════════════════════════════════════════════════════════════════════
+
+1. Verify the dark mode toggle works correctly in the site. The theme
+   provider (likely next-themes wrapped around the app in main.tsx or
+   App.tsx) must add the `dark` class on the <html> element when dark
+   mode is active. If next-themes is configured with attribute="class",
+   this works out of the box.
+
+2. If the theme provider uses a different mechanism (e.g., data-theme
+   attribute), update the Logo component's Tailwind classes
+   accordingly. For data-theme:
+
+   <img src="/logo-light.svg" className="block [html[data-theme='dark']_&]:hidden" />
+   <img src="/logo-dark.svg" className="hidden [html[data-theme='dark']_&]:block" />
+
+3. The two SVG files have unknown intrinsic dimensions. The Logo
+   component uses `h-8 md:h-10` on mobile/desktop and `w-auto` so it
+   scales by height. If the logos render too small or too large after
+   integration, adjust the className in nav.tsx (e.g., h-12, h-14).
+
+═══════════════════════════════════════════════════════════════════════
+DEFINITION OF DONE
+═══════════════════════════════════════════════════════════════════════
+
+[ ] artifacts/portfolio/src/components/logo.tsx exists with the
+    described Logo component
+[ ] Nav imports and uses <Logo /> instead of the text "Mehdi Jabry."
+[ ] No remaining references to the old text-based logo in nav
+[ ] index.html has the 4 <link> favicon tags as described
+[ ] The existing favicon.svg (M monogram with gold dot) is PRESERVED
+    in public/ — do not delete it
+[ ] Build succeeds: pnpm --filter @workspace/portfolio build
+[ ] Colors, typography, layout, content elsewhere UNCHANGED
+
+After all changes, run pnpm --filter @workspace/portfolio build and
+show the output. Then briefly describe what changed so I can review.
