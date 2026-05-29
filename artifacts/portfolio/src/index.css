@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -115,10 +115,10 @@
   --chart-4: 45 15% 88%;
   --chart-5: 60 10% 98%;
 
-  --app-font-display: 'Playfair Display', 'EB Garamond', Georgia, serif;
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: 'EB Garamond', Georgia, serif;
-  --app-font-mono: 'JetBrains Mono', monospace;
+  --app-font-display: 'Fraunces', Georgia, serif;
+  --app-font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --app-font-serif: 'Fraunces', Georgia, serif;
+  --app-font-mono: 'Geist Mono', ui-monospace, monospace;
   --radius: 0rem; 
 
   --button-outline: rgba(0,0,0, .10);
