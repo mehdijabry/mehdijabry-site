@@ -34,9 +34,10 @@ export function Nav() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform group-hover:scale-105 shrink-0">
-            <text x="18" y="36" textAnchor="middle" fontFamily="Georgia, serif" fontSize="38" fontWeight="500" fill="currentColor" letterSpacing="-1">M</text>
-            <circle cx="36" cy="32" r="3" fill="#D4A464"/>
+          <svg width="44" height="32" viewBox="0 0 66 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform group-hover:scale-105 shrink-0">
+            <text x="16" y="36" textAnchor="middle" fontFamily="Georgia, serif" fontSize="38" fontWeight="500" fill="currentColor" letterSpacing="-1">M</text>
+            <circle cx="33" cy="32" r="3.5" fill="#D4A464"/>
+            <text x="50" y="36" textAnchor="middle" fontFamily="Georgia, serif" fontSize="30" fontWeight="500" fill="#D4A464" letterSpacing="-1">J</text>
           </svg>
           <div className="flex flex-col gap-0">
             <span className="font-display text-lg font-medium tracking-tight leading-tight">
