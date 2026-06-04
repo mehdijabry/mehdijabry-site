@@ -352,8 +352,42 @@
   }
 }
 
-/* Custom cursor removed — let native pointer handle hover targets.
-   Interactive elements use the standard pointer cursor. */
+/* Custom cursor — fluid version. Position pinned directly via rAF;
+   only the size/border transitions on hover. No spring physics. */
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body {
+    cursor: none;
+  }
+  a,
+  button,
+  [role="button"],
+  input,
+  textarea,
+  select,
+  [data-magnetic] {
+    cursor: none;
+  }
+  .custom-cursor {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: hsl(var(--foreground));
+    mix-blend-mode: difference;
+    transition:
+      width 180ms cubic-bezier(.22, 1, .36, 1),
+      height 180ms cubic-bezier(.22, 1, .36, 1),
+      background-color 180ms ease,
+      border 180ms ease,
+      opacity 220ms ease;
+  }
+  .custom-cursor.is-hover {
+    width: 36px;
+    height: 36px;
+    background-color: transparent;
+    border: 1px solid hsl(var(--foreground));
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

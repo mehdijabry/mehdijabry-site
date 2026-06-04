@@ -1,92 +1,88 @@
-import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useEffect, useRef } from "react";
 
+/**
+ * CustomCursor — a small bone-colored disc that becomes a ring when over
+ * interactive elements. Position is pinned EXACTLY to the mouse via direct
+ * DOM transform updates (rAF-throttled, no spring physics, no React state) —
+ * this is the key fix vs the previous version: latency = 0.
+ *
+ * Personality lives in the size/border transition (180ms ease) when the
+ * cursor enters an interactive element, not in any position lag.
+ *
+ * Hidden on touch devices and when the user prefers reduced motion.
+ */
 export function CustomCursor() {
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const ringX = useSpring(cursorX, { stiffness: 350, damping: 28, mass: 0.5 });
-  const ringY = useSpring(cursorY, { stiffness: 350, damping: 28, mass: 0.5 });
-
-  const [variant, setVariant] = useState<"default" | "hover">("default");
-  const [hidden, setHidden] = useState(true);
-  const [isTouch, setIsTouch] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const touch = window.matchMedia("(hover: none)").matches;
-    setIsTouch(touch);
-    if (touch) return;
+    if (window.matchMedia("(hover: none)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const move = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-      if (hidden) setHidden(false);
+    const el = ref.current;
+    if (!el) return;
+
+    let mx = 0;
+    let my = 0;
+    let raf: number | null = null;
+    let mounted = false;
+
+    const apply = () => {
+      el.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`;
+      raf = null;
     };
 
-    const overInteractive = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const interactive = target.closest(
-        "a, button, [role='button'], [data-magnetic], input, textarea, select, [contenteditable='true']"
+    const onMove = (e: MouseEvent) => {
+      mx = e.clientX;
+      my = e.clientY;
+      if (!mounted) {
+        mounted = true;
+        el.style.opacity = "1";
+      }
+      if (raf === null) raf = requestAnimationFrame(apply);
+
+      const t = e.target as HTMLElement | null;
+      const isInteractive = !!t?.closest(
+        'a, button, [role="button"], input, textarea, select, [data-magnetic]'
       );
-      setVariant(interactive ? "hover" : "default");
+      el.classList.toggle("is-hover", isInteractive);
     };
 
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseover", overInteractive);
+    const onLeave = () => {
+      el.style.opacity = "0";
+    };
 
-    const leave = () => setHidden(true);
-    document.addEventListener("mouseleave", leave);
+    const onEnter = () => {
+      el.style.opacity = "1";
+    };
+
+    document.addEventListener("mousemove", onMove, { passive: true });
+    document.addEventListener("mouseleave", onLeave);
+    document.addEventListener("mouseenter", onEnter);
 
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseover", overInteractive);
-      document.removeEventListener("mouseleave", leave);
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("mouseenter", onEnter);
+      if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, [cursorX, cursorY, hidden]);
-
-  if (isTouch) return null;
+  }, []);
 
   return (
-    <>
-      <motion.div
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference"
-        style={{
-          x: cursorX,
-          y: cursorY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-      >
-        <motion.div
-          animate={{
-            scale: variant === "hover" ? 0 : 1,
-            opacity: hidden ? 0 : 1,
-          }}
-          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-          className="h-1.5 w-1.5 rounded-full bg-white"
-        />
-      </motion.div>
-      <motion.div
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference"
-        style={{
-          x: ringX,
-          y: ringY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-      >
-        <motion.div
-          animate={{
-            scale: variant === "hover" ? 1.6 : 1,
-            opacity: hidden ? 0 : 1,
-          }}
-          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="h-9 w-9 rounded-full border border-white/80"
-        />
-      </motion.div>
-    </>
+    <div
+      ref={ref}
+      aria-hidden
+      className="custom-cursor"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 9999,
+        pointerEvents: "none",
+        opacity: 0,
+        transform: "translate3d(0, 0, 0) translate(-50%, -50%)",
+        willChange: "transform",
+      }}
+    />
   );
 }
