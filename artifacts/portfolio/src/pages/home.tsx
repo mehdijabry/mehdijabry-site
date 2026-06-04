@@ -156,6 +156,7 @@ export default function Home() {
       ════════════════════════════════════════════════════════════ */}
       <section className="relative isolate overflow-hidden flex items-center pt-24 pb-16 md:pt-28 md:pb-20">
         <Spotlight size={520} />
+        <FloatingMark />
 
         <div className="relative z-10 container mx-auto px-4">
           {/* eyebrow row */}
@@ -201,10 +202,10 @@ export default function Home() {
               </p>
 
               <div className="md:col-span-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end">
-                <CtaButton to="/start" variant="primary" data-testid="link-hero-cta">
+                <CtaButton to="/start" variant="primary" hoverLabel="Let's talk" data-testid="link-hero-cta">
                   Start a project
                 </CtaButton>
-                <CtaButton href="#work" variant="ghost" data-testid="link-hero-work">
+                <CtaButton href="#work" variant="ghost" hoverLabel="Show me" data-testid="link-hero-work">
                   See selected work
                 </CtaButton>
               </div>
@@ -429,6 +430,7 @@ export default function Home() {
                       to={`/start?tier=${tier.key}`}
                       variant={tier.recommended ? "primary" : "ghost"}
                       size="md"
+                      hoverLabel={`Get ${tier.name}`}
                       data-testid={`button-select-${tier.key}`}
                     >
                       Choose {tier.name}
@@ -481,7 +483,7 @@ export default function Home() {
                 and this studio.
               </p>
               <div className="mt-12">
-                <CtaButton to="/about" variant="ghost" size="md">
+                <CtaButton to="/about" variant="ghost" size="md" hoverLabel="Meet Mehdi">
                   Full background
                 </CtaButton>
               </div>
@@ -578,10 +580,10 @@ export default function Home() {
           </Reveal>
           <Reveal delay={0.45}>
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-              <CtaButton to="/start" variant="primary" data-testid="button-cta-quote">
+              <CtaButton to="/start" variant="primary" hoverLabel="Build it now" data-testid="button-cta-quote">
                 Configure your quote
               </CtaButton>
-              <CtaButton href="mailto:hi@mehdijabry.dev" variant="ghost" data-testid="button-cta-call">
+              <CtaButton href="mailto:hi@mehdijabry.dev" variant="ghost" hoverLabel="Say hi" data-testid="button-cta-call">
                 Email directly
               </CtaButton>
             </div>

@@ -20,7 +20,7 @@ export function FloatingMark({
         style={{
           fontSize: "clamp(220px, 38vw, 520px)",
           color: "transparent",
-          WebkitTextStroke: "1px hsl(var(--foreground) / 0.09)",
+          WebkitTextStroke: "1.5px hsl(var(--foreground) / 0.14)",
           letterSpacing: "-0.06em",
           fontWeight: 700,
           paddingRight: "2vw",

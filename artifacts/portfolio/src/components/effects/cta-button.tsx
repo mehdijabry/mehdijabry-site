@@ -18,6 +18,8 @@ type Variant = "primary" | "ghost" | "ink";
 
 interface CtaButtonProps {
   children: string;
+  /** Optional label shown on hover. Falls back to `children` if omitted. */
+  hoverLabel?: string;
   to?: string;
   href?: string;
   variant?: Variant;
@@ -40,6 +42,7 @@ export const CtaButton = forwardRef<HTMLElement, CtaButtonProps>(
   function CtaButton(
     {
       children,
+      hoverLabel,
       to,
       href,
       variant = "primary",
@@ -50,6 +53,7 @@ export const CtaButton = forwardRef<HTMLElement, CtaButtonProps>(
     },
     ref
   ) {
+    const hover = hoverLabel ?? children;
     const padding = size === "lg" ? "h-14 px-9 text-sm" : "h-11 px-6 text-xs";
     const classes = `
       group relative inline-flex items-center justify-center overflow-hidden
@@ -75,8 +79,8 @@ export const CtaButton = forwardRef<HTMLElement, CtaButtonProps>(
               {children}
             </span>
             {/* hover label (rises from below) */}
-            <span className="absolute inset-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0">
-              {children}
+            <span className="absolute inset-0 translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0 whitespace-nowrap">
+              {hover}
             </span>
           </span>
           <span
