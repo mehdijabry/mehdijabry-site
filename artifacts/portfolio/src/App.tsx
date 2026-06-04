@@ -12,6 +12,11 @@ import About from "@/pages/about";
 import Thanks from "@/pages/thanks";
 import Legal from "@/pages/legal";
 
+import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
+import { CustomCursor } from "@/components/effects/custom-cursor";
+import { ScrollProgress } from "@/components/effects/scroll-progress";
+import { Noise } from "@/components/effects/noise";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -33,10 +38,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
+        <SmoothScrollProvider>
+          <Noise />
+          <ScrollProgress />
+          <CustomCursor />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </SmoothScrollProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

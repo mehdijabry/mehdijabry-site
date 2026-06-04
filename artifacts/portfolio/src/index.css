@@ -309,3 +309,30 @@
     @apply w-full;
   }
 }
+
+/* Custom cursor — hide native pointer on desktop with fine pointer */
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body {
+    cursor: none;
+  }
+  a,
+  button,
+  [role="button"],
+  input,
+  textarea,
+  select,
+  [data-magnetic] {
+    cursor: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

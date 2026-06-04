@@ -74,3 +74,6 @@ coverage/
 
 # Misc
 .vercel
+
+# Claude session config (local only)
+.claude/
