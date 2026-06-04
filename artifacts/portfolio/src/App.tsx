@@ -13,7 +13,6 @@ import Thanks from "@/pages/thanks";
 import Legal from "@/pages/legal";
 
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
-import { CustomCursor } from "@/components/effects/custom-cursor";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Aurora } from "@/components/effects/aurora";
 
@@ -41,7 +40,6 @@ function App() {
         <SmoothScrollProvider>
           <Aurora fixed intensity={0.45} />
           <ScrollProgress />
-          <CustomCursor />
           <div className="relative z-10">
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Router />

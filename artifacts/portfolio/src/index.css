@@ -352,22 +352,8 @@
   }
 }
 
-/* Custom cursor — hide native pointer on desktop with fine pointer */
-@media (hover: hover) and (pointer: fine) {
-  html,
-  body {
-    cursor: none;
-  }
-  a,
-  button,
-  [role="button"],
-  input,
-  textarea,
-  select,
-  [data-magnetic] {
-    cursor: none;
-  }
-}
+/* Custom cursor removed — let native pointer handle hover targets.
+   Interactive elements use the standard pointer cursor. */
 
 @media (prefers-reduced-motion: reduce) {
   *,
