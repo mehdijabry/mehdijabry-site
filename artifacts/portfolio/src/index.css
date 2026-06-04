@@ -150,50 +150,54 @@
 }
 
 .dark {
-  --background: 30 10% 5%;
-  --foreground: 40 30% 96%;
+  /* ── Palette: Bordeaux & Bone ─────────────────────────────
+     bg #14080A · fg #E8DDC8 · primary #C9A961 (champagne)
+     secondary #8B1E2E (burgundy) · accent #5B2A2F (dark wine)
+  ─────────────────────────────────────────────────────────── */
+  --background: 354 43% 6%;
+  --foreground: 38 42% 85%;
 
-  --border: 40 4% 14%;
-  --input: 40 4% 14%;
-  --ring: 78 80% 62%;
+  --border: 354 18% 16%;
+  --input: 354 18% 16%;
+  --ring: 42 51% 59%;
 
-  --card: 30 8% 8%;
-  --card-foreground: 40 30% 96%;
-  --card-border: 40 4% 14%;
+  --card: 354 32% 9%;
+  --card-foreground: 38 42% 85%;
+  --card-border: 354 18% 16%;
 
-  --popover: 30 8% 8%;
-  --popover-foreground: 40 30% 96%;
-  --popover-border: 40 4% 14%;
+  --popover: 354 32% 9%;
+  --popover-foreground: 38 42% 85%;
+  --popover-border: 354 18% 16%;
 
-  --primary: 78 80% 62%;
-  --primary-foreground: 30 10% 5%;
+  --primary: 42 51% 59%;
+  --primary-foreground: 354 43% 6%;
 
-  --secondary: 34 56% 61%;
-  --secondary-foreground: 30 10% 5%;
+  --secondary: 354 65% 33%;
+  --secondary-foreground: 38 42% 85%;
 
-  --muted: 30 8% 11%;
-  --muted-foreground: 40 6% 64%;
+  --muted: 354 25% 11%;
+  --muted-foreground: 38 22% 62%;
 
-  --accent: 14 90% 65%;
-  --accent-foreground: 30 10% 5%;
+  --accent: 356 38% 26%;
+  --accent-foreground: 38 42% 85%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 60 3% 96%;
 
-  --sidebar: 30 10% 5%;
-  --sidebar-foreground: 40 30% 96%;
-  --sidebar-border: 40 4% 14%;
-  --sidebar-primary: 78 80% 62%;
-  --sidebar-primary-foreground: 30 10% 5%;
-  --sidebar-accent: 40 4% 14%;
-  --sidebar-accent-foreground: 40 30% 96%;
-  --sidebar-ring: 78 80% 62%;
+  --sidebar: 354 43% 6%;
+  --sidebar-foreground: 38 42% 85%;
+  --sidebar-border: 354 18% 16%;
+  --sidebar-primary: 42 51% 59%;
+  --sidebar-primary-foreground: 354 43% 6%;
+  --sidebar-accent: 354 25% 11%;
+  --sidebar-accent-foreground: 38 42% 85%;
+  --sidebar-ring: 42 51% 59%;
 
-  --chart-1: 78 80% 62%;
-  --chart-2: 34 56% 61%;
-  --chart-3: 14 90% 65%;
-  --chart-4: 220 60% 65%;
-  --chart-5: 40 30% 96%;
+  --chart-1: 42 51% 59%;
+  --chart-2: 354 65% 33%;
+  --chart-3: 356 38% 26%;
+  --chart-4: 38 42% 85%;
+  --chart-5: 38 22% 62%;
 
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
