@@ -19,17 +19,20 @@ export function Reveal({
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once, margin: "-15% 0px" });
 
+  // No blur filter — composite cost is too high during scroll. Plain
+  // opacity + translate gives the same visual but is GPU-cheap.
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y, filter: "blur(6px)" }}
-      animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+      initial={{ opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{
-        duration: 0.9,
+        duration: 0.7,
         ease: [0.22, 1, 0.36, 1],
         delay,
       }}
       className={className}
+      style={{ willChange: "opacity, transform" }}
     >
       {children}
     </motion.div>

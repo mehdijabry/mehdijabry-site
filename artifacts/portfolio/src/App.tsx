@@ -15,7 +15,6 @@ import Legal from "@/pages/legal";
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
 import { CustomCursor } from "@/components/effects/custom-cursor";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
-import { Noise } from "@/components/effects/noise";
 import { Aurora } from "@/components/effects/aurora";
 
 const queryClient = new QueryClient();
@@ -41,7 +40,6 @@ function App() {
       <TooltipProvider>
         <SmoothScrollProvider>
           <Aurora fixed intensity={0.45} />
-          <Noise />
           <ScrollProgress />
           <CustomCursor />
           <div className="relative z-10">

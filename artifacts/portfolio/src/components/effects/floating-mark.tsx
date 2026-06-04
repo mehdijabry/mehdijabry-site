@@ -1,8 +1,7 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-
 /**
- * FloatingMark — a giant typographic watermark of "M·J" that slowly drifts
- * with scroll. Lives at z-0, behind content. Pure-CSS / Framer-only.
+ * FloatingMark — a giant typographic watermark of "M·J" used as a section
+ * accent. Static (no scroll-driven re-renders) — paint-cheap. Lives at z-0
+ * behind content.
  */
 export function FloatingMark({
   className = "",
@@ -11,14 +10,9 @@ export function FloatingMark({
   className?: string;
   text?: string;
 }) {
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], [0, -120]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [-2, 6]);
-
   return (
-    <motion.div
+    <div
       aria-hidden
-      style={{ y, rotate }}
       className={`pointer-events-none absolute inset-0 z-0 flex items-end justify-end overflow-hidden ${className}`}
     >
       <span
@@ -26,14 +20,14 @@ export function FloatingMark({
         style={{
           fontSize: "clamp(220px, 38vw, 520px)",
           color: "transparent",
-          WebkitTextStroke: "1px hsl(var(--foreground) / 0.07)",
+          WebkitTextStroke: "1px hsl(var(--foreground) / 0.09)",
           letterSpacing: "-0.06em",
-          fontWeight: 600,
+          fontWeight: 700,
           paddingRight: "2vw",
         }}
       >
         {text}
       </span>
-    </motion.div>
+    </div>
   );
 }

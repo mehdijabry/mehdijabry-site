@@ -237,7 +237,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           TICKER DIVIDER — oversized brand banner
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative border-y border-border/40 bg-background/50 backdrop-blur-sm py-6 md:py-8 overflow-hidden">
+      <section className="relative border-y border-border/40 bg-background/50  py-6 md:py-8 overflow-hidden">
         <Ticker duration={42}>
           {Array.from({ length: 6 }).map((_, i) => (
             <span
@@ -649,7 +649,7 @@ function CurrencyToggle({
   setCurrency: (c: keyof typeof CURRENCIES) => void;
 }) {
   return (
-    <div className="inline-flex border border-border/60 rounded-full p-1 bg-background/60 backdrop-blur-sm">
+    <div className="inline-flex border border-border/60 rounded-full p-1 bg-background/60 ">
       {(Object.keys(CURRENCIES) as Array<keyof typeof CURRENCIES>).map((c) => (
         <button
           key={c}

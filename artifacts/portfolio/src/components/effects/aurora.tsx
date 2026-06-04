@@ -174,10 +174,13 @@ export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraPro
       gl.uniform1f(uInt, intensity);
     };
 
+    // Render at sub-DPR to keep the fragment shader cheap.
+    // Fragment shader cost is per-pixel; halving DPR roughly quarters GPU load.
+    const RENDER_SCALE = 0.55;
+
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const w = canvas.clientWidth * dpr;
-      const h = canvas.clientHeight * dpr;
+      const w = Math.max(1, Math.floor(canvas.clientWidth * RENDER_SCALE));
+      const h = Math.max(1, Math.floor(canvas.clientHeight * RENDER_SCALE));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -198,25 +201,54 @@ export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraPro
       attributeFilter: ["class", "style"],
     });
 
+    // Cap the frame rate; 30fps is indistinguishable for this slow-noise field
+    // but cuts GPU work in half on integrated graphics.
+    const TARGET_FPS = 30;
+    const FRAME_MS = 1000 / TARGET_FPS;
+    let lastFrame = performance.now();
+    let running = true;
+
     const start = performance.now();
     const frame = (now: number) => {
-      const t = (now - start) / 1000;
-      gl.uniform1f(uTime, t);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      if (!running) return;
+      if (now - lastFrame >= FRAME_MS) {
+        lastFrame = now;
+        const t = (now - start) / 1000;
+        gl.uniform1f(uTime, t);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
       if (!prefersReduced) animRef.current = requestAnimationFrame(frame);
     };
     animRef.current = requestAnimationFrame(frame);
 
+    // Pause the shader when the tab is hidden — major perf win.
+    const onVisibility = () => {
+      if (document.hidden) {
+        running = false;
+        if (animRef.current) cancelAnimationFrame(animRef.current);
+      } else if (!prefersReduced) {
+        running = true;
+        lastFrame = performance.now();
+        animRef.current = requestAnimationFrame(frame);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
+      running = false;
       if (animRef.current) cancelAnimationFrame(animRef.current);
       ro.disconnect();
       themeObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [intensity]);
 
   const base =
     "pointer-events-none select-none w-full h-full block opacity-[0.85]";
+  // CSS-blur the upscaled low-DPR canvas so the lower-res render still
+  // reads as soft, not pixelated.
+  const filterStyle: React.CSSProperties = { filter: "blur(28px) saturate(1.05)" };
   return (
     <div
       aria-hidden
@@ -235,7 +267,11 @@ export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraPro
             "radial-gradient(60% 50% at 20% 30%, hsl(var(--primary) / 0.18), transparent 60%), radial-gradient(50% 45% at 80% 70%, hsl(var(--secondary) / 0.14), transparent 60%), radial-gradient(45% 40% at 60% 20%, hsl(var(--accent) / 0.12), transparent 65%)",
         }}
       />
-      <canvas ref={canvasRef} className={`${base} ${className ?? ""}`} />
+      <canvas
+        ref={canvasRef}
+        className={`${base} ${className ?? ""}`}
+        style={filterStyle}
+      />
     </div>
   );
 }

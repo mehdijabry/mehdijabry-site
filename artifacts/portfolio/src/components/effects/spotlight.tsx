@@ -23,23 +23,31 @@ export function Spotlight({ size = 520, className }: SpotlightProps) {
     const parent = el.parentElement;
     if (!parent) return;
 
+    let raf: number | null = null;
+    let nx = 0;
+    let ny = 0;
+    const apply = () => {
+      el.style.setProperty("--x", `${nx}px`);
+      el.style.setProperty("--y", `${ny}px`);
+      el.style.opacity = "1";
+      raf = null;
+    };
     const onMove = (e: MouseEvent) => {
       const rect = parent.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      el.style.setProperty("--x", `${x}px`);
-      el.style.setProperty("--y", `${y}px`);
-      el.style.opacity = "1";
+      nx = e.clientX - rect.left;
+      ny = e.clientY - rect.top;
+      if (raf === null) raf = requestAnimationFrame(apply);
     };
     const onLeave = () => {
       el.style.opacity = "0";
     };
 
-    parent.addEventListener("mousemove", onMove);
+    parent.addEventListener("mousemove", onMove, { passive: true });
     parent.addEventListener("mouseleave", onLeave);
     return () => {
       parent.removeEventListener("mousemove", onMove);
       parent.removeEventListener("mouseleave", onLeave);
+      if (raf !== null) cancelAnimationFrame(raf);
     };
   }, []);
 

@@ -14,11 +14,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     ).matches;
     if (prefersReducedMotion) return;
 
+    // Tight interpolation — feels smooth without amplifying paint lag.
     const lenis = new Lenis({
-      duration: 1.05,
+      duration: 0.7,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      touchMultiplier: 1.2,
+      touchMultiplier: 1.5,
+      wheelMultiplier: 1.1,
     });
 
     let rafId: number;
