@@ -154,14 +154,13 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           HERO — full-bleed aurora, cursor spotlight, oversized type
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative isolate overflow-hidden min-h-[92vh] flex items-center">
-        <Spotlight size={620} />
-        <FloatingMark />
+      <section className="relative isolate overflow-hidden flex items-center pt-24 pb-16 md:pt-28 md:pb-20">
+        <Spotlight size={520} />
 
-        <div className="relative z-10 container mx-auto px-4 pt-28 pb-24 md:pt-32 md:pb-28">
+        <div className="relative z-10 container mx-auto px-4">
           {/* eyebrow row */}
           <Reveal>
-            <div className="flex items-center justify-between gap-4 mb-12 md:mb-16">
+            <div className="flex items-center justify-between gap-4 mb-8 md:mb-12">
               <div className="chip">
                 <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
                 <span>Booking · Q3 2026</span>
@@ -174,37 +173,27 @@ export default function Home() {
             </div>
           </Reveal>
 
-          {/* mega headline */}
-          <h1 className="text-display text-[clamp(64px,12vw,200px)] max-w-[1100px]">
-            <span className="block">
-              <ScrambleText
-                text="Production-ready"
-                duration={700}
-                delay={120}
-                as="span"
-              />
-            </span>
-            <span className="block">
-              <ScrambleText
-                text="websites,"
-                duration={700}
-                delay={420}
-                as="span"
-              />
-            </span>
-            <span className="block font-italic-serif text-primary -mt-2 md:-mt-4 font-normal italic" style={{ letterSpacing: "-0.025em" }}>
+          {/* headline — half the previous size, fits above the fold */}
+          <h1 className="text-display text-[clamp(40px,6.5vw,96px)] max-w-[1100px] leading-[0.95]">
+            <ScrambleText
+              text="Production-ready websites, "
+              duration={700}
+              delay={120}
+              as="span"
+            />
+            <span className="text-primary">
               <ScrambleText
                 text="shipped in 72 hours."
                 duration={900}
-                delay={780}
+                delay={620}
                 as="span"
               />
             </span>
           </h1>
 
           {/* sub-row */}
-          <Reveal delay={1.55}>
-            <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+          <Reveal delay={1.4}>
+            <div className="mt-8 md:mt-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
               <p className="md:col-span-6 text-base md:text-lg leading-relaxed text-muted-foreground max-w-xl">
                 Custom code, no templates, no monthly fee from me.
                 Source yours from day one. Built solo, in Quebec,
@@ -223,8 +212,8 @@ export default function Home() {
           </Reveal>
 
           {/* meta row */}
-          <Reveal delay={1.85}>
-            <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border/40 pt-8">
+          <Reveal delay={1.6}>
+            <div className="mt-10 md:mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border/40 pt-6">
               <Meta label="From" value="C$390" sub="Tier 1 ships in 24–48h" />
               <Meta label="Status" value={<LiveTime />} sub="Replies under 4 hours" />
               <Meta label="Stack" value="Next · Supabase" sub="Serverless by default" />
@@ -242,11 +231,11 @@ export default function Home() {
           {Array.from({ length: 6 }).map((_, i) => (
             <span
               key={i}
-              className="font-display font-medium text-[clamp(40px,6vw,90px)] leading-none tracking-[-0.04em] flex items-center gap-8 text-foreground/70"
+              className="font-display font-bold text-[clamp(28px,4vw,56px)] leading-none tracking-[-0.04em] flex items-center gap-8 text-foreground/70"
             >
               <span>Independent web studio</span>
               <span className="text-primary text-[0.7em]">✦</span>
-              <span className="font-italic-serif italic text-primary">since 2025</span>
+              <span className="text-primary">since 2025</span>
               <span className="text-primary text-[0.7em]">✦</span>
             </span>
           ))}
@@ -261,8 +250,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-20">
             <Reveal className="md:col-span-4">
               <div className="chip mb-6">(02) — How it works</div>
-              <h2 className="text-display text-[clamp(48px,6vw,96px)] leading-[0.9]">
-                Three days. <em className="font-italic-serif italic text-primary">Zero ambiguity.</em>
+              <h2 className="text-display text-[clamp(40px,4.5vw,72px)] leading-[0.95]">
+                Three days. <span className="text-primary not-italic">Zero ambiguity.</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-7 md:col-start-6" delay={0.15}>
@@ -279,7 +268,7 @@ export default function Home() {
               <Reveal key={p.n} delay={i * 0.12}>
                 <div className="relative bg-background p-8 md:p-10 h-full flex flex-col gap-6 group hover:bg-muted/40 transition-colors duration-500">
                   <div className="flex items-start justify-between">
-                    <span className="text-display text-6xl md:text-7xl text-primary font-italic-serif italic leading-none">
+                    <span className="text-display text-6xl md:text-7xl text-primary leading-none">
                       {p.n}
                     </span>
                     <span className="text-mark text-muted-foreground">{p.day}</span>
@@ -308,10 +297,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16 md:mb-24">
             <Reveal className="md:col-span-7">
               <div className="chip mb-6">(03) — Selected work</div>
-              <h2 className="text-display text-[clamp(48px,7vw,120px)] leading-[0.88]">
-                Built end-to-end.
-                <br />
-                <em className="font-italic-serif italic text-primary">Live in production.</em>
+              <h2 className="text-display text-[clamp(40px,5vw,84px)] leading-[0.95]">
+                Built end-to-end.{" "}
+                <span className="text-primary not-italic">Live in production.</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-4 md:col-start-9 self-end" delay={0.15}>
@@ -369,7 +357,7 @@ export default function Home() {
               className="font-mono text-base md:text-xl tracking-[-0.01em] text-foreground/60 inline-flex items-center gap-12"
             >
               {t}
-              <span className="font-italic-serif italic text-primary text-2xl md:text-3xl">·</span>
+              <span className="text-primary text-2xl md:text-3xl">·</span>
             </span>
           ))}
         </Ticker>
@@ -383,10 +371,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16 md:mb-24 items-end">
             <Reveal className="md:col-span-7">
               <div className="chip mb-6">(04) — Pricing</div>
-              <h2 className="text-display text-[clamp(48px,7vw,110px)] leading-[0.88]">
-                Transparent.
-                <br />
-                <em className="font-italic-serif italic text-primary">Predictable.</em>
+              <h2 className="text-display text-[clamp(40px,5vw,84px)] leading-[0.95]">
+                Transparent.{" "}
+                <span className="text-primary not-italic">Predictable.</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-5 flex md:justify-end" delay={0.15}>
@@ -476,7 +463,7 @@ export default function Home() {
             </Reveal>
             <Reveal className="md:col-span-9 md:col-start-4" delay={0.15}>
               <p className="font-display text-[clamp(28px,3.4vw,52px)] leading-[1.15] tracking-[-0.025em] text-foreground">
-                I'm <em className="font-italic-serif italic text-primary not-italic-children">Mohamed Mehdi Jabry</em>.
+                I'm <span className="text-primary">Mohamed Mehdi Jabry</span>.
                 Three masters' degrees, hands-on AI training since 2023.
                 Marketing consultant at{" "}
                 <span className="underline decoration-primary/60 underline-offset-[6px] decoration-from-font">
@@ -511,10 +498,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
             <Reveal className="md:col-span-4">
               <div className="chip mb-6">(06) — FAQ</div>
-              <h2 className="text-display text-[clamp(48px,6vw,96px)] leading-[0.9]">
-                Common
-                <br />
-                <em className="font-italic-serif italic text-primary">questions.</em>
+              <h2 className="text-display text-[clamp(40px,4.5vw,72px)] leading-[0.95]">
+                Common <span className="text-primary not-italic">questions.</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-8" delay={0.15}>
@@ -581,10 +566,8 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <h2 className="text-display text-[clamp(56px,10vw,180px)] leading-[0.85] tracking-[-0.045em]">
-              You brief.
-              <br />
-              <em className="font-italic-serif italic text-primary">I build.</em>
+            <h2 className="text-display text-[clamp(48px,7vw,110px)] leading-[0.95] tracking-[-0.045em]">
+              You brief. <span className="text-primary not-italic">I build.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.3}>

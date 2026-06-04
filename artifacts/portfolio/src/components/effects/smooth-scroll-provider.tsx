@@ -1,40 +1,15 @@
-import { ReactNode, useEffect } from "react";
-import Lenis from "lenis";
+import { ReactNode } from "react";
 
-interface SmoothScrollProviderProps {
-  children: ReactNode;
-}
-
-export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Skip on touch / reduced motion users — let native scroll handle it
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (prefersReducedMotion) return;
-
-    // Tight interpolation — feels smooth without amplifying paint lag.
-    const lenis = new Lenis({
-      duration: 0.7,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      touchMultiplier: 1.5,
-      wheelMultiplier: 1.1,
-    });
-
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
-
+/**
+ * SmoothScrollProvider — currently a no-op pass-through.
+ *
+ * Lenis (smooth wheel interpolation) was removed: when the page already has
+ * compositor work (WebGL aurora, motion reveals, custom cursor), Lenis's
+ * extra interpolated frames amplify perceived lag rather than smoothing it.
+ * Native macOS / Windows wheel scroll is the smoothest option here. Keeping
+ * the provider component so the import in App.tsx stays stable; flip the
+ * implementation back on if we ever change strategy.
+ */
+export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

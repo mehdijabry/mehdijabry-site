@@ -174,9 +174,10 @@ export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraPro
       gl.uniform1f(uInt, intensity);
     };
 
-    // Render at sub-DPR to keep the fragment shader cheap.
-    // Fragment shader cost is per-pixel; halving DPR roughly quarters GPU load.
-    const RENDER_SCALE = 0.55;
+    // Render at very low resolution and CSS-blur back up. Aurora is a soft
+    // gradient field — pixel detail buys us nothing, and the per-fragment
+    // shader cost dominates GPU time.
+    const RENDER_SCALE = 0.35;
 
     const resize = () => {
       const w = Math.max(1, Math.floor(canvas.clientWidth * RENDER_SCALE));
@@ -201,9 +202,9 @@ export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraPro
       attributeFilter: ["class", "style"],
     });
 
-    // Cap the frame rate; 30fps is indistinguishable for this slow-noise field
-    // but cuts GPU work in half on integrated graphics.
-    const TARGET_FPS = 30;
+    // Cap the frame rate; aurora is slow-noise — 24fps is indistinguishable
+    // and frees up the compositor for scroll work.
+    const TARGET_FPS = 24;
     const FRAME_MS = 1000 / TARGET_FPS;
     let lastFrame = performance.now();
     let running = true;
