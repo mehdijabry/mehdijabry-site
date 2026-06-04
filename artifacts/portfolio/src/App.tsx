@@ -16,6 +16,7 @@ import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provide
 import { CustomCursor } from "@/components/effects/custom-cursor";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Noise } from "@/components/effects/noise";
+import { Aurora } from "@/components/effects/aurora";
 
 const queryClient = new QueryClient();
 
@@ -39,12 +40,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SmoothScrollProvider>
+          <Aurora fixed intensity={0.45} />
           <Noise />
           <ScrollProgress />
           <CustomCursor />
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
+          <div className="relative z-10">
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+          </div>
           <Toaster />
         </SmoothScrollProvider>
       </TooltipProvider>

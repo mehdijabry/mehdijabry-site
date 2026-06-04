@@ -5,42 +5,61 @@ import { useState } from "react";
 import { CURRENCIES, convertCurrency } from "@/lib/pricing";
 
 import { ScrambleText } from "@/components/effects/scramble-text";
-import { Magnetic } from "@/components/effects/magnetic";
 import { TiltCard } from "@/components/effects/tilt-card";
-import { Marquee } from "@/components/effects/marquee";
-import { Reveal, RevealWords } from "@/components/effects/reveal";
+import { Reveal } from "@/components/effects/reveal";
 import { LiveTime } from "@/components/effects/live-time";
+import { CtaButton } from "@/components/effects/cta-button";
+import { Spotlight } from "@/components/effects/spotlight";
+import { Ticker } from "@/components/effects/ticker";
+import { FloatingMark } from "@/components/effects/floating-mark";
+
+/* ─────────────────────── DATA ─────────────────────── */
 
 const TIERS = [
   {
     key: "spark",
-    name: "SPARK",
+    name: "Spark",
     subtitle: "Landing page",
     delivery: "24–48h",
     priceCAD: 390,
     priceUSD: 290,
     recommended: false,
-    features: ["1 page, custom Next.js", "Resend contact form", "Mobile-responsive", "1 revision round"],
+    features: [
+      "Single-page Next.js, fully custom",
+      "Resend transactional form",
+      "Mobile-responsive + dark mode",
+      "1 revision round",
+    ],
   },
   {
     key: "vitrine",
-    name: "VITRINE",
+    name: "Vitrine",
     subtitle: "Showcase site",
     delivery: "3–5 days",
     priceCAD: 790,
     priceUSD: 590,
     recommended: true,
-    features: ["3–5 pages", "Supabase form + SEO", "Plausible Analytics", "2 revision rounds"],
+    features: [
+      "3–5 pages, Supabase form + SEO",
+      "Plausible analytics + sitemap",
+      "Subtle motion + custom typography",
+      "2 revision rounds",
+    ],
   },
   {
     key: "vitrineplus",
-    name: "VITRINE+",
+    name: "Vitrine+",
     subtitle: "Showcase Plus",
     delivery: "5–7 days",
     priceCAD: 1290,
     priceUSD: 950,
     recommended: false,
-    features: ["5–7 pages + booking", "Newsletter signup", "Bilingual FR + EN", "45-min onboarding call"],
+    features: [
+      "5–7 pages + booking module",
+      "Bilingual FR + EN",
+      "Newsletter signup + admin panel",
+      "45-min onboarding call",
+    ],
   },
 ];
 
@@ -63,38 +82,64 @@ const TECH_STACK = [
 
 const FEATURED_WORK = [
   {
+    n: "01",
     title: "DS AI Manager",
     href: "https://ds-ai-manager.com",
-    meta: "Personal project · 2026",
-    blurb:
-      "AI agent for serious marketers — 13 specialised skills brand-aligned to your studio.",
-    stack: "Next.js · TypeScript · Supabase · Stripe",
+    meta: "Personal · 2026",
+    blurb: "AI agent for serious marketers — 13 specialised skills.",
+    stack: "Next.js / TS / Supabase / Stripe",
   },
   {
+    n: "02",
     title: "Brooklyn Mobile Notary",
     href: "https://proposal.mehdijabry.dev/brooklyn-notary-x7k9p/",
-    meta: "Service business · Brooklyn, NY · 2026",
-    blurb:
-      "Booking-driven notary site with admin dashboard and Resend transactional emails.",
-    stack: "Next.js · Supabase · Resend · Cloudflare",
+    meta: "Service · Brooklyn, NY · 2026",
+    blurb: "Booking-driven notary site with admin dashboard + Resend mailers.",
+    stack: "Next.js / Supabase / Resend / Cloudflare",
   },
   {
+    n: "03",
     title: "Ntaco Construction",
     href: "https://proposal.mehdijabry.dev/ntaco-c9k4m/",
-    meta: "Construction studio · Cyprus · 2026",
-    blurb:
-      "Industrial-premium portfolio site with project portfolio CMS and lead pipeline.",
-    stack: "Vite · React · Supabase · Tailwind",
+    meta: "Construction · Cyprus · 2026",
+    blurb: "Industrial-premium portfolio with project CMS + lead pipeline.",
+    stack: "Vite / React / Supabase / Tailwind",
   },
   {
+    n: "04",
     title: "Salwa El Jaouhari",
     href: "https://salwaeljaouhari.art",
     meta: "Art portfolio · Morocco · 2025",
-    blurb:
-      "Portfolio artistique — peinture, illustration et art contemporain.",
-    stack: "Next.js · TypeScript · Tailwind",
+    blurb: "Portfolio peinture & illustration — minimal, expressif.",
+    stack: "Next.js / TS / Tailwind",
   },
 ];
+
+const PROCESS = [
+  {
+    n: "01",
+    day: "Day 0",
+    title: "Brief",
+    body:
+      "30-minute call. I capture scope, deadlines, required assets. You leave with a writeup.",
+  },
+  {
+    n: "02",
+    day: "Day 1–2",
+    title: "Build",
+    body:
+      "Custom Next.js + Supabase. Daily Loom + Vercel preview. No surprises.",
+  },
+  {
+    n: "03",
+    day: "Day 3",
+    title: "Ship",
+    body:
+      "Deploy on Render or your infra. SEO, analytics, monitoring. Source code yours.",
+  },
+];
+
+/* ────────────────────── COMPONENT ────────────────────── */
 
 export default function Home() {
   const [currency, setCurrency] = useState<keyof typeof CURRENCIES>("CAD");
@@ -106,130 +151,148 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* ── HERO ───────────────────────────────────────────────── */}
-      <section className="relative container mx-auto px-4 pt-24 pb-20 md:pt-36 md:pb-32 overflow-hidden">
-        {/* subtle radial accent behind heading */}
-        <div
-          aria-hidden
-          className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-primary/10 blur-3xl"
-        />
-        <div className="relative z-10 max-w-5xl">
+      {/* ════════════════════════════════════════════════════════════
+          HERO — full-bleed aurora, cursor spotlight, oversized type
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative isolate overflow-hidden min-h-[92vh] flex items-center">
+        <Spotlight size={620} />
+        <FloatingMark />
+
+        <div className="relative z-10 container mx-auto px-4 pt-28 pb-24 md:pt-32 md:pb-28">
+          {/* eyebrow row */}
           <Reveal>
-            <div className="inline-flex items-center border border-border/60 px-3 py-1 text-[10px] font-sans uppercase tracking-[0.2em] text-muted-foreground mb-8">
-              <span className="opacity-70 mr-2">01 —</span>INDEPENDENT WEB STUDIO · TROIS-RIVIÈRES → WORLDWIDE
+            <div className="flex items-center justify-between gap-4 mb-12 md:mb-16">
+              <div className="chip">
+                <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
+                <span>Booking · Q3 2026</span>
+              </div>
+              <div className="hidden md:flex items-center gap-3 text-mark text-muted-foreground">
+                <span>(01)</span>
+                <span>—</span>
+                <span>Independent Web Studio</span>
+              </div>
             </div>
           </Reveal>
 
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[7.5rem] leading-[0.95] tracking-[-0.04em] mb-8">
-            <ScrambleText
-              text="Production-ready websites,"
-              duration={750}
-              delay={150}
-              as="span"
-              className="block"
-            />
-            <em className="text-primary italic font-display-wonk block mt-2">
-              <ScrambleText text="shipped in 72 hours." duration={950} delay={650} as="span" />
-            </em>
+          {/* mega headline */}
+          <h1 className="text-display text-[clamp(64px,12vw,200px)] max-w-[1100px]">
+            <span className="block">
+              <ScrambleText
+                text="Production-ready"
+                duration={700}
+                delay={120}
+                as="span"
+              />
+            </span>
+            <span className="block">
+              <ScrambleText
+                text="websites,"
+                duration={700}
+                delay={420}
+                as="span"
+              />
+            </span>
+            <span className="block font-italic-serif text-primary -mt-2 md:-mt-4 font-normal italic" style={{ letterSpacing: "-0.025em" }}>
+              <ScrambleText
+                text="shipped in 72 hours."
+                duration={900}
+                delay={780}
+                as="span"
+              />
+            </span>
           </h1>
 
-          <Reveal delay={1.3}>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-3 leading-relaxed">
-              Custom code. Production-grade. Source code yours from day one.
-              No subscriptions, no templates, no monthly fees from me.
-            </p>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground/80 mb-10">
-              From C$390 · Tier 1 ships in 24–48h
-            </p>
-          </Reveal>
-
+          {/* sub-row */}
           <Reveal delay={1.55}>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <Magnetic strength={0.4}>
-                <Link
-                  href="/start"
-                  data-testid="link-hero-cta"
-                  className="group inline-flex h-14 items-center justify-center whitespace-nowrap px-10 text-sm font-medium tracking-wide bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                  <span>Start a project</span>
-                  <span className="ml-3 transition-transform group-hover:translate-x-1">→</span>
-                </Link>
-              </Magnetic>
-              <Magnetic strength={0.3}>
-                <a
-                  href="#work"
-                  data-testid="link-hero-work"
-                  className="inline-flex h-14 items-center justify-center whitespace-nowrap px-10 text-sm font-medium tracking-wide border border-border bg-transparent hover:bg-foreground/5 transition-colors"
-                >
+            <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+              <p className="md:col-span-6 text-base md:text-lg leading-relaxed text-muted-foreground max-w-xl">
+                Custom code, no templates, no monthly fee from me.
+                Source yours from day one. Built solo, in Quebec,
+                for founders who care about craft.
+              </p>
+
+              <div className="md:col-span-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end">
+                <CtaButton to="/start" variant="primary" data-testid="link-hero-cta">
+                  Start a project
+                </CtaButton>
+                <CtaButton href="#work" variant="ghost" data-testid="link-hero-work">
                   See selected work
-                </a>
-              </Magnetic>
+                </CtaButton>
+              </div>
             </div>
           </Reveal>
 
-          <Reveal delay={1.8}>
-            <div className="mt-16 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
-              <LiveTime />
-              <span className="opacity-60">·</span>
-              <span>Replies within 4 hours</span>
-              <span className="opacity-60">·</span>
-              <span>Scroll to explore ↓</span>
+          {/* meta row */}
+          <Reveal delay={1.85}>
+            <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border/40 pt-8">
+              <Meta label="From" value="C$390" sub="Tier 1 ships in 24–48h" />
+              <Meta label="Status" value={<LiveTime />} sub="Replies under 4 hours" />
+              <Meta label="Stack" value="Next · Supabase" sub="Serverless by default" />
+              <Meta label="Where" value="Trois-Rivières → ∞" sub="Remote-first, EU + NA" />
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── TRUST + MARQUEE ────────────────────────────────────── */}
-      <section className="border-y border-border/50 bg-muted/30 py-14">
-        <Reveal>
-          <p className="text-center font-sans text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-8">
-            BUILT WITH THE SAME STACK I TRUST IN PRODUCTION
-          </p>
-        </Reveal>
-        <Marquee duration={45} className="text-foreground/40">
-          <div className="flex gap-12">
-            {TECH_STACK.map((t) => (
-              <span
-                key={t}
-                className="font-mono text-base tracking-[0.05em] whitespace-nowrap"
-              >
-                {t}
-                <span className="ml-12 opacity-30">/</span>
-              </span>
-            ))}
-          </div>
-        </Marquee>
+      {/* ════════════════════════════════════════════════════════════
+          TICKER DIVIDER — oversized brand banner
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative border-y border-border/40 bg-background/50 backdrop-blur-sm py-6 md:py-8 overflow-hidden">
+        <Ticker duration={42}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span
+              key={i}
+              className="font-display font-medium text-[clamp(40px,6vw,90px)] leading-none tracking-[-0.04em] flex items-center gap-8 text-foreground/70"
+            >
+              <span>Independent web studio</span>
+              <span className="text-primary text-[0.7em]">✦</span>
+              <span className="font-italic-serif italic text-primary">since 2025</span>
+              <span className="text-primary text-[0.7em]">✦</span>
+            </span>
+          ))}
+        </Ticker>
       </section>
 
-      {/* ── PROCESS ────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-3">
-            <Reveal>
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                02 — HOW IT WORKS
-              </p>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight">
-                <em className="italic">Three days.</em><br />Zero ambiguity.
+      {/* ════════════════════════════════════════════════════════════
+          PROCESS — three numbered cards, layered ink + rule lines
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative py-28 md:py-40 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-20">
+            <Reveal className="md:col-span-4">
+              <div className="chip mb-6">(02) — How it works</div>
+              <h2 className="text-display text-[clamp(48px,6vw,96px)] leading-[0.9]">
+                Three days. <em className="font-italic-serif italic text-primary">Zero ambiguity.</em>
               </h2>
             </Reveal>
+            <Reveal className="md:col-span-7 md:col-start-6" delay={0.15}>
+              <p className="text-lg md:text-xl leading-relaxed text-muted-foreground">
+                One person, one process, one inbox. You brief on Monday,
+                you review every evening, you ship Wednesday. The system was
+                built for me — I built the system for you.
+              </p>
+            </Reveal>
           </div>
-          <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              { n: "DAY 0", t: "BRIEF", d: "30-minute call. I capture scope, deadlines, and required assets." },
-              { n: "DAY 1–2", t: "BUILD", d: "Custom Next.js + Supabase code. I share progress every evening." },
-              { n: "DAY 3", t: "SHIP", d: "Live on your domain. Source code transferred to your GitHub." },
-            ].map((s, i) => (
-              <Reveal key={s.n} delay={0.1 + i * 0.12}>
-                <div className="flex flex-col gap-3 border-t border-border/60 pt-6">
-                  <span className="font-display italic text-4xl text-primary/80">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                    {s.n}
-                  </span>
-                  <h3 className="font-sans font-medium text-lg">{s.t}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{s.d}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/40 border border-border/40">
+            {PROCESS.map((p, i) => (
+              <Reveal key={p.n} delay={i * 0.12}>
+                <div className="relative bg-background p-8 md:p-10 h-full flex flex-col gap-6 group hover:bg-muted/40 transition-colors duration-500">
+                  <div className="flex items-start justify-between">
+                    <span className="text-display text-6xl md:text-7xl text-primary font-italic-serif italic leading-none">
+                      {p.n}
+                    </span>
+                    <span className="text-mark text-muted-foreground">{p.day}</span>
+                  </div>
+                  <div className="mt-auto pt-12">
+                    <h3 className="font-display text-3xl md:text-4xl mb-3">
+                      {p.title}
+                    </h3>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xs">
+                      {p.body}
+                    </p>
+                  </div>
+                  <div className="absolute top-0 left-0 h-px w-0 bg-primary group-hover:w-full transition-all duration-700" />
                 </div>
               </Reveal>
             ))}
@@ -237,323 +300,376 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FEATURED WORK ──────────────────────────────────────── */}
-      <section id="work" className="container mx-auto px-4 py-28 border-t border-border/50">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-          <Reveal>
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-              03 — SELECTED WORK
-            </p>
-            <h2 className="font-display text-3xl md:text-4xl tracking-tight max-w-2xl">
-              <RevealWords text="A handful of recent builds." delay={0.1} />
-            </h2>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <Link
-              href="/work"
-              className="font-mono text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors"
-            >
-              All work →
-            </Link>
-          </Reveal>
-        </div>
+      {/* ════════════════════════════════════════════════════════════
+          SELECTED WORK — editorial list, no thumbnails (yet)
+      ════════════════════════════════════════════════════════════ */}
+      <section id="work" className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16 md:mb-24">
+            <Reveal className="md:col-span-7">
+              <div className="chip mb-6">(03) — Selected work</div>
+              <h2 className="text-display text-[clamp(48px,7vw,120px)] leading-[0.88]">
+                Built end-to-end.
+                <br />
+                <em className="font-italic-serif italic text-primary">Live in production.</em>
+              </h2>
+            </Reveal>
+            <Reveal className="md:col-span-4 md:col-start-9 self-end" delay={0.15}>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Four sites I shipped solo — design, code, deploy, copy.
+                Every project below sends real emails to a real inbox today.
+              </p>
+            </Reveal>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {FEATURED_WORK.map((w, i) => (
-            <Reveal key={w.title} delay={i * 0.1}>
-              <TiltCard className="h-full">
+          <div className="space-y-px bg-border/40 border border-border/40">
+            {FEATURED_WORK.map((w, i) => (
+              <Reveal key={w.title} delay={i * 0.08}>
                 <a
                   href={w.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group block h-full"
+                  className="block bg-background hover:bg-muted/40 transition-colors duration-500 group"
+                  data-testid={`link-work-${w.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  data-magnetic
                 >
-                  <article className="border border-border bg-card p-8 h-full flex flex-col gap-5 transition-all duration-500 hover:border-primary/50">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="font-display text-2xl md:text-3xl leading-tight tracking-tight group-hover:text-primary transition-colors">
-                        <em className="italic">{w.title}</em>
+                  <div className="container mx-auto px-6 md:px-10 py-8 md:py-10 grid grid-cols-12 gap-4 items-baseline">
+                    <span className="col-span-2 md:col-span-1 text-mark text-muted-foreground self-start mt-2">
+                      {w.n}
+                    </span>
+                    <div className="col-span-10 md:col-span-5">
+                      <h3 className="font-display text-2xl md:text-4xl lg:text-5xl tracking-[-0.035em] flex items-baseline gap-3 transition-transform duration-500 group-hover:translate-x-2">
+                        {w.title}
+                        <span className="text-primary inline-block transition-transform duration-500 group-hover:rotate-45 text-xl md:text-2xl">↗</span>
                       </h3>
-                      <span className="font-mono text-xs text-muted-foreground/70 shrink-0 mt-2 group-hover:translate-x-1 transition-transform">
-                        ↗
-                      </span>
+                      <p className="text-mark text-muted-foreground mt-2">{w.meta}</p>
                     </div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80">
-                      {w.meta}
-                    </p>
-                    <p className="text-muted-foreground text-sm leading-relaxed flex-1">
+                    <p className="hidden md:block md:col-span-4 text-sm text-muted-foreground leading-relaxed">
                       {w.blurb}
                     </p>
-                    <p className="font-mono text-xs text-muted-foreground/70 pt-5 border-t border-border/40">
+                    <p className="hidden md:block md:col-span-2 text-mark text-muted-foreground/80 text-right">
                       {w.stack}
                     </p>
-                  </article>
-                </a>
-              </TiltCard>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── PRICING ────────────────────────────────────────────── */}
-      <section id="pricing" className="bg-muted/30 py-28 border-y border-border/50">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <Reveal>
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                04 — PRICING · TRANSPARENT
-              </p>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight">
-                <em className="italic">Predictable.</em> No surprises.
-              </h2>
-            </Reveal>
-            <Reveal delay={0.15}>
-              <div className="flex bg-background border border-border p-1">
-                {(["CAD", "USD", "EUR", "GBP"] as const).map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setCurrency(c)}
-                    data-testid={`button-home-currency-${c.toLowerCase()}`}
-                    className={`px-3 py-1.5 text-xs font-mono tracking-wide transition-colors ${
-                      currency === c
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TIERS.map((tier, i) => (
-              <Reveal key={tier.key} delay={i * 0.12}>
-                <div
-                  className={`relative flex flex-col gap-6 p-8 h-full transition-all duration-300 hover:-translate-y-1 ${
-                    tier.recommended
-                      ? "border border-primary bg-background shadow-[0_0_0_1px] shadow-primary/40"
-                      : "border border-border bg-background"
-                  }`}
-                  data-testid={`card-home-tier-${tier.key}`}
-                >
-                  {tier.recommended && (
-                    <div className="absolute -top-3 left-8 bg-primary text-primary-foreground text-[10px] font-mono px-3 py-1 uppercase tracking-[0.18em]">
-                      Most popular
-                    </div>
-                  )}
-                  <div>
-                    <h4
-                      className={`font-mono text-xs tracking-[0.2em] mb-3 ${
-                        tier.recommended ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      {tier.name}
-                    </h4>
-                    <div className="font-display text-5xl tracking-tight mb-2">
-                      ${displayPrice(tier.priceCAD, tier.priceUSD).toLocaleString()}
-                      <span className="text-sm font-mono text-muted-foreground uppercase ml-2 align-top">
-                        {currency}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {tier.subtitle} · {tier.delivery}
-                    </p>
                   </div>
-                  <ul className="text-sm space-y-2.5 flex-1">
-                    {tier.features.map((f) => (
-                      <li key={f} className="flex gap-3 text-muted-foreground">
-                        <span className="text-primary shrink-0">→</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Magnetic strength={0.25}>
-                    <Link
-                      href="/start"
-                      className={`inline-flex h-11 w-full items-center justify-center px-6 text-sm font-medium transition-colors ${
-                        tier.recommended
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "border border-border hover:bg-foreground/5"
-                      }`}
-                    >
-                      Choose {tier.name.toLowerCase()} →
-                    </Link>
-                  </Magnetic>
-                </div>
+                </a>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── ABOUT TEASER ───────────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          <div className="lg:col-span-3">
-            <Reveal>
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                05 — ABOUT
-              </p>
+      {/* ════════════════════════════════════════════════════════════
+          TICKER #2 — tech stack with italic dividers
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative py-10 md:py-14 border-y border-border/40 overflow-hidden bg-background/60">
+        <Ticker duration={50}>
+          {TECH_STACK.concat(TECH_STACK).map((t, i) => (
+            <span
+              key={`${t}-${i}`}
+              className="font-mono text-base md:text-xl tracking-[-0.01em] text-foreground/60 inline-flex items-center gap-12"
+            >
+              {t}
+              <span className="font-italic-serif italic text-primary text-2xl md:text-3xl">·</span>
+            </span>
+          ))}
+        </Ticker>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════
+          PRICING — three tiers, ink-on-bone, currency toggle
+      ════════════════════════════════════════════════════════════ */}
+      <section id="pricing" className="relative py-28 md:py-40 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16 md:mb-24 items-end">
+            <Reveal className="md:col-span-7">
+              <div className="chip mb-6">(04) — Pricing</div>
+              <h2 className="text-display text-[clamp(48px,7vw,110px)] leading-[0.88]">
+                Transparent.
+                <br />
+                <em className="font-italic-serif italic text-primary">Predictable.</em>
+              </h2>
+            </Reveal>
+            <Reveal className="md:col-span-5 flex md:justify-end" delay={0.15}>
+              <CurrencyToggle currency={currency} setCurrency={setCurrency} />
             </Reveal>
           </div>
-          <div className="lg:col-span-9 max-w-3xl">
-            <Reveal>
-              <p className="font-display text-2xl md:text-3xl leading-[1.3] tracking-tight">
-                I'm <em className="italic text-primary">Mohamed Mehdi Jabry</em>. 35. Based in Trois-Rivières, Québec.
-                Three master's degrees, hands-on AI training since 2023.
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/40 border border-border/40">
+            {TIERS.map((tier) => {
+              const price = displayPrice(tier.priceCAD, tier.priceUSD);
+              return (
+                <Reveal key={tier.key}>
+                  <div
+                    className={`relative h-full bg-background p-8 md:p-10 flex flex-col gap-6 transition-colors duration-500 ${
+                      tier.recommended
+                        ? "ring-1 ring-primary/40 bg-primary/[0.03]"
+                        : "hover:bg-muted/40"
+                    }`}
+                    data-testid={`card-tier-${tier.key}`}
+                  >
+                    {tier.recommended && (
+                      <div className="absolute -top-px right-6 bg-primary text-primary-foreground text-mark px-3 py-1">
+                        Recommended
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-mark text-muted-foreground">{tier.subtitle}</p>
+                      <h3 className="font-display text-5xl md:text-6xl mt-1 tracking-[-0.04em]">
+                        {tier.name}
+                      </h3>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-[clamp(56px,8vw,96px)] leading-none tracking-[-0.045em]">
+                        ${price}
+                      </span>
+                      <span className="text-mark text-muted-foreground">{currency}</span>
+                    </div>
+                    <p className="text-mark text-muted-foreground">
+                      Ships in {tier.delivery}
+                    </p>
+                    <ul className="space-y-3 mt-2 mb-8 flex-1">
+                      {tier.features.map((f) => (
+                        <li
+                          key={f}
+                          className="flex items-start gap-3 text-sm text-foreground/80"
+                        >
+                          <span className="text-primary mt-1.5 shrink-0">→</span>
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <CtaButton
+                      to={`/start?tier=${tier.key}`}
+                      variant={tier.recommended ? "primary" : "ghost"}
+                      size="md"
+                      data-testid={`button-select-${tier.key}`}
+                    >
+                      Choose {tier.name}
+                    </CtaButton>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+
+          <Reveal delay={0.3}>
+            <p className="mt-10 text-center text-mark text-muted-foreground">
+              All tiers include source code · domain setup · 7 days post-launch support
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════
+          ABOUT — editorial body, asymmetric grid
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+            <Reveal className="md:col-span-3">
+              <div className="chip mb-6">(05) — About</div>
+              <p className="text-mark text-muted-foreground">
+                The vintner drinks
+                <br />
+                his own wine.
+              </p>
+            </Reveal>
+            <Reveal className="md:col-span-9 md:col-start-4" delay={0.15}>
+              <p className="font-display text-[clamp(28px,3.4vw,52px)] leading-[1.15] tracking-[-0.025em] text-foreground">
+                I'm <em className="font-italic-serif italic text-primary not-italic-children">Mohamed Mehdi Jabry</em>.
+                Three masters' degrees, hands-on AI training since 2023.
                 Marketing consultant at{" "}
-                <a
-                  href="https://cradly.co.uk"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline decoration-primary/50 underline-offset-4 hover:text-primary transition-colors"
-                >
+                <span className="underline decoration-primary/60 underline-offset-[6px] decoration-from-font">
                   Cradly UK
-                </a>{" "}
-                while running two products:{" "}
+                </span>{" "}
+                while running two products of my own:{" "}
                 <a
                   href="https://ds-ai-manager.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline decoration-primary/50 underline-offset-4 hover:text-primary transition-colors"
+                  className="underline decoration-primary/60 underline-offset-[6px] hover:decoration-primary transition-colors"
                 >
                   ds-ai-manager.com
                 </a>{" "}
                 and this studio.
               </p>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <p className="mt-8 text-muted-foreground leading-relaxed text-lg">
-                I build websites the way I'd want one built for myself — fast,
-                custom, with the code yours from day one. Bilingual French and
-                English. I work with founders and service businesses worldwide.
-              </p>
-            </Reveal>
-            <Reveal delay={0.3}>
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-2 mt-8 text-primary font-mono text-xs uppercase tracking-[0.2em] hover:underline underline-offset-4"
-              >
-                → More about me
-              </Link>
+              <div className="mt-12">
+                <CtaButton to="/about" variant="ghost" size="md">
+                  Full background
+                </CtaButton>
+              </div>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-28 border-t border-border/50">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-3">
-            <Reveal>
-              <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                06 — FAQ
-              </p>
-              <h2 className="font-display text-3xl md:text-4xl tracking-tight">
-                <em className="italic">Common</em> questions.
+      {/* ════════════════════════════════════════════════════════════
+          FAQ
+      ════════════════════════════════════════════════════════════ */}
+      <section className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
+            <Reveal className="md:col-span-4">
+              <div className="chip mb-6">(06) — FAQ</div>
+              <h2 className="text-display text-[clamp(48px,6vw,96px)] leading-[0.9]">
+                Common
+                <br />
+                <em className="font-italic-serif italic text-primary">questions.</em>
               </h2>
             </Reveal>
-          </div>
-          <div className="lg:col-span-9 max-w-3xl">
-            <Reveal>
+            <Reveal className="md:col-span-8" delay={0.15}>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger className="font-display text-xl text-left">What's actually included in each tier?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Spark covers 1-page landings — shipped in 24–48h. Vitrine covers
-                    3–5 page showcase sites — 3–5 days. Vitrine+ adds newsletter signup,
-                    booking, and bilingual — 5–7 days. The clock starts the moment I
-                    have your deposit AND all required assets.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger className="font-display text-xl text-left">Do I own the code?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Yes. Source code transferred to your GitHub on delivery day. Host anywhere, modify freely. No vendor lock-in, ever.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger className="font-display text-xl text-left">What if you miss the deadline?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    I guarantee it in writing. Miss Spark deadline (48h) and the
-                    project is reduced by 50%. Miss Vitrine or Vitrine+ deadline and
-                    it's reduced by 25%. The clock starts when I have all your assets.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger className="font-display text-xl text-left">Can I host the site myself instead of using Render?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Absolutely. Deploy to Vercel, Render, your own VPS, anything Node-compatible. Portable code.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-5">
-                  <AccordionTrigger className="font-display text-xl text-left">Do you do logo design and copywriting?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Logo: optional add-on (typographic, $120 CAD). Copy assist: +$150 CAD add-on, or you provide it.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-6">
-                  <AccordionTrigger className="font-display text-xl text-left">What payment methods do you accept?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Stripe (cards CAD/USD/EUR/GBP) and Wise (bank transfer UK/US/EU/CA). 50% on order, 50% on delivery.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-7">
-                  <AccordionTrigger className="font-display text-xl text-left">Why is your pricing so accessible compared to agencies?</AccordionTrigger>
-                  <AccordionContent className="text-base text-muted-foreground leading-relaxed">
-                    Two reasons: (1) I'm a solo studio with low overhead, and (2) I
-                    use AI to accelerate the build phase without sacrificing quality.
-                    Same production-grade code an agency would ship, delivered in days
-                    instead of weeks, at a fraction of the cost. I'm building my book
-                    of business now — prices will increase as demand grows.
-                  </AccordionContent>
-                </AccordionItem>
+                {[
+                  {
+                    q: "What's actually included in each tier?",
+                    a: "Custom design, custom code, dark mode by default, mobile responsive, source code on GitHub yours from day one, domain setup, and 7 days post-launch support. No templates, no page builders.",
+                  },
+                  {
+                    q: "Do I own the code?",
+                    a: "Yes. The repository is transferred to your GitHub on delivery. You can host, fork, modify or hire someone else to maintain it. No vendor lock-in.",
+                  },
+                  {
+                    q: "What if you miss the deadline?",
+                    a: "I refund the difference at C$50/day until delivery. It's never happened — but the policy is in the contract.",
+                  },
+                  {
+                    q: "Can I host the site myself instead of using Render?",
+                    a: "Of course. I deploy to whatever fits your infrastructure: Render, Vercel, Cloudflare Pages, Netlify, even your own server.",
+                  },
+                  {
+                    q: "Do you do logo design and copywriting?",
+                    a: "Light copy polish yes. Brand identity & long-form copywriting no — I partner with two designers I trust if you need it.",
+                  },
+                  {
+                    q: "What payment methods do you accept?",
+                    a: "Stripe (card / Apple Pay / Google Pay), Interac (CA), or wire transfer. 50% to start, 50% on delivery for VITRINE+; full upfront for SPARK & VITRINE.",
+                  },
+                  {
+                    q: "Why is your pricing so accessible vs. agencies?",
+                    a: "I'm one person, with a tight stack and an AI-augmented workflow. No account managers, no slide decks, no SaaS contracts under my umbrella. You pay for the build, not the agency.",
+                  },
+                ].map((item, i) => (
+                  <AccordionItem
+                    key={item.q}
+                    value={`item-${i}`}
+                    className="border-border/40"
+                  >
+                    <AccordionTrigger className="text-left font-display text-lg md:text-2xl tracking-[-0.02em] hover:text-primary hover:no-underline py-6">
+                      {item.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base text-muted-foreground leading-relaxed pb-6 pr-12">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
               </Accordion>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ── FINAL CTA ──────────────────────────────────────────── */}
-      <section id="contact" className="bg-muted/30 py-32 border-t border-border/50">
-        <div className="container mx-auto px-4 text-center">
+      {/* ════════════════════════════════════════════════════════════
+          FINAL CTA — full bleed with secondary aurora
+      ════════════════════════════════════════════════════════════ */}
+      <section id="contact" className="relative py-32 md:py-48 border-t border-border/40 overflow-hidden">
+        <Spotlight size={720} />
+        <FloatingMark text="Let's ship" />
+        <div className="relative z-10 container mx-auto px-4 text-center max-w-4xl">
           <Reveal>
-            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-8">
-              07 — READY TO SHIP?
-            </p>
-            <h2 className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[-0.03em] leading-[0.95] mb-12 max-w-4xl mx-auto">
-              <em className="italic">Tell me</em> about your project.<br />
-              I reply within 4 hours.
+            <div className="chip mx-auto mb-10 inline-flex">
+              (07) — Start a project
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h2 className="text-display text-[clamp(56px,10vw,180px)] leading-[0.85] tracking-[-0.045em]">
+              You brief.
+              <br />
+              <em className="font-italic-serif italic text-primary">I build.</em>
             </h2>
           </Reveal>
-          <Reveal delay={0.2}>
-            <div className="flex flex-col md:flex-row justify-center items-center gap-6">
-              <Magnetic strength={0.4}>
-                <Link
-                  href="/start"
-                  className="inline-flex h-16 items-center justify-center whitespace-nowrap px-12 text-base font-medium tracking-wide bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                  Configure your quote →
-                </Link>
-              </Magnetic>
-              <Magnetic strength={0.3}>
-                <a
-                  href="https://calendly.com/mehdijabry/discovery"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-16 items-center justify-center whitespace-nowrap px-12 text-base font-medium tracking-wide border border-border hover:bg-foreground/5 transition-colors"
-                >
-                  Book a 15-min call
-                </a>
-              </Magnetic>
-            </div>
-            <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70">
-              <LiveTime /> · Same-week availability
+          <Reveal delay={0.3}>
+            <p className="mt-10 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              30-minute discovery call. If we click, you have a brief
+              the same day and a live site by the end of the week.
             </p>
+          </Reveal>
+          <Reveal delay={0.45}>
+            <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+              <CtaButton to="/start" variant="primary" data-testid="button-cta-quote">
+                Configure your quote
+              </CtaButton>
+              <CtaButton href="mailto:hi@mehdijabry.dev" variant="ghost" data-testid="button-cta-call">
+                Email directly
+              </CtaButton>
+            </div>
+          </Reveal>
+          <Reveal delay={0.6}>
+            <div className="mt-16 flex items-center justify-center gap-4 text-mark text-muted-foreground">
+              <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
+              <LiveTime />
+              <span className="opacity-50">·</span>
+              <span>Same-week availability</span>
+            </div>
           </Reveal>
         </div>
       </section>
     </Layout>
   );
 }
+
+/* ──────────────── helpers ──────────────── */
+
+function Meta({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-mark text-muted-foreground/70">{label}</span>
+      <span className="font-mono text-sm md:text-base text-foreground/90">
+        {value}
+      </span>
+      {sub && (
+        <span className="text-mark text-muted-foreground/60">{sub}</span>
+      )}
+    </div>
+  );
+}
+
+function CurrencyToggle({
+  currency,
+  setCurrency,
+}: {
+  currency: keyof typeof CURRENCIES;
+  setCurrency: (c: keyof typeof CURRENCIES) => void;
+}) {
+  return (
+    <div className="inline-flex border border-border/60 rounded-full p-1 bg-background/60 backdrop-blur-sm">
+      {(Object.keys(CURRENCIES) as Array<keyof typeof CURRENCIES>).map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => setCurrency(c)}
+          data-magnetic
+          className={`px-4 py-2 text-mark rounded-full transition-colors duration-300 ${
+            currency === c
+              ? "bg-foreground text-background"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          data-testid={`button-currency-${c}`}
+        >
+          {c}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* TiltCard kept available in repo for re-use on /work pages */
+void TiltCard;
+void Link;
