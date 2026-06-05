@@ -6,7 +6,7 @@ import { CURRENCIES, convertCurrency } from "@/lib/pricing";
 
 import { ScrambleText } from "@/components/effects/scramble-text";
 import { TiltCard } from "@/components/effects/tilt-card";
-import { Reveal } from "@/components/effects/reveal";
+import { Reveal, RevealWords } from "@/components/effects/reveal";
 import { LiveTime } from "@/components/effects/live-time";
 import { CtaButton } from "@/components/effects/cta-button";
 import { Spotlight } from "@/components/effects/spotlight";
@@ -192,25 +192,28 @@ export default function Home() {
             </span>
           </h1>
 
-          {/* sub-row */}
-          <Reveal delay={1.4}>
-            <div className="mt-8 md:mt-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-              <p className="md:col-span-6 text-base md:text-lg leading-relaxed text-muted-foreground max-w-xl">
-                Custom code, no templates, no monthly fee from me.
-                Source yours from day one. Built solo, in Quebec,
-                for founders who care about craft.
-              </p>
+          {/* sub-row — editorial lede with word-by-word reveal */}
+          <div className="mt-8 md:mt-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <p className="md:col-span-7 max-w-2xl">
+              <RevealWords
+                text="Custom code, no templates, no monthly fee from me. Source yours from day one. Built solo, in Quebec, for founders who care about craft."
+                className="font-serif text-xl md:text-2xl leading-snug text-foreground/90 tracking-[-0.005em]"
+                delay={1.4}
+              />
+            </p>
 
-              <div className="md:col-span-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end">
-                <CtaButton to="/start" variant="primary" hoverLabel="Let's talk" data-testid="link-hero-cta">
-                  Start a project
-                </CtaButton>
-                <CtaButton href="#work" variant="ghost" hoverLabel="Show me" data-testid="link-hero-work">
-                  See selected work
-                </CtaButton>
-              </div>
-            </div>
-          </Reveal>
+            <Reveal
+              delay={1.7}
+              className="md:col-span-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end"
+            >
+              <CtaButton to="/start" variant="primary" hoverLabel="Let's talk" data-testid="link-hero-cta">
+                Start a project
+              </CtaButton>
+              <CtaButton href="#work" variant="ghost" hoverLabel="Show me" data-testid="link-hero-work">
+                See selected work
+              </CtaButton>
+            </Reveal>
+          </div>
 
           {/* meta row */}
           <Reveal delay={1.6}>
