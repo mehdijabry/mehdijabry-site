@@ -56,7 +56,7 @@ export const CtaButton = forwardRef<HTMLElement, CtaButtonProps>(
     const hover = hoverLabel ?? children;
     const padding = size === "lg" ? "h-14 px-9 text-sm" : "h-11 px-6 text-xs";
     const classes = `
-      group relative inline-flex items-center justify-center overflow-hidden
+      group relative inline-flex items-center justify-center overflow-hidden shrink-0
       rounded-full border ${padding} font-mono uppercase tracking-[0.18em]
       transition-transform duration-300 ease-out
       hover:-translate-y-0.5 active:translate-y-0
