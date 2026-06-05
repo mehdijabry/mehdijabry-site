@@ -1,0 +1,57 @@
+name: DB heartbeat
+
+# Why this exists:
+#
+# Supabase Free pauses a project after ~7 days of no external requests.
+# This workflow hits POST /api/breathe on a schedule, which:
+#   1. Inserts one row in the `breathing` table (counts as DB activity, so
+#      Supabase resets its idle timer).
+#   2. Gives us an auditable log — open the breathing table in Supabase to
+#      confirm the system is alive.
+#
+# Schedule: every 3 days at 12:00 UTC. With Supabase's 7-day idle threshold,
+# 3 days is a 2× safety margin.
+
+on:
+  schedule:
+    # Every 3 days at 12:00 UTC.
+    # Cron has no "every N days" syntax, so we list the days explicitly.
+    - cron: "0 12 1,4,7,10,13,16,19,22,25,28 * *"
+  workflow_dispatch: # also fire manually from the Actions tab
+
+jobs:
+  breathe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wake Render + ping /api/breathe
+        run: |
+          set -e
+          URL="https://mehdijabry.dev/api/breathe"
+
+          payload='{"source":"github-actions-cron","meta":{"workflow":"'"$GITHUB_WORKFLOW"'","runId":"'"$GITHUB_RUN_ID"'","runNumber":"'"$GITHUB_RUN_NUMBER"'","sha":"'"$GITHUB_SHA"'"}}'
+
+          for i in 1 2 3; do
+            echo "Attempt $i — POST $URL"
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" \
+              --max-time 90 \
+              -X POST "$URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Source: github-actions-cron" \
+              -d "$payload") && true
+
+            echo "HTTP $code"
+            cat /tmp/body
+            echo
+
+            if [ "$code" = "201" ]; then
+              echo "✓ Heartbeat logged."
+              exit 0
+            fi
+
+            echo "Retry in 30s..."
+            sleep 30
+          done
+
+          echo "✗ All attempts failed. Last code: $code"
+          exit 1
