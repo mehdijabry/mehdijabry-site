@@ -66,13 +66,15 @@ export function Nav() {
             </DialogTrigger>
             <DialogContent className="w-full h-full max-w-none border-none bg-background rounded-none m-0 pt-16 px-6">
               <DialogTitle className="sr-only">Mobile Navigation</DialogTitle>
-              <div className="flex flex-col gap-8 text-2xl font-serif mt-12">
+              <div className="flex flex-col gap-6 text-3xl font-display font-bold tracking-[-0.04em] mt-12">
                 <DialogClose asChild><Link href="/">Home</Link></DialogClose>
                 <DialogClose asChild><Link href="/work">Work</Link></DialogClose>
                 <DialogClose asChild><Link href="/pricing">Pricing</Link></DialogClose>
                 <DialogClose asChild><Link href="/about">About</Link></DialogClose>
                 <DialogClose asChild>
-                  <Link href="/start" className="mt-8 text-primary">Try a quote →</Link>
+                  <Link href="/start" className="mt-6 text-primary font-mono text-sm uppercase tracking-[0.2em] font-medium not-italic">
+                    Try a quote →
+                  </Link>
                 </DialogClose>
               </div>
             </DialogContent>

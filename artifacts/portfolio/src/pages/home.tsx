@@ -249,7 +249,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           PROCESS — three numbered cards, layered ink + rule lines
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative py-28 md:py-40 overflow-hidden">
+      <section className="relative py-16 md:py-28 lg:py-40 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-20">
             <Reveal className="md:col-span-4">
@@ -270,18 +270,18 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/40 border border-border/40">
             {PROCESS.map((p, i) => (
               <Reveal key={p.n} delay={i * 0.12}>
-                <div className="relative bg-background p-8 md:p-10 h-full flex flex-col gap-6 group hover:bg-muted/40 transition-colors duration-500">
+                <div className="relative bg-background p-6 md:p-10 md:h-full flex flex-col gap-4 md:gap-6 group hover:bg-muted/40 transition-colors duration-500">
                   <div className="flex items-start justify-between">
-                    <span className="text-display text-6xl md:text-7xl text-primary leading-none">
+                    <span className="text-display text-5xl md:text-7xl text-primary leading-none">
                       {p.n}
                     </span>
                     <span className="text-mark text-muted-foreground">{p.day}</span>
                   </div>
-                  <div className="mt-auto pt-12">
-                    <h3 className="font-display text-3xl md:text-4xl mb-3">
+                  <div className="md:mt-auto md:pt-12">
+                    <h3 className="font-display text-2xl md:text-4xl mb-2 md:mb-3">
                       {p.title}
                     </h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xs">
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed md:max-w-xs">
                       {p.body}
                     </p>
                   </div>
@@ -296,7 +296,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           SELECTED WORK — editorial list, no thumbnails (yet)
       ════════════════════════════════════════════════════════════ */}
-      <section id="work" className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+      <section id="work" className="relative py-16 md:py-28 lg:py-40 border-t border-border/40 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16 md:mb-24">
             <Reveal className="md:col-span-7">
@@ -325,7 +325,7 @@ export default function Home() {
                   data-testid={`link-work-${w.title.toLowerCase().replace(/\s+/g, '-')}`}
                   data-magnetic
                 >
-                  <div className="container mx-auto px-6 md:px-10 py-8 md:py-10 grid grid-cols-12 gap-4 items-baseline">
+                  <div className="container mx-auto px-5 md:px-10 py-6 md:py-10 grid grid-cols-12 gap-x-4 gap-y-3 items-baseline">
                     <span className="col-span-2 md:col-span-1 text-mark text-muted-foreground self-start mt-2">
                       {w.n}
                     </span>
@@ -336,10 +336,10 @@ export default function Home() {
                       </h3>
                       <p className="text-mark text-muted-foreground mt-2">{w.meta}</p>
                     </div>
-                    <p className="hidden md:block md:col-span-4 text-sm text-muted-foreground leading-relaxed">
+                    <p className="col-span-10 col-start-3 md:col-span-4 md:col-start-auto text-sm text-muted-foreground leading-relaxed">
                       {w.blurb}
                     </p>
-                    <p className="hidden md:block md:col-span-2 text-mark text-muted-foreground/80 text-right">
+                    <p className="col-span-10 col-start-3 md:col-span-2 md:col-start-auto text-mark text-muted-foreground/80 md:text-right">
                       {w.stack}
                     </p>
                   </div>
@@ -370,7 +370,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           PRICING — three tiers, ink-on-bone, currency toggle
       ════════════════════════════════════════════════════════════ */}
-      <section id="pricing" className="relative py-28 md:py-40 overflow-hidden">
+      <section id="pricing" className="relative py-16 md:py-28 lg:py-40 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16 md:mb-24 items-end">
             <Reveal className="md:col-span-7">
@@ -455,7 +455,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           ABOUT — editorial body, asymmetric grid
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+      <section className="relative py-16 md:py-28 lg:py-40 border-t border-border/40 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
             <Reveal className="md:col-span-3">
@@ -498,7 +498,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           FAQ
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative py-28 md:py-40 border-t border-border/40 overflow-hidden">
+      <section className="relative py-16 md:py-28 lg:py-40 border-t border-border/40 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
             <Reveal className="md:col-span-4">
@@ -561,7 +561,7 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════════
           FINAL CTA — full bleed with secondary aurora
       ════════════════════════════════════════════════════════════ */}
-      <section id="contact" className="relative py-32 md:py-48 border-t border-border/40 overflow-hidden">
+      <section id="contact" className="relative py-20 md:py-32 lg:py-48 border-t border-border/40 overflow-hidden">
         <Spotlight size={720} />
         <FloatingMark text="Let's ship" />
         <div className="relative z-10 container mx-auto px-4 text-center max-w-4xl">
