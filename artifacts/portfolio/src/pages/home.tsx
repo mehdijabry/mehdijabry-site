@@ -192,9 +192,11 @@ export default function Home() {
             </span>
           </h1>
 
-          {/* sub-row — editorial lede with word-by-word reveal */}
-          <div className="mt-8 md:mt-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-            <p className="md:col-span-7 max-w-2xl">
+          {/* sub-row — editorial lede with word-by-word reveal.
+              Stays stacked until lg: so the CTAs never collide with the
+              paragraph at tablet widths (768–1023). */}
+          <div className="mt-8 md:mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
+            <p className="lg:col-span-7 max-w-2xl">
               <RevealWords
                 text="Custom code, no templates, no monthly fee from me. Source yours from day one. Built solo, in Quebec, for founders who care about craft."
                 className="font-serif text-xl md:text-2xl leading-snug text-foreground/90 tracking-[-0.005em]"
@@ -204,7 +206,7 @@ export default function Home() {
 
             <Reveal
               delay={1.7}
-              className="md:col-span-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end"
+              className="lg:col-span-5 flex flex-col sm:flex-row sm:items-center gap-3 lg:justify-end"
             >
               <CtaButton to="/start" variant="primary" hoverLabel="Let's talk" data-testid="link-hero-cta">
                 Start a project
