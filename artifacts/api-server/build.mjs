@@ -29,6 +29,9 @@ async function buildAll() {
     // - use path traversal to read files (e.g. @google-cloud/secret-manager loads sibling .proto files)
     external: [
       "*.node",
+      "@electric-sql/pglite",   // dev-only in-process Postgres: loads its own wasm/data files, must stay unbundled
+      "drizzle-orm/pglite",     // idem — bundling it would turn the dev-only dynamic import into a static one
+
       "sharp",
       "better-sqlite3",
       "sqlite3",

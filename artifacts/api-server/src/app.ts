@@ -5,7 +5,9 @@ import express, {
   type NextFunction,
 } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
+import { publicInvoiceHandler } from "./routes/admin";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
@@ -40,6 +42,12 @@ app.use(
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// ───── Public invoice page (2026-09-23) ─────
+// The link e-mailed to a client: printable HTML, secured by its random token. Registered before the
+// SPA catch-all so it is served by the API even in production.
+app.get("/f/:token", publicInvoiceHandler);
 
 // ───── Static SPA serving (production only) ─────
 // In production (Render), the build process produces:

@@ -439,7 +439,7 @@ export default function Home() {
                       hoverLabel={`Get ${tier.name}`}
                       data-testid={`button-select-${tier.key}`}
                     >
-                      Choose {tier.name}
+                      {`Choose ${tier.name}`}
                     </CtaButton>
                   </div>
                 </Reveal>

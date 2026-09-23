@@ -11,6 +11,12 @@ import Start from "@/pages/start";
 import About from "@/pages/about";
 import Thanks from "@/pages/thanks";
 import Legal from "@/pages/legal";
+import AdminDashboard from "@/pages/admin/index";
+import AdminInvoices from "@/pages/admin/factures";
+import AdminInvoiceEditor from "@/pages/admin/facture";
+import AdminClients from "@/pages/admin/clients";
+import AdminEmails from "@/pages/admin/courriels";
+import AdminSettings from "@/pages/admin/parametres";
 
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
@@ -28,6 +34,13 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/thanks" component={Thanks} />
       <Route path="/legal" component={Legal} />
+      {/* Espace admin (2026-09-23) : facturation + courriels, protégé par ADMIN_PASSWORD côté serveur */}
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/factures" component={AdminInvoices} />
+      <Route path="/admin/factures/:id" component={AdminInvoiceEditor} />
+      <Route path="/admin/clients" component={AdminClients} />
+      <Route path="/admin/courriels" component={AdminEmails} />
+      <Route path="/admin/parametres" component={AdminSettings} />
       <Route component={NotFound} />
     </Switch>
   );

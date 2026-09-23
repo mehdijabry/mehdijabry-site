@@ -115,7 +115,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 
 export function Aurora({ fixed = false, intensity = 0.55, className }: AuroraProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef<number>();
+  const animRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia(

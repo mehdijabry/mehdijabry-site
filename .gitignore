@@ -77,3 +77,6 @@ coverage/
 
 # Claude session config (local only)
 .claude/
+
+# local dev database (PGlite)
+.pglite/

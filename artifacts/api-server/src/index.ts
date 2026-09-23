@@ -1,5 +1,14 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { ensureAdminSchema } from "@workspace/db";
+
+// Admin tables (invoicing, e-mails) are created on first boot — no manual migration step on Render.
+try {
+  await ensureAdminSchema();
+  logger.info("Admin schema ready");
+} catch (err) {
+  logger.error({ err }, "Admin schema could not be created — the admin area will fail until the database is reachable");
+}
 
 const rawPort = process.env["PORT"];
 
