@@ -22,7 +22,12 @@ import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provide
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Aurora } from "@/components/effects/aurora";
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
+// No automatic retry and networkMode "always": a failed request must surface as an error right away. With
+// retries, react-query parks the query in a "paused" state while the tab is hidden or believed offline, and a
+// paused query renders like an empty result instead of an error (the admin pages rely on isError).
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 0, networkMode: "always" }, mutations: { networkMode: "always" } },
+});
 
 function Router() {
   return (
