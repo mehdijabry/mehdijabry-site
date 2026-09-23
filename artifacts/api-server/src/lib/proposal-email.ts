@@ -29,6 +29,13 @@ export type ProposalEmailInput = {
 };
 
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+/** "4385257119" → "438 525-7119" (Québec convention); anything else is left as typed. */
+const formatPhone = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (d.length === 10) return `${d.slice(0, 3)} ${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length === 11 && d.startsWith("1")) return `${d.slice(1, 4)} ${d.slice(4, 7)}-${d.slice(7)}`;
+  return raw.trim();
+};
 const dollars = (n: number): string => `${new Intl.NumberFormat("fr-CA", { maximumFractionDigits: 0 }).format(n)} $`;
 
 export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings): { subject: string; html: string; text: string } {
@@ -36,7 +43,9 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const subject = `${p.business} — votre site web est prêt (aperçu à l'intérieur)`;
   const greeting = p.toName?.trim() ? `Bonjour ${p.toName.trim()},` : "Bonjour,";
   const signer = issuer.fullName;
-  const site = issuer.website || "mehdijabry.dev";
+  // Settings may hold "https://mehdijabry.dev" or "mehdijabry.dev": display the bare host, link with one scheme.
+  const site = (issuer.website || "mehdijabry.dev").replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  const phone = formatPhone(p.phone);
 
   const broken = p.brokenDomain?.trim();
   const rating = p.googleRating?.trim();
@@ -80,13 +89,13 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     "",
     "Aucun engagement : si le site ne vous convient pas, vous ne payez rien.",
     "",
-    `Je suis à ${issuer.city || p.city} — je peux passer vous le montrer sur place, quand ça vous arrange. Répondez à ce courriel ou appelez-moi au ${p.phone}.`,
+    `Je suis à ${issuer.city || p.city} — je peux passer vous le montrer sur place, quand ça vous arrange. Répondez à ce courriel ou appelez-moi au ${phone}.`,
     "",
     ...(forward ? [forward, ""] : []),
     "Au plaisir,",
     signer,
     `Développeur web indépendant — ${issuer.city || p.city}`,
-    `${site} · ${issuer.emailFrom} · ${p.phone}`,
+    `${site} · ${issuer.emailFrom} · ${phone}`,
     "",
     "—",
     `${signer}, ${[issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ")}. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`,
@@ -140,9 +149,9 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
             </table>
           </td></tr>
           <tr><td style="${pStyle}"><strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.</td></tr>
-          <tr><td style="${pStyle}">Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(p.phone)}</a>.</td></tr>
+          <tr><td style="${pStyle}">Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.</td></tr>
           ${forward ? `<tr><td style="${pStyle}">${esc(forward)}</td></tr>` : ""}
-          <tr><td style="padding:8px 0 0;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(p.phone)}</td></tr>
+          <tr><td style="padding:8px 0 0;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(phone)}</td></tr>
         </table>
       </td></tr>
       <tr><td style="padding:18px 8px 0;font-family:Helvetica Neue,Arial,sans-serif;font-size:12px;line-height:1.5;color:${muted}">
@@ -171,9 +180,9 @@ ${para(`Il reprend votre menu officiel, vos horaires, vos photos, vos avis Googl
 ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>
 ${para(`<strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.`)}
-${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(p.phone)}</a>.`)}
+${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.`)}
 ${forward ? para(esc(forward)) : ""}
-<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(p.phone)}</p>
+<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(phone)}</p>
 <p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc([issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».</p>
 </div>
 </body></html>`;
