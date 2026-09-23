@@ -134,11 +134,12 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
   const { toast } = useToast();
   const [p, setP] = useState<ProposalInput>({ ...PROPOSAL_DEFAULTS, phone: defaultPhone });
   const [to, setTo] = useState("");
+  const [bcc, setBcc] = useState("");
   const [isTest, setIsTest] = useState(true);
   const set = <K extends keyof ProposalInput>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setP({ ...p, [k]: e.target.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value });
   const send = useMutation({
-    mutationFn: () => api.sendProposal({ ...p, to, isTest }),
+    mutationFn: () => api.sendProposal({ ...p, to, isTest, bcc: bcc || undefined }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "emails"] }); toast({ title: `${isTest ? "Test envoyé" : "Proposition envoyée"} à ${to}` }); },
     onError: (e) => toast({ title: "Envoi impossible", description: String((e as Error).message), variant: "destructive" }),
   });
@@ -148,6 +149,7 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="info@seaudecrabe.com" /></Field>
         <Field label="Prénom / nom (salutation)" hint="Vide = « Bonjour, »"><Input value={p.toName} onChange={set("toName")} /></Field>
+        <Field label="Copie cachée (Cci)" hint="Pour recevoir un exemplaire exact de ce qui part"><Input type="email" value={bcc} onChange={(e) => setBcc(e.target.value)} placeholder="vous@gmail.com" /></Field>
         <Field label="Entreprise *"><Input value={p.business} onChange={set("business")} /></Field>
         <Field label="Ville *"><Input value={p.city} onChange={set("city")} /></Field>
         <Field label="Lien de la maquette *"><Input value={p.siteUrl} onChange={set("siteUrl")} /></Field>

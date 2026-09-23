@@ -255,7 +255,7 @@ function textToHtml(text: string): string {
   return text.split(/\n{2,}/).map((p) => `<p style="margin:0 0 14px;line-height:1.55">${linkify(esc(p)).replace(/\n/g, "<br>")}</p>`).join("");
 }
 
-async function sendEmail(opts: { to: string; toName?: string | null; subject: string; text: string; html?: string; invoiceId?: number | null; isTest?: boolean }): Promise<{ ok: boolean; id?: string; error?: string }> {
+async function sendEmail(opts: { to: string; toName?: string | null; bcc?: string | null; subject: string; text: string; html?: string; invoiceId?: number | null; isTest?: boolean }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const issuer = await loadIssuer();
   const apiKey = process.env["RESEND_API_KEY"];
   const from = `${issuer.emailFromName} <${issuer.emailFrom}>`;
@@ -265,7 +265,7 @@ async function sendEmail(opts: { to: string; toName?: string | null; subject: st
     try {
       const resend = new Resend(apiKey);
       const html = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
-      const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
+      const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, bcc: opts.bcc || undefined, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
       result = r.error ? { ok: false, error: r.error.message } : { ok: true, id: r.data?.id };
     } catch (e) { result = { ok: false, error: String((e as Error).message ?? e) }; }
   }
@@ -307,7 +307,7 @@ const ProposalFields = z.object({
   phone: z.string().min(7).max(30),
   variant: z.enum(["card", "plain"]).optional().nullable(),
 });
-const ProposalSend = ProposalFields.extend({ to: z.email(), isTest: z.boolean().optional() });
+const ProposalSend = ProposalFields.extend({ to: z.email(), isTest: z.boolean().optional(), bcc: z.email().optional().nullable().or(z.literal("")) });
 
 router.get("/emails/proposal/preview", async (req, res) => {
   const parsed = ProposalFields.safeParse(req.query);
@@ -320,10 +320,10 @@ router.get("/emails/proposal/preview", async (req, res) => {
 router.post("/emails/proposal", async (req, res) => {
   const parsed = ProposalSend.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
-  const { to, isTest, ...fields } = parsed.data;
+  const { to, isTest, bcc, ...fields } = parsed.data;
   const issuer = await loadIssuer();
   const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png` });
-  const r = await sendEmail({ to, toName: fields.toName ?? null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest });
+  const r = await sendEmail({ to, toName: fields.toName ?? null, bcc: bcc || null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });
 });

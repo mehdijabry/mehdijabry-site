@@ -90,7 +90,7 @@ export const api = {
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
-  sendProposal: (p: ProposalInput & { to: string; isTest: boolean }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
+  sendProposal: (p: ProposalInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
   proposalPreviewUrl: (p: ProposalInput) => {
     const q = new URLSearchParams();
     for (const [k, v] of Object.entries(p)) { if (v === "" || v === null || v === undefined) continue; q.set(k, typeof v === "boolean" ? (v ? "1" : "0") : String(v)); }
