@@ -125,7 +125,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://seaudecrabe-demo.pages.dev",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
-  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "",
+  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
 };
 
 /** Gabarit HTML « proposition de site clés en main » : aperçu dans un onglet, test à soi-même, puis envoi au prospect. */
@@ -161,6 +161,12 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Nouveau domaine proposé" hint="Vide = pas d'option domaine"><Input value={p.newDomain} onChange={set("newDomain")} /></Field>
         <Field label="Prix du domaine ($) / années"><div className="flex gap-2"><Input type="number" value={p.newDomainPrice} onChange={set("newDomainPrice")} /><Input type="number" value={p.newDomainYears} onChange={set("newDomainYears")} /></div></Field>
         <Field label="Téléphone *"><Input value={p.phone} onChange={set("phone")} /></Field>
+        <Field label="Mise en page" hint="« Sobre » ressemble à un courriel personnel : Gmail le classe plus souvent dans la boîte principale ; « Carte » est la version design (bouton plein, encadré), plus souvent triée dans « Promotions ».">
+          <select value={p.variant} onChange={(e) => setP({ ...p, variant: e.target.value as "card" | "plain" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="plain">Sobre (boîte principale)</option>
+            <option value="card">Carte design (bouton, encadré)</option>
+          </select>
+        </Field>
         <div className="space-y-2 pt-6 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" checked={p.forwardToFranchisee} onChange={(e) => setP({ ...p, forwardToFranchisee: e.target.checked })} /> Ajouter la ligne « transmettre au franchisé » (envoi au siège)</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>

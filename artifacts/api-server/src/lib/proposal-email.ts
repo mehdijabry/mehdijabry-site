@@ -23,6 +23,9 @@ export type ProposalEmailInput = {
   deliveryHours?: number | null;
   forwardToFranchisee?: boolean | null;
   phone: string;
+  /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
+   *  plus volontiers dans la boîte principale que dans « Promotions ». */
+  variant?: "card" | "plain" | null;
 };
 
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
@@ -149,6 +152,33 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   </td></tr>
 </table>
 </body></html>`;
+
+  if (p.variant === "plain") {
+    // Sober layout: white background, no card, no coloured blocks, a single bordered link instead of a filled button,
+    // no hidden preheader — the fewer marketing signals, the likelier the primary inbox.
+    const para = (inner: string) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink}">${inner}</p>`;
+    const plainHtml = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:24px 16px;background:#ffffff;-webkit-text-size-adjust:100%">
+<div style="max-width:600px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif">
+${para(esc(greeting))}
+${para(`Je m'appelle ${esc(signer)}, d&eacute;veloppeur web ind&eacute;pendant ici &agrave; ${esc(issuer.city || p.city)}.`)}
+${para(esc(problem))}
+${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;: <a href="${esc(p.siteUrl)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
+${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(p.siteUrl)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
+<p style="margin:0 0 22px"><a href="${esc(p.siteUrl)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
+${para(`Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.`)}
+${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
+<ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>
+${para(`<strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.`)}
+${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(p.phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(p.phone)}</a>.`)}
+${forward ? para(esc(forward)) : ""}
+<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(p.phone)}</p>
+<p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc([issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».</p>
+</div>
+</body></html>`;
+    return { subject, html: plainHtml, text };
+  }
 
   return { subject, html, text };
 }

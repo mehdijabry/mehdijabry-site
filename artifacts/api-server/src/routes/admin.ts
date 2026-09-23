@@ -305,6 +305,7 @@ const ProposalFields = z.object({
   deliveryHours: z.coerce.number().int().min(1).max(720).optional().nullable(),
   forwardToFranchisee: z.preprocess((v) => v === true || v === "1" || v === "true", z.boolean()).optional(),
   phone: z.string().min(7).max(30),
+  variant: z.enum(["card", "plain"]).optional().nullable(),
 });
 const ProposalSend = ProposalFields.extend({ to: z.email(), isTest: z.boolean().optional() });
 
