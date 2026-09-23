@@ -313,7 +313,7 @@ router.get("/emails/proposal/preview", async (req, res) => {
   const parsed = ProposalFields.safeParse(req.query);
   if (!parsed.success) { res.status(400).json({ error: "Paramètres invalides", details: parsed.error.issues }); return; }
   const issuer = await loadIssuer();
-  const { html } = renderProposalEmail({ ...parsed.data, previewImageUrl: parsed.data.previewImageUrl || null }, issuer);
+  const { html } = renderProposalEmail({ ...parsed.data, previewImageUrl: parsed.data.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png` });
   res.setHeader("cache-control", "no-store");
   res.type("html").send(html);
 });
@@ -322,7 +322,7 @@ router.post("/emails/proposal", async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
   const { to, isTest, ...fields } = parsed.data;
   const issuer = await loadIssuer();
-  const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer);
+  const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png` });
   const r = await sendEmail({ to, toName: fields.toName ?? null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });

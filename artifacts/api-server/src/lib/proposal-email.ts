@@ -38,7 +38,7 @@ const formatPhone = (raw: string): string => {
 };
 const dollars = (n: number): string => `${new Intl.NumberFormat("fr-CA", { maximumFractionDigits: 0 }).format(n)} $`;
 
-export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings): { subject: string; html: string; text: string } {
+export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null } = {}): { subject: string; html: string; text: string } {
   const hours = p.deliveryHours ?? 48;
   const subject = `${p.business} — votre site web est prêt (aperçu à l'intérieur)`;
   const greeting = p.toName?.trim() ? `Bonjour ${p.toName.trim()},` : "Bonjour,";
@@ -46,6 +46,12 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   // Settings may hold "https://mehdijabry.dev" or "mehdijabry.dev": display the bare host, link with one scheme.
   const site = (issuer.website || "mehdijabry.dev").replace(/^https?:\/\//i, "").replace(/\/+$/, "");
   const phone = formatPhone(p.phone);
+  // Signature block shared by both layouts: the logo mark (PNG — e-mail clients don't render SVG) beside the name.
+  const signatureHtml = (textColor: string, mutedColor: string, accent: string) => `
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:6px"><tr>
+  ${opts.logoUrl ? `<td valign="top" style="padding:4px 14px 0 0"><a href="https://${esc(site)}" style="text-decoration:none"><img src="${esc(opts.logoUrl)}" width="44" height="44" alt="${esc(signer)}" style="display:block;width:44px;height:44px;border-radius:9px"></a></td>` : ""}
+  <td valign="top" style="font-size:16px;line-height:1.6;color:${textColor}"><strong>${esc(signer)}</strong><br><span style="color:${mutedColor}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${accent};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${accent};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(phone)}</td>
+</tr></table>`;
 
   const broken = p.brokenDomain?.trim();
   const rating = p.googleRating?.trim();
@@ -151,7 +157,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
           <tr><td style="${pStyle}"><strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.</td></tr>
           <tr><td style="${pStyle}">Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.</td></tr>
           ${forward ? `<tr><td style="${pStyle}">${esc(forward)}</td></tr>` : ""}
-          <tr><td style="padding:8px 0 0;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(phone)}</td></tr>
+          <tr><td style="padding:8px 0 0;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</td></tr>
         </table>
       </td></tr>
       <tr><td style="padding:18px 8px 0;font-family:Helvetica Neue,Arial,sans-serif;font-size:12px;line-height:1.5;color:${muted}">
@@ -182,7 +188,7 @@ ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement m
 ${para(`<strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.`)}
 ${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.`)}
 ${forward ? para(esc(forward)) : ""}
-<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,<br><strong>${esc(signer)}</strong><br><span style="color:${muted}">D&eacute;veloppeur web ind&eacute;pendant — ${esc(issuer.city || p.city)}</span><br><a href="https://${esc(site)}" style="color:${amber};text-decoration:none">${esc(site)}</a> &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:${amber};text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(phone)}</p>
+<div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</div>
 <p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc([issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».</p>
 </div>
 </body></html>`;

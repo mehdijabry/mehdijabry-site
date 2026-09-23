@@ -1,0 +1,9 @@
+<svg width="640" height="180" viewBox="0 0 640 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Mehdi Jabry — Creative Developer</title>
+  <rect x="10" y="10" width="160" height="160" rx="32" fill="#11110F"/>
+  <path d="M43.333 114V66L67.333 91.333L90 66V114" stroke="#F4F3EE" stroke-width="12" stroke-linecap="square" stroke-linejoin="bevel"/>
+  <path d="M102 66H135.333V104.667C135.333 117.2 125.2 127.333 112.667 127.333H102" stroke="#B08D57" stroke-width="12" stroke-linecap="square" stroke-linejoin="round"/>
+  <rect x="107.333" y="99.333" width="12" height="12" fill="#F4F3EE"/>
+  <text x="210" y="91" fill="#11110F" font-family="Manrope, Arial, sans-serif" font-size="55" font-weight="600" letter-spacing="-2.5">Mehdi Jabry</text>
+  <text x="213" y="124" fill="#7C7C75" font-family="JetBrains Mono, monospace" font-size="13" font-weight="500" letter-spacing="3">CREATIVE DEVELOPER</text>
+</svg>
