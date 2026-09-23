@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AdminShell, Field, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Field, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +56,7 @@ export default function AdminClients() {
         </Panel>
       )}
       <Panel className="p-0 overflow-hidden">
-        {list.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : (list.data ?? []).length === 0 ? (
+        {list.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : list.isError ? <ErrorNote error={list.error} onRetry={() => list.refetch()} className="m-4" /> : (list.data ?? []).length === 0 ? (
           <p className="p-8 text-center text-sm text-muted-foreground">Aucun client pour l'instant.</p>
         ) : (
           <div className="overflow-x-auto">

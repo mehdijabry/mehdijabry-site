@@ -54,9 +54,10 @@ export async function adminFetch<T>(path: string, init: RequestInit = {}): Promi
   });
   if (res.status === 204) return undefined as T;
   const text = await res.text();
-  const data = text ? (JSON.parse(text) as unknown) : null;
+  let data: unknown = null;
+  try { data = text ? (JSON.parse(text) as unknown) : null; } catch { data = null; } // proxies may answer with HTML
   if (!res.ok) {
-    const msg = (data as { error?: string } | null)?.error ?? `Erreur ${res.status}`;
+    const msg = (data as { error?: string } | null)?.error ?? (res.status >= 500 ? `Erreur serveur (${res.status})` : `Erreur ${res.status}`);
     throw new AdminApiError(res.status, msg);
   }
   return data as T;

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { AdminShell, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { api, money } from "@/lib/admin-api";
 
@@ -10,6 +10,7 @@ export default function AdminDashboard() {
   const pct = d ? Math.min(100, Math.round((d.billed / d.smallSupplierThreshold) * 100)) : 0;
   return (
     <AdminShell title="Tableau de bord" actions={<Link href="/admin/factures/nouvelle"><Button>Nouvelle facture</Button></Link>}>
+      {dash.isError && <ErrorNote error={dash.error} onRetry={() => dash.refetch()} className="mb-4" />}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: `Facturé en ${d?.year ?? ""}`, value: money(d?.billed ?? 0) },

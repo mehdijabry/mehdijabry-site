@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Plus } from "lucide-react";
-import { AdminShell, Field, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Field, Panel } from "@/components/admin/shell";
 import { StatusPill } from "@/pages/admin/factures";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,7 +91,11 @@ export default function AdminInvoiceEditor() {
         {invoice.data.status !== "payée" && <Button onClick={() => setStatus.mutate("payée")}>Marquer payée</Button>}
       </>}
     >
-      {!draft ? <p className="text-sm text-muted-foreground">Chargement…</p> : (
+      {!draft ? (
+        settings.isError || clients.isError || invoice.isError
+          ? <ErrorNote error={settings.error ?? clients.error ?? invoice.error} onRetry={() => { void settings.refetch(); void clients.refetch(); if (id !== null) void invoice.refetch(); }} />
+          : <p className="text-sm text-muted-foreground">Chargement…</p>
+      ) : (
         <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
           <div className="space-y-4">
             {invoice.data && (

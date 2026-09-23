@@ -51,6 +51,18 @@ function Login({ configured }: { configured: boolean }) {
   );
 }
 
+/** Visible failure state for a query — the admin must never sit on « Chargement… » when the API errored. */
+export function ErrorNote({ error, onRetry, className }: { error: unknown; onRetry?: () => void; className?: string }) {
+  const message = error instanceof Error ? error.message : "Erreur inconnue";
+  return (
+    <div role="alert" className={cn("rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm", className)}>
+      <p className="font-medium text-destructive">Impossible de charger les données</p>
+      <p className="mt-1 text-muted-foreground break-words">{message}</p>
+      {onRetry && <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>Réessayer</Button>}
+    </div>
+  );
+}
+
 export function AdminShell({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   const [location] = useLocation();
   const qc = useQueryClient();

@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod/v4";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { Resend } from "resend";
-import { db, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable } from "@workspace/db";
+import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable } from "@workspace/db";
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { logger } from "../lib/logger";
@@ -29,6 +29,9 @@ router.post("/logout", (_req, res) => { clearAdminCookie(res); res.json({ ok: tr
 router.get("/me", (req, res) => { res.json({ configured: isAdminConfigured(), authenticated: hasValidSession(req) }); });
 
 router.use(requireAdmin);
+// Tables are also created lazily: when the database was down at boot, the first admin request after it is
+// back creates them — no redeploy needed. A failure here reaches the JSON error handler in app.ts.
+router.use((_req, _res, next) => { ensureAdminSchema().then(() => next(), next); });
 
 // ───── Settings (issuer) ─────
 const IssuerSchema = z.object({
@@ -318,6 +321,7 @@ export default router;
 export async function publicInvoiceHandler(req: Request, res: Response): Promise<void> {
   const token = String(req.params["token"] ?? "");
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) { res.status(404).type("text/plain").send("Introuvable"); return; }
+  await ensureAdminSchema();
   const [inv] = await db.select().from(invoicesTable).where(eq(invoicesTable.publicToken, token)).limit(1);
   if (!inv) { res.status(404).type("text/plain").send("Cette facture n'existe pas ou n'est plus disponible."); return; }
   const issuer = await loadIssuer();

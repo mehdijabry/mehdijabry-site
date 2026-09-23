@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AdminShell, Field, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Field, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,7 +96,7 @@ export default function AdminEmails() {
           )}
         </Panel>
         <Panel title="Historique" className="p-0 overflow-hidden">
-          {history.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : (history.data ?? []).length === 0 ? (
+          {history.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : history.isError ? <ErrorNote error={history.error} onRetry={() => history.refetch()} className="m-4" /> : (history.data ?? []).length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">Aucun courriel envoyé pour l'instant.</p>
           ) : (
             <ul className="divide-y divide-border/60 max-h-[70vh] overflow-y-auto">

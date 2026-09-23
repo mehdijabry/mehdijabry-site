@@ -31,9 +31,21 @@ export const db: Database = _db;
 
 /**
  * Creates the admin-area tables when they do not exist yet (invoicing + outbound e-mails).
- * Idempotent; called at server boot. Mirrors lib/db/src/schema/admin.ts — keep both in sync.
+ * Idempotent; called at server boot and again lazily by the admin routes. Mirrors
+ * lib/db/src/schema/admin.ts — keep both in sync.
+ *
+ * The result is memoised only on success: if the database is unreachable at boot (Supabase Free pauses idle
+ * projects), the next call retries instead of leaving the admin area broken until a redeploy.
  */
-export async function ensureAdminSchema(): Promise<void> {
+let adminSchemaReady: Promise<void> | null = null;
+export function ensureAdminSchema(): Promise<void> {
+  if (!adminSchemaReady) {
+    adminSchemaReady = createAdminTables().catch((err: unknown) => { adminSchemaReady = null; throw err; });
+  }
+  return adminSchemaReady;
+}
+
+async function createAdminTables(): Promise<void> {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS admin_settings (
       id serial PRIMARY KEY,

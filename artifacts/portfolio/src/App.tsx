@@ -22,7 +22,7 @@ import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provide
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Aurora } from "@/components/effects/aurora";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
 
 function Router() {
   return (

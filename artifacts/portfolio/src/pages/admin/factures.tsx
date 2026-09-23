@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { AdminShell, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { api, money, shortDate, STATUS_LABEL, type InvoiceStatus } from "@/lib/admin-api";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export default function AdminInvoices() {
         <span className="ml-auto text-sm text-muted-foreground tabular-nums">{rows.length} facture(s) · {money(totals)} émis</span>
       </div>
       <Panel className="p-0 overflow-hidden">
-        {list.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : rows.length === 0 ? (
+        {list.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : list.isError ? <ErrorNote error={list.error} onRetry={() => list.refetch()} className="m-4" /> : rows.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">Aucune facture pour cette période. <Link href="/admin/factures/nouvelle" className="text-primary hover:underline">Créer la première</Link>.</div>
         ) : (
           <div className="overflow-x-auto">

@@ -92,4 +92,29 @@ if (hasPortfolioBuild) {
   });
 }
 
+// ───── Errors ─────
+// Express 5 forwards rejected async handlers here. API callers get JSON with a readable message (the admin
+// UI displays it); the underlying driver error — Drizzle wraps it as "Failed query" — is logged so the
+// Render logs say what actually broke instead of just "500".
+const DB_DOWN = /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|ECONNRESET|EHOSTUNREACH|Tenant or user not found|cannot_connect_now|Connection terminated|timeout exceeded/i;
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const e = (err instanceof Error ? err : new Error(String(err))) as Error & { status?: number; statusCode?: number; cause?: unknown };
+  const cause = e.cause instanceof Error ? e.cause : undefined;
+  const code = (cause as { code?: string } | undefined)?.code ?? (e as { code?: string }).code;
+  logger.error({ err: e, cause: cause ? { name: cause.name, message: cause.message, code } : undefined, url: req.url }, "unhandled error");
+  if (res.headersSent) return;
+  const status = e.status ?? e.statusCode ?? 500;
+  const detail = cause?.message ?? e.message;
+  const dbError = /^Failed query/.test(e.message) || Boolean(cause);
+  let message = status < 500 ? e.message : "Erreur interne du serveur";
+  if (dbError) {
+    message = `Base de données injoignable (${detail}).`;
+    if (DB_DOWN.test(`${detail} ${code ?? ""}`)) {
+      message += " Le projet Supabase (plan gratuit) est probablement en pause : rétablissez-le depuis le tableau de bord Supabase, puis rechargez cette page.";
+    }
+  }
+  if (req.path.startsWith("/api") || req.accepts(["html", "json"]) === "json") res.status(status).json({ error: message });
+  else res.status(status).type("text/plain").send(message);
+});
+
 export default app;

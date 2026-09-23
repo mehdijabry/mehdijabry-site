@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AdminShell, Field, Panel } from "@/components/admin/shell";
+import { AdminShell, ErrorNote, Field, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +20,13 @@ export default function AdminSettings() {
     onError: (e) => toast({ title: "Enregistrement impossible", description: String((e as Error).message), variant: "destructive" }),
   });
 
-  if (!form) return <AdminShell title="Paramètres"><p className="text-sm text-muted-foreground">Chargement…</p></AdminShell>;
+  if (!form) {
+    return (
+      <AdminShell title="Paramètres">
+        {settings.isError ? <ErrorNote error={settings.error} onRetry={() => settings.refetch()} /> : <p className="text-sm text-muted-foreground">Chargement…</p>}
+      </AdminShell>
+    );
+  }
   const f = (k: keyof Issuer) => ({ value: String(form[k] ?? ""), onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [k]: e.target.value }) });
   const registrant = form.taxMode === "registrant";
 
