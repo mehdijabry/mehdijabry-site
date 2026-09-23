@@ -40,6 +40,12 @@ export type SentEmail = {
   invoiceId: number | null; resendId: string | null; status: string; error: string | null; isTest: boolean; createdAt: string;
 };
 
+export type ProposalInput = {
+  toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
+  googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; newDomain: string;
+  newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
+};
+
 export type Dashboard = { year: number; invoices: number; billed: number; paid: number; outstanding: number; clients: number; emails: number; smallSupplierThreshold: number };
 
 export class AdminApiError extends Error {
@@ -83,6 +89,12 @@ export const api = {
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
+  sendProposal: (p: ProposalInput & { to: string; isTest: boolean }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
+  proposalPreviewUrl: (p: ProposalInput) => {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(p)) { if (v === "" || v === null || v === undefined) continue; q.set(k, typeof v === "boolean" ? (v ? "1" : "0") : String(v)); }
+    return `/api/admin/emails/proposal/preview?${q.toString()}`;
+  },
 };
 
 export const money = (n: number | string, currency = "CAD"): string =>

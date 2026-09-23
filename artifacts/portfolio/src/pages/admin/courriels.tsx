@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { api, shortDate } from "@/lib/admin-api";
+import { api, shortDate, type ProposalInput } from "@/lib/admin-api";
 
 const TEMPLATES: Array<{ key: string; label: string; subject: string; text: string }> = [
   {
@@ -73,6 +73,8 @@ export default function AdminEmails() {
   return (
     <AdminShell title="Courriels">
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+        <div className="space-y-4">
+        <ProposalPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
         <Panel title={`Nouveau courriel — envoyé depuis ${settings.data?.emailFromName ?? "Mehdi Jabry"} <${settings.data?.emailFrom ?? "contact@mehdijabry.dev"}>`}>
           <div className="flex flex-wrap gap-2 mb-4">
             {TEMPLATES.map((t) => (
@@ -95,6 +97,7 @@ export default function AdminEmails() {
             <details className="mt-4 text-sm"><summary className="cursor-pointer text-muted-foreground">Aperçu du texte final</summary><pre className="mt-2 whitespace-pre-wrap font-sans text-sm bg-muted/50 rounded-md p-3">{fill(text)}</pre></details>
           )}
         </Panel>
+        </div>
         <Panel title="Historique" className="p-0 overflow-hidden">
           {history.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : history.isError ? <ErrorNote error={history.error} onRetry={() => history.refetch()} className="m-4" /> : (history.data ?? []).length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">Aucun courriel envoyé pour l'instant.</p>
@@ -115,5 +118,58 @@ export default function AdminEmails() {
         </Panel>
       </div>
     </AdminShell>
+  );
+}
+
+const PROPOSAL_DEFAULTS: ProposalInput = {
+  toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://seaudecrabe-demo.pages.dev",
+  previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
+  googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
+  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "",
+};
+
+/** Gabarit HTML « proposition de site clés en main » : aperçu dans un onglet, test à soi-même, puis envoi au prospect. */
+function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [p, setP] = useState<ProposalInput>({ ...PROPOSAL_DEFAULTS, phone: defaultPhone });
+  const [to, setTo] = useState("");
+  const [isTest, setIsTest] = useState(true);
+  const set = <K extends keyof ProposalInput>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setP({ ...p, [k]: e.target.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value });
+  const send = useMutation({
+    mutationFn: () => api.sendProposal({ ...p, to, isTest }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "emails"] }); toast({ title: `${isTest ? "Test envoyé" : "Proposition envoyée"} à ${to}` }); },
+    onError: (e) => toast({ title: "Envoi impossible", description: String((e as Error).message), variant: "destructive" }),
+  });
+  const ready = Boolean(to && p.business && p.city && p.siteUrl && p.price !== "" && p.phone);
+  return (
+    <Panel title="Proposition de site clés en main — gabarit HTML (bouton, aperçu du site, offre)">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="info@seaudecrabe.com" /></Field>
+        <Field label="Prénom / nom (salutation)" hint="Vide = « Bonjour, »"><Input value={p.toName} onChange={set("toName")} /></Field>
+        <Field label="Entreprise *"><Input value={p.business} onChange={set("business")} /></Field>
+        <Field label="Ville *"><Input value={p.city} onChange={set("city")} /></Field>
+        <Field label="Lien de la maquette *"><Input value={p.siteUrl} onChange={set("siteUrl")} /></Field>
+        <Field label="Image d'aperçu (URL)" hint="Capture du site, ≈1200 px de large ; vide = pas d'image"><Input value={p.previewImageUrl} onChange={set("previewImageUrl")} /></Field>
+        <Field label="Domaine mort sur la fiche Google"><Input value={p.brokenDomain} onChange={set("brokenDomain")} /></Field>
+        <Field label="Recherche Google visée"><Input value={p.searchPhrase} onChange={set("searchPhrase")} /></Field>
+        <Field label="Note Google"><Input value={p.googleRating} onChange={set("googleRating")} /></Field>
+        <Field label="Nombre d'avis"><Input type="number" value={p.googleReviews} onChange={set("googleReviews")} /></Field>
+        <Field label="Prix ($) *"><Input type="number" value={p.price} onChange={set("price")} /></Field>
+        <Field label="Livraison (heures)"><Input type="number" value={p.deliveryHours} onChange={set("deliveryHours")} /></Field>
+        <Field label="Nouveau domaine proposé" hint="Vide = pas d'option domaine"><Input value={p.newDomain} onChange={set("newDomain")} /></Field>
+        <Field label="Prix du domaine ($) / années"><div className="flex gap-2"><Input type="number" value={p.newDomainPrice} onChange={set("newDomainPrice")} /><Input type="number" value={p.newDomainYears} onChange={set("newDomainYears")} /></div></Field>
+        <Field label="Téléphone *"><Input value={p.phone} onChange={set("phone")} /></Field>
+        <div className="space-y-2 pt-6 text-sm">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={p.forwardToFranchisee} onChange={(e) => setP({ ...p, forwardToFranchisee: e.target.checked })} /> Ajouter la ligne « transmettre au franchisé » (envoi au siège)</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        <Button variant="outline" onClick={() => window.open(api.proposalPreviewUrl(p), "_blank", "noopener")}>Aperçu</Button>
+        <Button onClick={() => send.mutate()} disabled={!ready || send.isPending} variant={isTest ? "secondary" : "default"}>{send.isPending ? "Envoi…" : isTest ? "Envoyer le test" : "Envoyer la proposition"}</Button>
+      </div>
+    </Panel>
   );
 }

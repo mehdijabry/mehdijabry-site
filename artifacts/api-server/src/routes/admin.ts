@@ -6,6 +6,7 @@ import { Resend } from "resend";
 import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable } from "@workspace/db";
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
+import { renderProposalEmail } from "../lib/proposal-email";
 import { logger } from "../lib/logger";
 
 /**
@@ -254,7 +255,7 @@ function textToHtml(text: string): string {
   return text.split(/\n{2,}/).map((p) => `<p style="margin:0 0 14px;line-height:1.55">${linkify(esc(p)).replace(/\n/g, "<br>")}</p>`).join("");
 }
 
-async function sendEmail(opts: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null; isTest?: boolean }): Promise<{ ok: boolean; id?: string; error?: string }> {
+async function sendEmail(opts: { to: string; toName?: string | null; subject: string; text: string; html?: string; invoiceId?: number | null; isTest?: boolean }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const issuer = await loadIssuer();
   const apiKey = process.env["RESEND_API_KEY"];
   const from = `${issuer.emailFromName} <${issuer.emailFrom}>`;
@@ -263,7 +264,7 @@ async function sendEmail(opts: { to: string; toName?: string | null; subject: st
   else {
     try {
       const resend = new Resend(apiKey);
-      const html = `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
+      const html = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
       const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
       result = r.error ? { ok: false, error: r.error.message } : { ok: true, id: r.data?.id };
     } catch (e) { result = { ok: false, error: String((e as Error).message ?? e) }; }
@@ -282,6 +283,46 @@ router.post("/emails", async (req, res) => {
   const parsed = EmailInput.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
   const r = await sendEmail(parsed.data);
+  if (!r.ok) { res.status(502).json({ error: r.error }); return; }
+  res.status(201).json({ ok: true, id: r.id });
+});
+
+// ───── Proposition de site clés en main (gabarit HTML) ─────
+const ProposalFields = z.object({
+  toName: z.string().max(120).optional().nullable(),
+  business: z.string().min(1).max(120),
+  city: z.string().min(1).max(80),
+  siteUrl: z.url(),
+  previewImageUrl: z.url().optional().nullable().or(z.literal("")),
+  brokenDomain: z.string().max(120).optional().nullable(),
+  googleRating: z.string().max(10).optional().nullable(),
+  googleReviews: z.coerce.number().int().min(0).optional().nullable(),
+  searchPhrase: z.string().max(120).optional().nullable(),
+  price: z.coerce.number().min(0),
+  newDomain: z.string().max(120).optional().nullable(),
+  newDomainPrice: z.coerce.number().min(0).optional().nullable(),
+  newDomainYears: z.coerce.number().int().min(1).max(10).optional().nullable(),
+  deliveryHours: z.coerce.number().int().min(1).max(720).optional().nullable(),
+  forwardToFranchisee: z.preprocess((v) => v === true || v === "1" || v === "true", z.boolean()).optional(),
+  phone: z.string().min(7).max(30),
+});
+const ProposalSend = ProposalFields.extend({ to: z.email(), isTest: z.boolean().optional() });
+
+router.get("/emails/proposal/preview", async (req, res) => {
+  const parsed = ProposalFields.safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: "Paramètres invalides", details: parsed.error.issues }); return; }
+  const issuer = await loadIssuer();
+  const { html } = renderProposalEmail({ ...parsed.data, previewImageUrl: parsed.data.previewImageUrl || null }, issuer);
+  res.setHeader("cache-control", "no-store");
+  res.type("html").send(html);
+});
+router.post("/emails/proposal", async (req, res) => {
+  const parsed = ProposalSend.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
+  const { to, isTest, ...fields } = parsed.data;
+  const issuer = await loadIssuer();
+  const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer);
+  const r = await sendEmail({ to, toName: fields.toName ?? null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });
 });
