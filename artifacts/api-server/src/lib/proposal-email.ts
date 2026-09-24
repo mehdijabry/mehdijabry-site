@@ -34,6 +34,8 @@ export type ProposalEmailInput = {
   /** Espace d'administration de démonstration à faire essayer (lecture seule côté serveur). */
   adminUrl?: string | null;
   adminPassword?: string | null;
+  /** Objet du courriel ; vide = « <entreprise> — votre menu et vos horaires en ligne ». */
+  subject?: string | null;
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions ». */
   variant?: "card" | "plain" | null;
@@ -53,7 +55,8 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   // Dans le HTML, les liens vers la maquette passent par /go/<jeton> (clic compté) ; le texte brut garde l'adresse réelle.
   const link = opts.trackUrl || p.siteUrl;
   const hours = p.deliveryHours ?? 48;
-  const subject = `${p.business} — votre site web est prêt (aperçu à l'intérieur)`;
+  // Objet sobre et concret : pas de « prêt », « gratuit » ni point d'exclamation, qui sentent le pourriel.
+  const subject = p.subject?.trim() || `${p.business} — votre menu et vos horaires en ligne`;
   const greeting = p.toName?.trim() ? `Bonjour ${p.toName.trim()},` : "Bonjour,";
   const signer = issuer.fullName;
   // Settings may hold "https://mehdijabry.dev" or "mehdijabry.dev": display the bare host, link with one scheme.

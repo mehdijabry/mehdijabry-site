@@ -133,7 +133,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
-  headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "",
+  headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "",
 };
 
 /** Préréglages par prospect : on charge, on ajuste, on envoie. */
@@ -188,6 +188,7 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Image d'aperçu (URL)" hint="Capture du site, ≈1200 px de large ; vide = pas d'image"><Input value={p.previewImageUrl} onChange={set("previewImageUrl")} /></Field>
         <Field label="Domaine mort sur la fiche Google" hint="Vide si leur site fonctionne"><Input value={p.brokenDomain} onChange={set("brokenDomain")} /></Field>
         <Field label="Domaine qu'ils possèdent déjà" hint="Ex. lebette.com — remplace l'option « nouveau domaine »"><Input value={p.ownDomain} onChange={set("ownDomain")} /></Field>
+        <Field label="Objet du courriel" className="sm:col-span-2" hint="Vide = « Entreprise — votre menu et vos horaires en ligne ». Éviter « prêt », « gratuit », les majuscules et les points d'exclamation : filtres anti-pourriel et méfiance du lecteur."><Input value={p.subject} onChange={set("subject")} placeholder={`${p.business || "Entreprise"} — votre menu et vos horaires en ligne`} /></Field>
         <Field label="Titre (mise en page carte)" className="sm:col-span-2"><Input value={p.headline} onChange={set("headline")} placeholder="Vide = « Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus. »" /></Field>
         <Field label="Accroche personnalisée" className="sm:col-span-2" hint="Vide = phrase automatique sur le lien mort. Sinon, ce paragraphe remplace le constat."><Textarea rows={3} value={p.problemText} onChange={(e) => setP({ ...p, problemText: e.target.value })} /></Field>
         <Field label="Arguments supplémentaires dans l'offre" className="sm:col-span-2" hint="Un par ligne (admin, réservation en ligne, etc.)"><Textarea rows={2} value={p.extraBullets} onChange={(e) => setP({ ...p, extraBullets: e.target.value })} /></Field>
