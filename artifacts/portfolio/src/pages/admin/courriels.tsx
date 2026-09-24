@@ -133,7 +133,25 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
+  headline: "", problemText: "", ownDomain: "", extraBullets: "",
 };
+
+/** Préréglages par prospect : on charge, on ajuste, on envoie. */
+const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
+  { label: "Seau de Crabe", values: { ...PROPOSAL_DEFAULTS, phone: "" } },
+  {
+    label: "Le Bette",
+    values: {
+      toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://lebette-demo.pages.dev",
+      previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "", ownDomain: "lebette.com",
+      googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
+      newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "plain",
+      headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
+      problemText: "Comme convenu au téléphone ce matin, voici ce que je vous proposais. En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
+      extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
+    },
+  },
+];
 
 /** Gabarit HTML « proposition de site clés en main » : aperçu dans un onglet, test à soi-même, puis envoi au prospect. */
 function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
@@ -153,6 +171,12 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
   const ready = Boolean(to && p.business && p.city && p.siteUrl && p.price !== "" && p.phone);
   return (
     <Panel title="Proposition de site clés en main — gabarit HTML (bouton, aperçu du site, offre)">
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+        <span className="text-muted-foreground">Charger un prospect :</span>
+        {PROSPECTS.map((pr) => (
+          <button key={pr.label} type="button" onClick={() => setP({ ...PROPOSAL_DEFAULTS, ...pr.values, phone: p.phone || defaultPhone })} className="rounded-full border border-border px-3 py-1 text-muted-foreground hover:text-foreground hover:border-foreground">{pr.label}</button>
+        ))}
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="info@seaudecrabe.com" /></Field>
         <Field label="Prénom / nom (salutation)" hint="Vide = « Bonjour, »"><Input value={p.toName} onChange={set("toName")} /></Field>
@@ -161,7 +185,11 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Ville *"><Input value={p.city} onChange={set("city")} /></Field>
         <Field label="Lien de la maquette *"><Input value={p.siteUrl} onChange={set("siteUrl")} /></Field>
         <Field label="Image d'aperçu (URL)" hint="Capture du site, ≈1200 px de large ; vide = pas d'image"><Input value={p.previewImageUrl} onChange={set("previewImageUrl")} /></Field>
-        <Field label="Domaine mort sur la fiche Google"><Input value={p.brokenDomain} onChange={set("brokenDomain")} /></Field>
+        <Field label="Domaine mort sur la fiche Google" hint="Vide si leur site fonctionne"><Input value={p.brokenDomain} onChange={set("brokenDomain")} /></Field>
+        <Field label="Domaine qu'ils possèdent déjà" hint="Ex. lebette.com — remplace l'option « nouveau domaine »"><Input value={p.ownDomain} onChange={set("ownDomain")} /></Field>
+        <Field label="Titre (mise en page carte)" className="sm:col-span-2"><Input value={p.headline} onChange={set("headline")} placeholder="Vide = « Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus. »" /></Field>
+        <Field label="Accroche personnalisée" className="sm:col-span-2" hint="Vide = phrase automatique sur le lien mort. Sinon, ce paragraphe remplace le constat."><Textarea rows={3} value={p.problemText} onChange={(e) => setP({ ...p, problemText: e.target.value })} /></Field>
+        <Field label="Arguments supplémentaires dans l'offre" className="sm:col-span-2" hint="Un par ligne (admin, réservation en ligne, etc.)"><Textarea rows={2} value={p.extraBullets} onChange={(e) => setP({ ...p, extraBullets: e.target.value })} /></Field>
         <Field label="Recherche Google visée"><Input value={p.searchPhrase} onChange={set("searchPhrase")} /></Field>
         <Field label="Note Google"><Input value={p.googleRating} onChange={set("googleRating")} /></Field>
         <Field label="Nombre d'avis"><Input type="number" value={p.googleReviews} onChange={set("googleReviews")} /></Field>

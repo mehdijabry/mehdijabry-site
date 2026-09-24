@@ -23,6 +23,14 @@ export type ProposalEmailInput = {
   deliveryHours?: number | null;
   forwardToFranchisee?: boolean | null;
   phone: string;
+  /** Titre de la carte (variante « card ») ; défaut : la fiche Google renvoie vers un site mort. */
+  headline?: string | null;
+  /** Accroche complète (remplace la phrase « lien mort ») — pour un site existant mais sommaire, par exemple. */
+  problemText?: string | null;
+  /** Domaine que le client possède déjà (ex. lebette.com) : la mise en ligne s'y fait, rien ne change pour ses clients. */
+  ownDomain?: string | null;
+  /** Arguments supplémentaires dans l'encadré de l'offre, un par ligne (admin, réservation en ligne…). */
+  extraBullets?: string | null;
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions ». */
   variant?: "card" | "plain" | null;
@@ -61,16 +69,19 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const proofSentence = rating && reviews
     ? ` Avec ${reviews} avis et une note de ${rating}, c'est dommage de perdre ces visiteurs juste avant la commande.`
     : rating ? ` Avec une note de ${rating} sur Google, c'est dommage de perdre ces visiteurs juste avant la commande.` : "";
-  const problem = broken
+  const problem = p.problemText?.trim() ? p.problemText.trim() : broken
     ? `En cherchant votre restaurant sur Google Maps, j'ai remarqué que le lien « Site Web » de votre fiche (${broken}) ne fonctionne plus : les clients qui cliquent tombent sur une page d'erreur.${proofSentence}`
     : `En cherchant votre restaurant sur Google Maps, j'ai remarqué que votre fiche ne mène vers aucun site web qui fonctionne.${proofSentence}`;
+  const headline = p.headline?.trim() || "Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus.";
+  const own = p.ownDomain?.trim();
   const search = p.searchPhrase?.trim() || `${p.business.split(" ")[0]} ${p.city}`;
 
   const bullets: string[] = [
     "Le site complet, ajusté selon vos retours avant la mise en ligne",
-    "La mise en ligne sur votre nom de domaine" + (broken ? ` (${broken} ou un autre)` : "") + " si vous y avez accès",
+    own ? `La mise en ligne sur votre domaine actuel, ${own} : rien ne change pour vos clients` : "La mise en ligne sur votre nom de domaine" + (broken ? ` (${broken} ou un autre)` : "") + " si vous y avez accès",
   ];
-  if (p.newDomain?.trim() && p.newDomainPrice) {
+  (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
+  if (!own && p.newDomain?.trim() && p.newDomainPrice) {
     bullets.push(`Sinon, j'ai vérifié : ${p.newDomain.trim()} est disponible — je l'enregistre à votre nom pour ${p.newDomainYears ?? 3} ans pour ${dollars(p.newDomainPrice)} de plus`);
   }
   bullets.push("Hébergement sécurisé, sans abonnement mensuel");
@@ -127,14 +138,14 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const html = `<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:${paper};-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(`Votre fiche Google renvoie vers un site qui ne fonctionne plus — j'ai construit le vôtre, il est prêt à voir.`)}</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(p.problemText?.trim() ? `J'ai construit votre nouveau site — il est prêt à voir.` : `Votre fiche Google renvoie vers un site qui ne fonctionne plus — j'ai construit le vôtre, il est prêt à voir.`)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${paper}">
   <tr><td align="center" style="padding:28px 12px">
     <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px">
       <tr><td style="padding:0 0 14px;font-family:Helvetica Neue,Arial,sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:${muted}">${esc(signer)} &middot; D&eacute;veloppeur web ind&eacute;pendant &middot; ${esc(issuer.city || p.city)}</td></tr>
       <tr><td style="background:#ffffff;border:1px solid #e6e1d8;border-radius:14px;padding:32px 28px;font-family:Helvetica Neue,Arial,sans-serif">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${ink}">Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus.</td></tr>
+          <tr><td style="padding:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${ink}">${esc(headline)}</td></tr>
           <tr><td style="${pStyle}">${esc(greeting)}</td></tr>
           <tr><td style="${pStyle}">Je m'appelle ${esc(signer)}, d&eacute;veloppeur web ind&eacute;pendant ici &agrave; ${esc(issuer.city || p.city)}.</td></tr>
           <tr><td style="${pStyle}">${esc(problem)}</td></tr>

@@ -48,6 +48,7 @@ export type ProposalInput = {
   googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; newDomain: string;
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
   variant: "card" | "plain";
+  headline: string; problemText: string; ownDomain: string; extraBullets: string;
 };
 
 export type Dashboard = { year: number; invoices: number; billed: number; paid: number; outstanding: number; clients: number; emails: number; smallSupplierThreshold: number };
