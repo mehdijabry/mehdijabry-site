@@ -53,7 +53,7 @@ export default function AdminDashboard() {
                     <div className="mt-1 flex h-6 items-end gap-px" aria-hidden>
                       {s.days.map((d) => <span key={d.day} className="flex-1 rounded-sm bg-primary/70" style={{ height: `${Math.max(2, (d.visits / max) * 100)}%`, opacity: d.visits ? 1 : 0.25 }} title={`${d.day} : ${d.visits}`} />)}
                     </div>
-                    <div className="text-[11px] text-muted-foreground">14 derniers jours · {s.mobile} sur mobile{s.lastVisitAt ? ` · dernière visite ${new Date(s.lastVisitAt).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })}` : ""}</div>
+                    <div className="text-[11px] text-muted-foreground">14 derniers jours · {s.mobile} sur mobile{s.lastVisitAt ? ` · dernière visite ${new Date(s.lastVisitAt).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })}` : ""} · <button type="button" className="hover:underline" onClick={() => { if (confirm(`Effacer les visites de ${s.site} ?`)) api.forgetSite(s.site).then(() => sites.refetch()); }}>retirer</button></div>
                   </li>
                 );
               })}

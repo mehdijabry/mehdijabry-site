@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod/v4";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { Resend } from "resend";
-import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable } from "@workspace/db";
+import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable, trackingEventsTable } from "@workspace/db";
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
@@ -287,6 +287,13 @@ router.get("/emails", async (_req, res) => {
   res.json(rows.map((r) => ({ ...r, tracking: t.get(r.id) ?? { opens: 0, clicks: 0, visits: 0, firstOpenedAt: null, firstClickedAt: null, lastActivityAt: null } })));
 });
 router.get("/tracking/sites", async (_req, res) => { res.json(await siteStats()); });
+// Retire un site des statistiques (sondes, essais locaux) : ses visites sont effacées.
+router.delete("/tracking/sites/:site", async (req, res) => {
+  const site = String(req.params["site"] ?? "").toLowerCase().slice(0, 120);
+  if (!site) { res.status(400).json({ error: "Site manquant" }); return; }
+  await db.delete(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.site, site)));
+  res.json({ ok: true });
+});
 router.post("/emails", async (req, res) => {
   const parsed = EmailInput.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }

@@ -93,6 +93,7 @@ export const api = {
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
   siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
+  forgetSite: (site: string) => adminFetch<{ ok: true }>(`/tracking/sites/${encodeURIComponent(site)}`, { method: "DELETE" }),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
   sendProposal: (p: ProposalInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
   proposalPreviewUrl: (p: ProposalInput) => {
