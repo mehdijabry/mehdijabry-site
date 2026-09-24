@@ -147,7 +147,7 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
       googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
       newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "plain",
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
-      problemText: "Comme convenu au téléphone ce matin, voici ce que je vous proposais. En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
+      problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
     },
   },
