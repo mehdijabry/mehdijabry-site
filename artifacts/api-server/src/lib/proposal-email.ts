@@ -38,7 +38,9 @@ const formatPhone = (raw: string): string => {
 };
 const dollars = (n: number): string => `${new Intl.NumberFormat("fr-CA", { maximumFractionDigits: 0 }).format(n)} $`;
 
-export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null } = {}): { subject: string; html: string; text: string } {
+export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
+  // Dans le HTML, les liens vers la maquette passent par /go/<jeton> (clic compté) ; le texte brut garde l'adresse réelle.
+  const link = opts.trackUrl || p.siteUrl;
   const hours = p.deliveryHours ?? 48;
   const subject = `${p.business} — votre site web est prêt (aperçu à l'intérieur)`;
   const greeting = p.toName?.trim() ? `Bonjour ${p.toName.trim()},` : "Bonjour,";
@@ -117,7 +119,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
         </tr>`).join("");
   const preview = p.previewImageUrl?.trim() ? `
       <tr><td style="padding:4px 0 20px">
-        <a href="${esc(p.siteUrl)}" style="text-decoration:none">
+        <a href="${esc(link)}" style="text-decoration:none">
           <img src="${esc(p.previewImageUrl.trim())}" width="552" alt="Aperçu du site ${esc(p.business)}" style="display:block;width:100%;max-width:552px;height:auto;border-radius:10px;border:1px solid #e6e1d8">
         </a>
       </td></tr>` : "";
@@ -139,7 +141,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
           <tr><td style="${pStyle}">Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;:</td></tr>
           ${preview}
           <tr><td align="center" style="padding:0 0 26px">
-            <a href="${esc(p.siteUrl)}" style="display:inline-block;background:${amber};color:#16161a;text-decoration:none;font-weight:700;font-size:16px;padding:14px 30px;border-radius:999px">Voir votre site &rarr;</a>
+            <a href="${esc(link)}" style="display:inline-block;background:${amber};color:#16161a;text-decoration:none;font-weight:700;font-size:16px;padding:14px 30px;border-radius:999px">Voir votre site &rarr;</a>
             <div style="padding-top:8px;font-size:12px;color:${muted}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</div>
           </td></tr>
           <tr><td style="${pStyle}">Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.</td></tr>
@@ -179,9 +181,9 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
 ${para(esc(greeting))}
 ${para(`Je m'appelle ${esc(signer)}, d&eacute;veloppeur web ind&eacute;pendant ici &agrave; ${esc(issuer.city || p.city)}.`)}
 ${para(esc(problem))}
-${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;: <a href="${esc(p.siteUrl)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
-${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(p.siteUrl)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
-<p style="margin:0 0 22px"><a href="${esc(p.siteUrl)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
+${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;: <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
+${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
+<p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
 ${para(`Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.`)}
 ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>

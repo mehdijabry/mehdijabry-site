@@ -7,6 +7,7 @@ import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable,
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
+import { newTrackToken, emailTracking, siteStats } from "../lib/tracking";
 import { logger } from "../lib/logger";
 
 /**
@@ -255,7 +256,9 @@ function textToHtml(text: string): string {
   return text.split(/\n{2,}/).map((p) => `<p style="margin:0 0 14px;line-height:1.55">${linkify(esc(p)).replace(/\n/g, "<br>")}</p>`).join("");
 }
 
-async function sendEmail(opts: { to: string; toName?: string | null; bcc?: string | null; subject: string; text: string; html?: string; invoiceId?: number | null; isTest?: boolean }): Promise<{ ok: boolean; id?: string; error?: string }> {
+// Chaque courriel reçoit un jeton : pixel d'ouverture ajouté au HTML, lien suivi /go/<jeton> quand une destination est fournie.
+async function sendEmail(opts: { to: string; toName?: string | null; bcc?: string | null; subject: string; text: string; html?: string; invoiceId?: number | null; isTest?: boolean; trackToken?: string; trackUrl?: string | null }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const trackToken = opts.trackToken ?? newTrackToken();
   const issuer = await loadIssuer();
   const apiKey = process.env["RESEND_API_KEY"];
   const from = `${issuer.emailFromName} <${issuer.emailFrom}>`;
@@ -264,12 +267,14 @@ async function sendEmail(opts: { to: string; toName?: string | null; bcc?: strin
   else {
     try {
       const resend = new Resend(apiKey);
-      const html = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
+      const pixel = `<img src="${PUBLIC_BASE_URL}/o/${trackToken}.gif" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0">`;
+      const base = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
+      const html = base.includes("</body>") ? base.replace("</body>", `${pixel}</body>`) : base + pixel;
       const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, bcc: opts.bcc || undefined, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
       result = r.error ? { ok: false, error: r.error.message } : { ok: true, id: r.data?.id };
     } catch (e) { result = { ok: false, error: String((e as Error).message ?? e) }; }
   }
-  await db.insert(sentEmailsTable).values({ toEmail: opts.to, toName: opts.toName ?? null, fromEmail: issuer.emailFrom, subject: opts.subject, bodyText: opts.text, invoiceId: opts.invoiceId ?? null, resendId: result.id ?? null, status: result.ok ? "envoyé" : "échec", error: result.error ?? null, isTest: !!opts.isTest });
+  await db.insert(sentEmailsTable).values({ toEmail: opts.to, toName: opts.toName ?? null, fromEmail: issuer.emailFrom, subject: opts.subject, bodyText: opts.text, invoiceId: opts.invoiceId ?? null, resendId: result.id ?? null, status: result.ok ? "envoyé" : "échec", error: result.error ?? null, isTest: !!opts.isTest, trackToken, trackUrl: opts.trackUrl ?? null });
   if (!result.ok) logger.warn({ error: result.error }, "admin e-mail failed");
   return result;
 }
@@ -277,8 +282,11 @@ async function sendEmail(opts: { to: string; toName?: string | null; bcc?: strin
 const EmailInput = z.object({ to: z.email(), toName: z.string().optional().nullable(), subject: z.string().min(1).max(200), text: z.string().min(1).max(20000), invoiceId: z.number().int().optional().nullable() });
 
 router.get("/emails", async (_req, res) => {
-  res.json(await db.select().from(sentEmailsTable).orderBy(desc(sentEmailsTable.id)).limit(200));
+  const rows = await db.select().from(sentEmailsTable).orderBy(desc(sentEmailsTable.id)).limit(200);
+  const t = await emailTracking(rows.map((r) => r.id));
+  res.json(rows.map((r) => ({ ...r, tracking: t.get(r.id) ?? { opens: 0, clicks: 0, visits: 0, firstOpenedAt: null, firstClickedAt: null, lastActivityAt: null } })));
 });
+router.get("/tracking/sites", async (_req, res) => { res.json(await siteStats()); });
 router.post("/emails", async (req, res) => {
   const parsed = EmailInput.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
@@ -322,8 +330,9 @@ router.post("/emails/proposal", async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
   const { to, isTest, bcc, ...fields } = parsed.data;
   const issuer = await loadIssuer();
-  const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png` });
-  const r = await sendEmail({ to, toName: fields.toName ?? null, bcc: bcc || null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest });
+  const trackToken = newTrackToken();
+  const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png`, trackUrl: `${PUBLIC_BASE_URL}/go/${trackToken}` });
+  const r = await sendEmail({ to, toName: fields.toName ?? null, bcc: bcc || null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest, trackToken, trackUrl: fields.siteUrl });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });
 });

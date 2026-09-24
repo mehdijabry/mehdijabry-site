@@ -108,6 +108,24 @@ async function createAdminTables(): Promise<void> {
       is_test boolean NOT NULL DEFAULT false,
       created_at timestamptz NOT NULL DEFAULT now()
     )`);
+  await db.execute(sql`ALTER TABLE sent_emails ADD COLUMN IF NOT EXISTS track_token text`);
+  await db.execute(sql`ALTER TABLE sent_emails ADD COLUMN IF NOT EXISTS track_url text`);
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS tracking_events (
+      id serial PRIMARY KEY,
+      email_id integer,
+      site text,
+      kind text NOT NULL,
+      path text,
+      referrer text,
+      source text,
+      user_agent text,
+      ip_hash text,
+      is_bot boolean NOT NULL DEFAULT false,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`);
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS tracking_events_email ON tracking_events (email_id)`);
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS tracking_events_site ON tracking_events (site, created_at)`);
 }
 
 export * from "./schema";

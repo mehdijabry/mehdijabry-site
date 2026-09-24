@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, jsonb, date, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, jsonb, date, timestamp, integer, boolean, index } from "drizzle-orm/pg-core";
 
 /**
  * Admin area (2026-09-23): invoicing for a Québec self-employed developer (travailleur autonome) and
@@ -71,6 +71,25 @@ export const sentEmailsTable = pgTable("sent_emails", {
   status: text("status").notNull().default("envoyé"),   // envoyé · échec
   error: text("error"),
   isTest: boolean("is_test").notNull().default(false),
+  trackToken: text("track_token"),          // jeton du pixel d'ouverture et du lien suivi /go/<jeton>
+  trackUrl: text("track_url"),              // destination réelle du lien suivi (la maquette)
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 export type SentEmailRow = typeof sentEmailsTable.$inferSelect;
+
+/** Suivi des courriels de prospection et des visites des maquettes : ouverture (pixel), clic (lien /go), visite (balise
+ *  sur chaque site démo). Aucune donnée nominative : l'adresse IP est hachée avec le secret du serveur. */
+export const trackingEventsTable = pgTable("tracking_events", {
+  id: serial("id").primaryKey(),
+  emailId: integer("email_id"),
+  site: text("site"),                       // hôte du site démo (ex. seaudecrabe-demo.pages.dev)
+  kind: text("kind").notNull(),             // open · click · visit
+  path: text("path"),
+  referrer: text("referrer"),
+  source: text("source"),                   // src=courriel, etc.
+  userAgent: text("user_agent"),
+  ipHash: text("ip_hash"),
+  isBot: boolean("is_bot").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [index("tracking_events_email").on(t.emailId), index("tracking_events_site").on(t.site, t.createdAt)]);
+export type TrackingEventRow = typeof trackingEventsTable.$inferSelect;

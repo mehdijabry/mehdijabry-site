@@ -111,6 +111,13 @@ export default function AdminEmails() {
                   </div>
                   <div className="text-muted-foreground truncate">{m.subject}</div>
                   <div className="text-xs text-muted-foreground">{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""}</div>
+                  {m.status === "envoyé" && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)}`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Pas encore ouvert</span>}
+                      {m.tracking.clicks > 0 && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium" title={`Premier clic ${shortDate(m.tracking.firstClickedAt!)}`}>Cliqué ×{m.tracking.clicks}</span>}
+                      {m.tracking.visits > 0 && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">Maquette visitée ×{m.tracking.visits}</span>}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

@@ -6,6 +6,7 @@ import { api, money } from "@/lib/admin-api";
 
 export default function AdminDashboard() {
   const dash = useQuery({ queryKey: ["admin", "dashboard"], queryFn: api.dashboard });
+  const sites = useQuery({ queryKey: ["admin", "sites"], queryFn: api.siteStats });
   const d = dash.data;
   const pct = d ? Math.min(100, Math.round((d.billed / d.smallSupplierThreshold) * 100)) : 0;
   return (
@@ -35,6 +36,29 @@ export default function AdminDashboard() {
           </div>
           <p className="text-sm mt-2 tabular-nums">{money(d?.billed ?? 0)} facturés cette année civile · {pct} % du seuil</p>
           <p className="text-xs text-muted-foreground mt-2">Indicateur sur l'année civile en cours ; la règle officielle s'apprécie sur quatre trimestres glissants. Passez en mode « inscrit » dans les paramètres dès que vous avez vos numéros.</p>
+        </Panel>
+        <Panel title="Visites des maquettes (30 jours)">
+          {sites.isError ? <ErrorNote error={sites.error} onRetry={() => sites.refetch()} /> : !sites.data ? <p className="text-sm text-muted-foreground">Chargement…</p> : sites.data.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucune visite enregistrée pour l'instant. Chaque site démo envoie une balise à chaque page vue.</p>
+          ) : (
+            <ul className="space-y-3 text-sm">
+              {sites.data.map((s) => {
+                const max = Math.max(1, ...s.days.map((d) => d.visits));
+                return (
+                  <li key={s.site}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <a href={`https://${s.site}`} target="_blank" rel="noopener" className="font-medium hover:underline truncate">{s.site}</a>
+                      <span className="tabular-nums text-muted-foreground text-xs shrink-0">{s.visits} visite{s.visits > 1 ? "s" : ""} · {s.visitors} visiteur{s.visitors > 1 ? "s" : ""}{s.fromEmail ? ` · ${s.fromEmail} via courriel` : ""}</span>
+                    </div>
+                    <div className="mt-1 flex h-6 items-end gap-px" aria-hidden>
+                      {s.days.map((d) => <span key={d.day} className="flex-1 rounded-sm bg-primary/70" style={{ height: `${Math.max(2, (d.visits / max) * 100)}%`, opacity: d.visits ? 1 : 0.25 }} title={`${d.day} : ${d.visits}`} />)}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">14 derniers jours · {s.mobile} sur mobile{s.lastVisitAt ? ` · dernière visite ${new Date(s.lastVisitAt).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })}` : ""}</div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Panel>
         <Panel title="Raccourcis">
           <ul className="space-y-2 text-sm">

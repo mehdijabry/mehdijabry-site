@@ -38,7 +38,10 @@ export type InvoiceInput = {
 export type SentEmail = {
   id: number; toEmail: string; toName: string | null; fromEmail: string; subject: string; bodyText: string;
   invoiceId: number | null; resendId: string | null; status: string; error: string | null; isTest: boolean; createdAt: string;
+  trackToken: string | null; trackUrl: string | null;
+  tracking: { opens: number; clicks: number; visits: number; firstOpenedAt: string | null; firstClickedAt: string | null; lastActivityAt: string | null };
 };
+export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
 
 export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
@@ -89,6 +92,7 @@ export const api = {
   deleteInvoice: (id: number) => adminFetch<{ ok: true }>(`/invoices/${id}`, { method: "DELETE" }),
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
+  siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
   sendProposal: (p: ProposalInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
   proposalPreviewUrl: (p: ProposalInput) => {

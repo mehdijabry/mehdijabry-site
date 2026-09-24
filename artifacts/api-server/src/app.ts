@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import { publicInvoiceHandler } from "./routes/admin";
+import { trackOpenHandler, trackClickHandler, trackVisitHandler } from "./lib/tracking";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
@@ -48,6 +49,10 @@ app.use(cookieParser());
 // The link e-mailed to a client: printable HTML, secured by its random token. Registered before the
 // SPA catch-all so it is served by the API even in production.
 app.get("/f/:token", publicInvoiceHandler);
+// Suivi des courriels et des maquettes (public, sans session) — voir lib/tracking.ts
+app.get("/o/:token.gif", trackOpenHandler);
+app.get("/go/:token", trackClickHandler);
+app.get("/api/track/visit.gif", trackVisitHandler);
 
 // ───── Static SPA serving (production only) ─────
 // In production (Render), the build process produces:
