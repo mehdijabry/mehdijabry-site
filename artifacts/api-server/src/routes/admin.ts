@@ -263,18 +263,18 @@ async function sendEmail(opts: { to: string; toName?: string | null; bcc?: strin
   const apiKey = process.env["RESEND_API_KEY"];
   const from = `${issuer.emailFromName} <${issuer.emailFrom}>`;
   let result: { ok: boolean; id?: string; error?: string };
+  const pixel = `<img src="${PUBLIC_BASE_URL}/o/${trackToken}.gif" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0">`;
+  const base = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
+  const html = base.includes("</body>") ? base.replace("</body>", `${pixel}</body>`) : base + pixel;
   if (!apiKey) result = { ok: false, error: "RESEND_API_KEY n'est pas défini sur le serveur." };
   else {
     try {
       const resend = new Resend(apiKey);
-      const pixel = `<img src="${PUBLIC_BASE_URL}/o/${trackToken}.gif" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0">`;
-      const base = opts.html ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(opts.text)}</div>`;
-      const html = base.includes("</body>") ? base.replace("</body>", `${pixel}</body>`) : base + pixel;
       const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, bcc: opts.bcc || undefined, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
       result = r.error ? { ok: false, error: r.error.message } : { ok: true, id: r.data?.id };
     } catch (e) { result = { ok: false, error: String((e as Error).message ?? e) }; }
   }
-  await db.insert(sentEmailsTable).values({ toEmail: opts.to, toName: opts.toName ?? null, fromEmail: issuer.emailFrom, subject: opts.subject, bodyText: opts.text, invoiceId: opts.invoiceId ?? null, resendId: result.id ?? null, status: result.ok ? "envoyé" : "échec", error: result.error ?? null, isTest: !!opts.isTest, trackToken, trackUrl: opts.trackUrl ?? null });
+  await db.insert(sentEmailsTable).values({ toEmail: opts.to, toName: opts.toName ?? null, fromEmail: issuer.emailFrom, subject: opts.subject, bodyText: opts.text, invoiceId: opts.invoiceId ?? null, resendId: result.id ?? null, status: result.ok ? "envoyé" : "échec", error: result.error ?? null, isTest: !!opts.isTest, trackToken, trackUrl: opts.trackUrl ?? null, bodyHtml: html });
   if (!result.ok) logger.warn({ error: result.error }, "admin e-mail failed");
   return result;
 }
@@ -285,6 +285,21 @@ router.get("/emails", async (_req, res) => {
   const rows = await db.select().from(sentEmailsTable).orderBy(desc(sentEmailsTable.id)).limit(200);
   const t = await emailTracking(rows.map((r) => r.id));
   res.json(rows.map((r) => ({ ...r, tracking: t.get(r.id) ?? { opens: 0, clicks: 0, visits: 0, firstOpenedAt: null, firstClickedAt: null, lastActivityAt: null } })));
+});
+// Aperçu d'un courriel tel que le client l'a reçu. Le pixel de suivi est retiré et les liens suivis pointent
+// directement vers la destination : regarder son propre envoi ne doit pas compter comme une ouverture ou un clic.
+router.get("/emails/:id/html", async (req, res) => {
+  const id = Number(req.params["id"]);
+  const [m] = await db.select().from(sentEmailsTable).where(eq(sentEmailsTable.id, id)).limit(1);
+  if (!m) { res.status(404).type("text/plain").send("Courriel introuvable"); return; }
+  let html = m.bodyHtml ?? `<div style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;color:#16161a;max-width:640px">${textToHtml(m.bodyText)}</div>`;
+  html = html.replace(/<img[^>]+\/o\/[A-Za-z0-9_-]+\.gif[^>]*>/g, "");
+  if (m.trackToken && m.trackUrl) html = html.split(`${PUBLIC_BASE_URL}/go/${m.trackToken}`).join(m.trackUrl);
+  const esc = (v: string) => v.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+  const banner = `<div style="position:sticky;top:0;background:#16161a;color:#f4f1ea;font:13px/1.5 Helvetica Neue,Arial,sans-serif;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline"><strong>Aperçu — tel que reçu</strong><span>À : ${esc(m.toName ? `${m.toName} <${m.toEmail}>` : m.toEmail)}</span><span>Objet : ${esc(m.subject)}</span><span>${esc(new Date(m.createdAt).toLocaleString("fr-CA", { dateStyle: "long", timeStyle: "short" }))}</span><span style="opacity:.7">${m.status === "envoyé" ? "Envoyé" : `Échec${m.error ? " : " + esc(m.error) : ""}`}</span></div>`;
+  const page = html.includes("<body") ? html.replace(/<body([^>]*)>/, `<body$1>${banner}`) : `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(m.subject)}</title></head><body style="margin:0;background:#f4f1ea">${banner}<div style="padding:24px 16px">${html}</div></body></html>`;
+  res.setHeader("cache-control", "no-store");
+  res.type("html").send(page);
 });
 router.get("/tracking/sites", async (_req, res) => { res.json(await siteStats()); });
 // Retire un site des statistiques (sondes, essais locaux) : ses visites sont effacées.

@@ -38,7 +38,7 @@ export type InvoiceInput = {
 export type SentEmail = {
   id: number; toEmail: string; toName: string | null; fromEmail: string; subject: string; bodyText: string;
   invoiceId: number | null; resendId: string | null; status: string; error: string | null; isTest: boolean; createdAt: string;
-  trackToken: string | null; trackUrl: string | null;
+  trackToken: string | null; trackUrl: string | null; bodyHtml?: string | null;
   tracking: { opens: number; clicks: number; visits: number; firstOpenedAt: string | null; firstClickedAt: string | null; lastActivityAt: string | null };
 };
 export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };

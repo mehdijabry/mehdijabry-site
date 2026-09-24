@@ -73,6 +73,7 @@ export const sentEmailsTable = pgTable("sent_emails", {
   isTest: boolean("is_test").notNull().default(false),
   trackToken: text("track_token"),          // jeton du pixel d'ouverture et du lien suivi /go/<jeton>
   trackUrl: text("track_url"),              // destination réelle du lien suivi (la maquette)
+  bodyHtml: text("body_html"),              // le courriel tel qu'envoyé (HTML), pour l'aperçu dans l'admin
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 export type SentEmailRow = typeof sentEmailsTable.$inferSelect;

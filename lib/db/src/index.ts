@@ -110,6 +110,7 @@ async function createAdminTables(): Promise<void> {
     )`);
   await db.execute(sql`ALTER TABLE sent_emails ADD COLUMN IF NOT EXISTS track_token text`);
   await db.execute(sql`ALTER TABLE sent_emails ADD COLUMN IF NOT EXISTS track_url text`);
+  await db.execute(sql`ALTER TABLE sent_emails ADD COLUMN IF NOT EXISTS body_html text`);
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS tracking_events (
       id serial PRIMARY KEY,

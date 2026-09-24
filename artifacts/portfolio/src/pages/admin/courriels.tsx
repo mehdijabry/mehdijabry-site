@@ -110,7 +110,7 @@ export default function AdminEmails() {
                     <span className={`text-xs shrink-0 ${m.status === "envoyé" ? "text-emerald-600" : "text-destructive"}`}>{m.status}</span>
                   </div>
                   <div className="text-muted-foreground truncate">{m.subject}</div>
-                  <div className="text-xs text-muted-foreground">{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""}</div>
+                  <div className="text-xs text-muted-foreground">{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""} · <a href={`/api/admin/emails/${m.id}/html`} target="_blank" rel="noopener" className="text-primary hover:underline">Voir le courriel ↗</a></div>
                   {m.status === "envoyé" && (
                     <div className="mt-1 flex flex-wrap gap-1">
                       {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)}`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Pas encore ouvert</span>}
