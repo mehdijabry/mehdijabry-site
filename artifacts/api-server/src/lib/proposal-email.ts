@@ -31,6 +31,9 @@ export type ProposalEmailInput = {
   ownDomain?: string | null;
   /** Arguments supplémentaires dans l'encadré de l'offre, un par ligne (admin, réservation en ligne…). */
   extraBullets?: string | null;
+  /** Espace d'administration de démonstration à faire essayer (lecture seule côté serveur). */
+  adminUrl?: string | null;
+  adminPassword?: string | null;
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions ». */
   variant?: "card" | "plain" | null;
@@ -57,6 +60,10 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const site = (issuer.website || "mehdijabry.dev").replace(/^https?:\/\//i, "").replace(/\/+$/, "");
   const phone = formatPhone(p.phone);
   // Signature block shared by both layouts: the logo mark (PNG — e-mail clients don't render SVG) beside the name.
+  const ink = "#16161a", muted = "#6b6560", amber = "#b8863b", paper = "#f4f1ea";
+  const adminHtml = p.adminUrl?.trim()
+    ? `Et pour voir comment vous le mettriez &agrave; jour vous-m&ecirc;me (un plat, un prix, vos horaires, une annonce, vos r&eacute;servations)&nbsp;: <a href="${esc(p.adminUrl.trim())}" style="color:${amber};font-weight:700">espace d'administration</a> — mot de passe&nbsp;: <strong>${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration&nbsp;: explorez librement, rien n'y est enregistr&eacute;.`
+    : "";
   const signatureHtml = (textColor: string, mutedColor: string, accent: string) => `
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:6px"><tr>
   ${opts.logoUrl ? `<td valign="top" style="padding:4px 14px 0 0"><a href="https://${esc(site)}" style="text-decoration:none"><img src="${esc(opts.logoUrl)}" width="44" height="44" alt="${esc(signer)}" style="display:block;width:44px;height:44px;border-radius:9px"></a></td>` : ""}
@@ -98,15 +105,14 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     "",
     problem,
     "",
-    "Plutôt que de vous envoyer un devis, j'ai construit votre site. Vous pouvez le voir ici :",
+    "Plutôt que de vous envoyer un devis, j'ai construit votre site — sans engagement : le regarder ne vous coûte rien, et s'il ne vous plaît pas, vous ne payez rien. Vous pouvez le voir ici :",
     p.siteUrl,
     "",
     `Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itinéraire et le lien vers votre commande en ligne — pensé pour le téléphone et pour ressortir sur Google quand quelqu'un cherche « ${search} ». Tout est modifiable : textes, photos, promotions, ce que vous voulez.`,
     "",
+    ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (un plat, un prix, vos horaires, une annonce, vos réservations) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
     `L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel :`,
     ...bullets.map((b) => `- ${b}`),
-    "",
-    "Aucun engagement : si le site ne vous convient pas, vous ne payez rien.",
     "",
     `Je suis à ${issuer.city || p.city} — je peux passer vous le montrer sur place, quand ça vous arrange. Répondez à ce courriel ou appelez-moi au ${phone}.`,
     "",
@@ -121,7 +127,6 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   ].join("\n");
 
   // ── HTML ──
-  const ink = "#16161a", muted = "#6b6560", amber = "#b8863b", paper = "#f4f1ea";
   const pStyle = `padding:0 0 16px;font-size:16px;line-height:1.6;color:${ink}`; // padding: margins are ignored on table cells
   const bulletRows = bullets.map((b) => `
         <tr>
@@ -149,13 +154,14 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
           <tr><td style="${pStyle}">${esc(greeting)}</td></tr>
           <tr><td style="${pStyle}">Je m'appelle ${esc(signer)}, d&eacute;veloppeur web ind&eacute;pendant ici &agrave; ${esc(issuer.city || p.city)}.</td></tr>
           <tr><td style="${pStyle}">${esc(problem)}</td></tr>
-          <tr><td style="${pStyle}">Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;:</td></tr>
+          <tr><td style="${pStyle}">Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong> — sans engagement&nbsp;: le regarder ne vous co&ucirc;te rien, et s'il ne vous pla&icirc;t pas, vous ne payez rien. Vous pouvez le voir ici&nbsp;:</td></tr>
           ${preview}
           <tr><td align="center" style="padding:0 0 26px">
             <a href="${esc(link)}" style="display:inline-block;background:${amber};color:#16161a;text-decoration:none;font-weight:700;font-size:16px;padding:14px 30px;border-radius:999px">Voir votre site &rarr;</a>
             <div style="padding-top:8px;font-size:12px;color:${muted}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</div>
           </td></tr>
           <tr><td style="${pStyle}">Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.</td></tr>
+          ${adminHtml ? `<tr><td style="${pStyle}">${adminHtml}</td></tr>` : ""}
           <tr><td style="padding:6px 0 22px">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${paper};border:1px solid #e6e1d8;border-radius:12px">
               <tr><td style="padding:20px 22px">
@@ -167,7 +173,6 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
               </td></tr>
             </table>
           </td></tr>
-          <tr><td style="${pStyle}"><strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.</td></tr>
           <tr><td style="${pStyle}">Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.</td></tr>
           ${forward ? `<tr><td style="${pStyle}">${esc(forward)}</td></tr>` : ""}
           <tr><td style="padding:8px 0 0;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</td></tr>
@@ -192,13 +197,13 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
 ${para(esc(greeting))}
 ${para(`Je m'appelle ${esc(signer)}, d&eacute;veloppeur web ind&eacute;pendant ici &agrave; ${esc(issuer.city || p.city)}.`)}
 ${para(esc(problem))}
-${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong>. Vous pouvez le voir ici&nbsp;: <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
+${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong> — sans engagement&nbsp;: le regarder ne vous co&ucirc;te rien, et s'il ne vous pla&icirc;t pas, vous ne payez rien. Vous pouvez le voir ici&nbsp;: <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
 ${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
 <p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
 ${para(`Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.`)}
+${adminHtml ? para(adminHtml) : ""}
 ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>
-${para(`<strong>Aucun engagement</strong>&nbsp;: si le site ne vous convient pas, vous ne payez rien.`)}
 ${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.`)}
 ${forward ? para(esc(forward)) : ""}
 <div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</div>

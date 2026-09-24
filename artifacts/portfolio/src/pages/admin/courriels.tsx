@@ -133,7 +133,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
-  headline: "", problemText: "", ownDomain: "", extraBullets: "",
+  headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "",
 };
 
 /** Préréglages par prospect : on charge, on ajuste, on envoie. */
@@ -149,6 +149,7 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
       problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
+      adminUrl: "https://lebette-demo.pages.dev/admin/", adminPassword: "bette-demo",
     },
   },
 ];
@@ -190,6 +191,8 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Titre (mise en page carte)" className="sm:col-span-2"><Input value={p.headline} onChange={set("headline")} placeholder="Vide = « Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus. »" /></Field>
         <Field label="Accroche personnalisée" className="sm:col-span-2" hint="Vide = phrase automatique sur le lien mort. Sinon, ce paragraphe remplace le constat."><Textarea rows={3} value={p.problemText} onChange={(e) => setP({ ...p, problemText: e.target.value })} /></Field>
         <Field label="Arguments supplémentaires dans l'offre" className="sm:col-span-2" hint="Un par ligne (admin, réservation en ligne, etc.)"><Textarea rows={2} value={p.extraBullets} onChange={(e) => setP({ ...p, extraBullets: e.target.value })} /></Field>
+        <Field label="Espace admin de démonstration (lien)" hint="Vide = pas de paragraphe"><Input value={p.adminUrl} onChange={set("adminUrl")} placeholder="https://…/admin/" /></Field>
+        <Field label="Mot de passe de démonstration" hint="Compte en lecture seule (rien n'est enregistré)"><Input value={p.adminPassword} onChange={set("adminPassword")} /></Field>
         <Field label="Recherche Google visée"><Input value={p.searchPhrase} onChange={set("searchPhrase")} /></Field>
         <Field label="Note Google"><Input value={p.googleRating} onChange={set("googleRating")} /></Field>
         <Field label="Nombre d'avis"><Input type="number" value={p.googleReviews} onChange={set("googleReviews")} /></Field>

@@ -325,6 +325,8 @@ const ProposalFields = z.object({
   problemText: z.string().max(900).optional().nullable(),
   ownDomain: z.string().max(120).optional().nullable(),
   extraBullets: z.string().max(900).optional().nullable(),
+  adminUrl: z.url().optional().nullable().or(z.literal("")),
+  adminPassword: z.string().max(60).optional().nullable(),
 });
 const ProposalSend = ProposalFields.extend({ to: z.email(), isTest: z.boolean().optional(), bcc: z.email().optional().nullable().or(z.literal("")) });
 
