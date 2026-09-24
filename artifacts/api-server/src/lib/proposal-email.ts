@@ -55,8 +55,11 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   // Dans le HTML, les liens vers la maquette passent par /go/<jeton> (clic compté) ; le texte brut garde l'adresse réelle.
   const link = opts.trackUrl || p.siteUrl;
   const hours = p.deliveryHours ?? 48;
-  // Objet sobre et concret : pas de « prêt », « gratuit » ni point d'exclamation, qui sentent le pourriel.
-  const subject = p.subject?.trim() || `${p.business} — votre menu et vos horaires en ligne`;
+  // Objet vrai et curieux : à la première personne, un fait (le site existe) et une raison d'ouvrir (le voir).
+  // Pas de « prêt », « gratuit », majuscules ni point d'exclamation, qui sentent le pourriel.
+  const subject = p.subject?.trim() || (p.brokenDomain?.trim()
+    ? `Votre lien Google mène à une page d'erreur — j'ai construit le site de ${p.business}`
+    : `J'ai construit un site pour ${p.business} — voici à quoi il ressemble`);
   const greeting = p.toName?.trim() ? `Bonjour ${p.toName.trim()},` : "Bonjour,";
   const signer = issuer.fullName;
   // Settings may hold "https://mehdijabry.dev" or "mehdijabry.dev": display the bare host, link with one scheme.
