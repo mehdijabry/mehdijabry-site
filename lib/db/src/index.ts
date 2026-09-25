@@ -126,6 +126,33 @@ async function createAdminTables(): Promise<void> {
       created_at timestamptz NOT NULL DEFAULT now()
     )`);
   await db.execute(sql`CREATE INDEX IF NOT EXISTS tracking_events_email ON tracking_events (email_id)`);
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS prospects (
+      id serial PRIMARY KEY,
+      name text NOT NULL,
+      city text,
+      contact_name text,
+      email text,
+      phone text,
+      google_maps_url text,
+      website_url text,
+      broken_domain text,
+      own_domain text,
+      google_rating text,
+      google_reviews integer,
+      mock_url text,
+      admin_url text,
+      admin_demo_password text,
+      has_reservations boolean NOT NULL DEFAULT false,
+      status text NOT NULL DEFAULT 'nouveau',
+      price numeric(12,2),
+      notes text,
+      next_action text,
+      next_action_at date,
+      client_id integer,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`);
   await db.execute(sql`CREATE INDEX IF NOT EXISTS tracking_events_site ON tracking_events (site, created_at)`);
 }
 

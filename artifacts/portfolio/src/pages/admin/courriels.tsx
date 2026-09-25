@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearch } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AdminShell, ErrorNote, Field, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,19 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
   const { toast } = useToast();
   const [p, setP] = useState<ProposalInput>({ ...PROPOSAL_DEFAULTS, phone: defaultPhone });
   const [to, setTo] = useState("");
+  // Arrivée depuis la page Prospects : la fiche remplit le gabarit (adresse, maquette, admin démo, domaine, note Google).
+  const search = useSearch();
+  const prospectId = Number(new URLSearchParams(search).get("prospect") || 0);
+  const prospects = useQuery({ queryKey: ["admin", "prospects"], queryFn: api.prospects, enabled: prospectId > 0 });
+  useEffect(() => {
+    const pr = prospects.data?.find((x) => x.id === prospectId);
+    if (!pr) return;
+    setTo(pr.email ?? "");
+    setP((cur) => ({ ...cur, toName: pr.contactName ?? "", business: pr.name, city: pr.city || cur.city, siteUrl: pr.mockUrl ?? "", previewImageUrl: pr.mockUrl ? `${pr.mockUrl.replace(/\/+$/, "")}/img/apercu-courriel.jpg` : "",
+      brokenDomain: pr.brokenDomain ?? "", ownDomain: pr.ownDomain ?? "", googleRating: pr.googleRating ?? "", googleReviews: pr.googleReviews ?? "", price: pr.price ?? cur.price,
+      adminUrl: pr.adminUrl ?? "", adminPassword: pr.adminDemoPassword ?? "", newDomain: pr.ownDomain ? "" : cur.newDomain, headline: "", problemText: "", searchPhrase: `${pr.name} ${pr.city || ""}`.trim(),
+      extraBullets: [pr.adminUrl ? "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone" : "", pr.hasReservations ? "La réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert" : ""].filter(Boolean).join("\n") }));
+  }, [prospects.data, prospectId]);
   const [bcc, setBcc] = useState("");
   const [isTest, setIsTest] = useState(true);
   const set = <K extends keyof ProposalInput>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) =>

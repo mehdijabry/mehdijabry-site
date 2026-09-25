@@ -51,6 +51,18 @@ export type ProposalInput = {
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string;
 };
 
+export const PROSPECT_STATUSES = ["nouveau", "maquette", "contacté", "relance", "négociation", "gagné", "perdu"] as const;
+export type ProspectStatus = typeof PROSPECT_STATUSES[number];
+export type ProspectInput = {
+  name: string; city: string; contactName: string; email: string; phone: string; googleMapsUrl: string; websiteUrl: string;
+  brokenDomain: string; ownDomain: string; googleRating: string; googleReviews: number | ""; mockUrl: string; adminUrl: string;
+  adminDemoPassword: string; hasReservations: boolean; status: ProspectStatus; price: number | ""; notes: string; nextAction: string; nextActionAt: string;
+};
+export type Prospect = Omit<ProspectInput, "googleReviews" | "price"> & {
+  id: number; googleReviews: number | null; price: number | null; clientId: number | null; createdAt: string; updatedAt: string;
+  activity: { emails: number; lastEmailAt: string | null; lastEmailId: number | null; lastEmailSubject: string | null; opens: number; clicks: number; lastActivityAt: string | null; visits: number; visitors: number; lastVisitAt: string | null };
+};
+
 export type Dashboard = { year: number; invoices: number; billed: number; paid: number; outstanding: number; clients: number; emails: number; smallSupplierThreshold: number };
 
 export class AdminApiError extends Error {
@@ -94,6 +106,11 @@ export const api = {
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
   siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
+  prospects: () => adminFetch<Prospect[]>("/prospects"),
+  createProspect: (p: ProspectInput) => adminFetch<Prospect>("/prospects", { method: "POST", body: JSON.stringify(p) }),
+  updateProspect: (id: number, p: ProspectInput) => adminFetch<Prospect>(`/prospects/${id}`, { method: "PUT", body: JSON.stringify(p) }),
+  deleteProspect: (id: number) => adminFetch<{ ok: true }>(`/prospects/${id}`, { method: "DELETE" }),
+  convertProspect: (id: number) => adminFetch<Prospect>(`/prospects/${id}/convert`, { method: "POST" }),
   forgetSite: (site: string) => adminFetch<{ ok: true }>(`/tracking/sites/${encodeURIComponent(site)}`, { method: "DELETE" }),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
   sendProposal: (p: ProposalInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),

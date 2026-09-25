@@ -94,3 +94,34 @@ export const trackingEventsTable = pgTable("tracking_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [index("tracking_events_email").on(t.emailId), index("tracking_events_site").on(t.site, t.createdAt)]);
 export type TrackingEventRow = typeof trackingEventsTable.$inferSelect;
+
+/** Prospects : commerces démarchés, ce qui a été construit pour eux (maquette, admin démo, réservations) et où en est la
+ *  vente. Un prospect « gagné » devient un client (client_id). Les courriels se rattachent par adresse, les visites par
+ *  l'hôte de la maquette. */
+export const prospectsTable = pgTable("prospects", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  city: text("city"),
+  contactName: text("contact_name"),
+  email: text("email"),
+  phone: text("phone"),
+  googleMapsUrl: text("google_maps_url"),
+  websiteUrl: text("website_url"),          // leur site actuel, s'il existe
+  brokenDomain: text("broken_domain"),      // domaine mort sur la fiche Google
+  ownDomain: text("own_domain"),            // domaine qu'ils possèdent déjà
+  googleRating: text("google_rating"),
+  googleReviews: integer("google_reviews"),
+  mockUrl: text("mock_url"),                // la maquette
+  adminUrl: text("admin_url"),              // l'espace admin de démonstration
+  adminDemoPassword: text("admin_demo_password"),
+  hasReservations: boolean("has_reservations").notNull().default(false),
+  status: text("status").notNull().default("nouveau"),   // nouveau · maquette · contacté · relance · négociation · gagné · perdu
+  price: numeric("price", { precision: 12, scale: 2 }),
+  notes: text("notes"),
+  nextAction: text("next_action"),
+  nextActionAt: date("next_action_at"),
+  clientId: integer("client_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+export type ProspectRow = typeof prospectsTable.$inferSelect;

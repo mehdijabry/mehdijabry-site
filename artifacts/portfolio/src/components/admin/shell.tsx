@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink } from "lucide-react";
+import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target } from "lucide-react";
 import { api, AdminApiError } from "@/lib/admin-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
+  { href: "/admin/prospects", label: "Prospects", icon: Target },
   { href: "/admin/factures", label: "Factures", icon: FileText },
   { href: "/admin/clients", label: "Clients", icon: Users },
   { href: "/admin/courriels", label: "Courriels", icon: Mail },

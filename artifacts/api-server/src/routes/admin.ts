@@ -8,6 +8,7 @@ import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdmi
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
 import { newTrackToken, emailTracking, siteStats } from "../lib/tracking";
+import prospectsRouter from "./prospects";
 import { logger } from "../lib/logger";
 
 /**
@@ -34,6 +35,7 @@ router.use(requireAdmin);
 // Tables are also created lazily: when the database was down at boot, the first admin request after it is
 // back creates them — no redeploy needed. A failure here reaches the JSON error handler in app.ts.
 router.use((_req, _res, next) => { ensureAdminSchema().then(() => next(), next); });
+router.use("/prospects", prospectsRouter);
 
 // ───── Settings (issuer) ─────
 const IssuerSchema = z.object({
