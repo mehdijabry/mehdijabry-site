@@ -272,8 +272,14 @@ async function sendEmail(opts: { to: string; toName?: string | null; bcc?: strin
   else {
     try {
       const resend = new Resend(apiKey);
-      const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, bcc: opts.bcc || undefined, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
+      const r = await resend.emails.send({ from, to: opts.toName ? `${opts.toName} <${opts.to}>` : opts.to, replyTo: issuer.emailFrom, subject: opts.subject, text: opts.text, html });
       result = r.error ? { ok: false, error: r.error.message } : { ok: true, id: r.data?.id };
+      // La copie pour soi part comme un courriel distinct, sans pixel ni lien suivi : nos propres lectures ne comptent pas.
+      if (result.ok && opts.bcc) {
+        let copy = base.split(`${PUBLIC_BASE_URL}/go/${trackToken}`).join(opts.trackUrl ?? PUBLIC_BASE_URL);
+        copy = copy.includes("<body") ? copy.replace(/<body([^>]*)>/, `<body$1><div style="background:#16161a;color:#f4f1ea;font:13px Helvetica Neue,Arial,sans-serif;padding:8px 14px">Copie de l'envoi à ${opts.to} — sans suivi</div>`) : `<p style="font:13px Helvetica Neue,Arial,sans-serif;color:#6b6560">Copie de l'envoi à ${opts.to} — sans suivi</p>${copy}`;
+        await resend.emails.send({ from, to: opts.bcc, replyTo: issuer.emailFrom, subject: `[Copie] ${opts.subject}`, text: `Copie de l'envoi à ${opts.to}\n\n${opts.text}`, html: copy }).catch(() => undefined);
+      }
     } catch (e) { result = { ok: false, error: String((e as Error).message ?? e) }; }
   }
   await db.insert(sentEmailsTable).values({ toEmail: opts.to, toName: opts.toName ?? null, fromEmail: issuer.emailFrom, subject: opts.subject, bodyText: opts.text, invoiceId: opts.invoiceId ?? null, resendId: result.id ?? null, status: result.ok ? "envoyé" : "échec", error: result.error ?? null, isTest: !!opts.isTest, trackToken, trackUrl: opts.trackUrl ?? null, bodyHtml: html });
