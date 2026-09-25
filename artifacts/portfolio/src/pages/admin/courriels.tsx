@@ -61,6 +61,8 @@ export default function AdminEmails() {
   const [subject, setSubject] = useState(TEMPLATES[0]!.subject);
   const [text, setText] = useState(TEMPLATES[0]!.text);
   const [vars, setVars] = useState({ entreprise: "", lien: "" });
+  const [openEvents, setOpenEvents] = useState<number | null>(null);
+  const events = useQuery({ queryKey: ["admin", "email-events", openEvents], queryFn: () => api.emailEvents(openEvents!), enabled: openEvents !== null });
 
   const fill = (s: string) => s.replace(/\{entreprise\}/g, vars.entreprise || "{entreprise}").replace(/\{lien\}/g, vars.lien || "{lien}");
   const ready = to && subject && text && !/\{(entreprise|lien)\}/.test(fill(subject) + fill(text));
@@ -117,7 +119,15 @@ export default function AdminEmails() {
                       {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)}`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Pas encore ouvert</span>}
                       {m.tracking.clicks > 0 && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium" title={`Premier clic ${shortDate(m.tracking.firstClickedAt!)}`}>Cliqué ×{m.tracking.clicks}</span>}
                       {m.tracking.visits > 0 && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">Maquette visitée ×{m.tracking.visits}</span>}
+                      {(m.tracking.opens > 0 || m.tracking.clicks > 0 || m.tracking.visits > 0) && <button type="button" onClick={() => setOpenEvents(openEvents === m.id ? null : m.id)} className="text-[11px] text-primary hover:underline">{openEvents === m.id ? "masquer le détail" : "détail"}</button>}
                     </div>
+                  )}
+                  {openEvents === m.id && (
+                    <ul className="mt-2 space-y-1 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
+                      {events.isLoading ? <li>Chargement…</li> : (events.data ?? []).length === 0 ? <li>Aucun événement.</li> : (events.data ?? []).map((e) => (
+                        <li key={e.id}>{new Date(e.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {e.kind === "open" ? "Ouverture" : e.kind === "click" ? "Clic" : `Visite ${e.path ?? ""}`} · {e.origin}{e.visitor ? ` · visiteur ${e.visitor}` : ""}{e.isBot ? " · robot (non compté)" : ""}</li>
+                      ))}
+                    </ul>
                   )}
                 </li>
               ))}

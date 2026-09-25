@@ -309,6 +309,23 @@ router.get("/emails/:id/html", async (req, res) => {
   res.setHeader("cache-control", "no-store");
   res.type("html").send(page);
 });
+// Détail des événements d'un courriel (ouvertures, clics, visites), avec l'origine déduite du navigateur.
+router.get("/emails/:id/events", async (req, res) => {
+  const id = Number(req.params["id"]);
+  const rows = await db.select().from(trackingEventsTable).where(eq(trackingEventsTable.emailId, id)).orderBy(desc(trackingEventsTable.createdAt)).limit(200);
+  const origin = (ua: string | null): string => {
+    const u = ua ?? "";
+    if (/GoogleImageProxy|ggpht/i.test(u)) return "Gmail (ouverture relayée par le proxy Google)";
+    if (/YahooMailProxy/i.test(u)) return "Yahoo Mail";
+    if (/Outlook|Microsoft Office/i.test(u)) return "Outlook";
+    if (/iPhone|iPad/i.test(u)) return "iPhone / iPad";
+    if (/Android/i.test(u)) return "Android";
+    if (/Macintosh/i.test(u)) return "Mac";
+    if (/Windows/i.test(u)) return "Windows";
+    return u ? u.slice(0, 60) : "inconnu";
+  };
+  res.json(rows.map((r) => ({ id: r.id, kind: r.kind, at: new Date(r.createdAt).toISOString(), origin: origin(r.userAgent), isBot: r.isBot, site: r.site, path: r.path, source: r.source, visitor: r.ipHash?.slice(0, 6) ?? null })));
+});
 router.get("/tracking/sites", async (_req, res) => { res.json(await siteStats()); });
 // Retire un site des statistiques (sondes, essais locaux) : ses visites sont effacées.
 router.delete("/tracking/sites/:site", async (req, res) => {
