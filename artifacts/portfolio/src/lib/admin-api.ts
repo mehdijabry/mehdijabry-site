@@ -48,7 +48,7 @@ export type ProposalInput = {
   googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; newDomain: string;
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
   variant: "card" | "plain";
-  headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string;
+  headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
 };
 
 export const PROSPECT_STATUSES = ["nouveau", "maquette", "contacté", "relance", "négociation", "gagné", "perdu"] as const;

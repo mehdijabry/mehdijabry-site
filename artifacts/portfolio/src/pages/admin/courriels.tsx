@@ -134,7 +134,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
-  headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "",
+  headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "", featuresText: "",
 };
 
 /** Préréglages par prospect : on charge, on ajuste, on envoie. */
@@ -205,6 +205,7 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Objet du courriel" className="sm:col-span-2" hint="Vide = objet automatique : « J'ai construit un site pour Entreprise — voici à quoi il ressemble » (ou, si le lien Google est mort, « Votre lien Google mène à une page d'erreur — j'ai construit le site de Entreprise »). Dire vrai, donner envie de voir ; pas de « prêt », « gratuit », majuscules ni point d'exclamation."><Input value={p.subject} onChange={set("subject")} placeholder={p.brokenDomain ? `Votre lien Google mène à une page d'erreur — j'ai construit le site de ${p.business || "Entreprise"}` : `J'ai construit un site pour ${p.business || "Entreprise"} — voici à quoi il ressemble`} /></Field>
         <Field label="Titre (mise en page carte)" className="sm:col-span-2"><Input value={p.headline} onChange={set("headline")} placeholder="Vide = « Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus. »" /></Field>
         <Field label="Accroche personnalisée" className="sm:col-span-2" hint="Vide = phrase automatique sur le lien mort. Sinon, ce paragraphe remplace le constat."><Textarea rows={3} value={p.problemText} onChange={(e) => setP({ ...p, problemText: e.target.value })} /></Field>
+        <Field label="Phrase « Il reprend votre menu… »" className="sm:col-span-2" hint="Vide = phrase générique (menu, horaires, photos, avis, commande en ligne). À adapter si le resto n'a pas de commande en ligne, par exemple."><Textarea rows={2} value={p.featuresText} onChange={(e) => setP({ ...p, featuresText: e.target.value })} /></Field>
         <Field label="Arguments supplémentaires dans l'offre" className="sm:col-span-2" hint="Un par ligne (admin, réservation en ligne, etc.)"><Textarea rows={2} value={p.extraBullets} onChange={(e) => setP({ ...p, extraBullets: e.target.value })} /></Field>
         <Field label="Espace admin de démonstration (lien)" hint="Vide = pas de paragraphe"><Input value={p.adminUrl} onChange={set("adminUrl")} placeholder="https://…/admin/" /></Field>
         <Field label="Mot de passe de démonstration" hint="Compte en lecture seule (rien n'est enregistré)"><Input value={p.adminPassword} onChange={set("adminPassword")} /></Field>

@@ -36,6 +36,8 @@ export type ProposalEmailInput = {
   adminPassword?: string | null;
   /** Objet du courriel ; vide = « <entreprise> — votre menu et vos horaires en ligne ». */
   subject?: string | null;
+  /** Phrase « Il reprend votre menu officiel… » ; vide = phrase générique (menu, horaires, photos, avis, commande en ligne). */
+  featuresText?: string | null;
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions ». */
   variant?: "card" | "plain" | null;
@@ -88,15 +90,17 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const headline = p.headline?.trim() || "Votre fiche Google envoie vos clients vers un site qui ne fonctionne plus.";
   const own = p.ownDomain?.trim();
   const search = p.searchPhrase?.trim() || `${p.business.split(" ")[0]} ${p.city}`;
+  const featuresText = p.featuresText?.trim() || `Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itinéraire et le lien vers votre commande en ligne — pensé pour le téléphone et pour ressortir sur Google quand quelqu'un cherche « ${search} ». Tout est modifiable : textes, photos, promotions, ce que vous voulez.`;
+  const featuresHtml = esc(featuresText).replace("Tout est modifiable", "<strong>Tout est modifiable</strong>");
 
   const bullets: string[] = [
     "Le site complet, ajusté selon vos retours avant la mise en ligne",
     own ? `La mise en ligne sur votre domaine actuel, ${own} : rien ne change pour vos clients` : "La mise en ligne sur votre nom de domaine" + (broken ? ` (${broken} ou un autre)` : "") + " si vous y avez accès",
   ];
-  (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
   if (!own && p.newDomain?.trim() && p.newDomainPrice) {
     bullets.push(`Sinon, j'ai vérifié : ${p.newDomain.trim()} est disponible — je l'enregistre à votre nom pour ${p.newDomainYears ?? 3} ans pour ${dollars(p.newDomainPrice)} de plus`);
   }
+  (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
   bullets.push("Hébergement sécurisé, sans abonnement mensuel");
   bullets.push("À la livraison, vous recevez tous les accès (hébergement et nom de domaine, créés à votre nom) : le site vous appartient à 100 %");
   bullets.push(`En ligne en moins de ${hours} heures après votre accord`);
@@ -114,7 +118,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     "Plutôt que de vous envoyer un devis, j'ai construit votre site — sans engagement : le regarder ne vous coûte rien, et s'il ne vous plaît pas, vous ne payez rien. Vous pouvez le voir ici :",
     p.siteUrl,
     "",
-    `Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itinéraire et le lien vers votre commande en ligne — pensé pour le téléphone et pour ressortir sur Google quand quelqu'un cherche « ${search} ». Tout est modifiable : textes, photos, promotions, ce que vous voulez.`,
+    featuresText,
     "",
     ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (un plat, un prix, vos horaires, une annonce, vos réservations) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
     `L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel :`,
@@ -166,7 +170,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
             <a href="${esc(link)}" style="display:inline-block;background:${amber};color:#16161a;text-decoration:none;font-weight:700;font-size:16px;padding:14px 30px;border-radius:999px">Voir votre site &rarr;</a>
             <div style="padding-top:8px;font-size:12px;color:${muted}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</div>
           </td></tr>
-          <tr><td style="${pStyle}">Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.</td></tr>
+          <tr><td style="${pStyle}">${featuresHtml}</td></tr>
           ${adminHtml ? `<tr><td style="${pStyle}">${adminHtml}</td></tr>` : ""}
           <tr><td style="padding:6px 0 22px">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${paper};border:1px solid #e6e1d8;border-radius:12px">
@@ -206,7 +210,7 @@ ${para(esc(problem))}
 ${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong> — sans engagement&nbsp;: le regarder ne vous co&ucirc;te rien, et s'il ne vous pla&icirc;t pas, vous ne payez rien. Vous pouvez le voir ici&nbsp;: <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
 ${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
 <p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
-${para(`Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itin&eacute;raire et le lien vers votre commande en ligne — pens&eacute; pour le t&eacute;l&eacute;phone et pour ressortir sur Google quand quelqu'un cherche «&nbsp;${esc(search)}&nbsp;». <strong>Tout est modifiable</strong>&nbsp;: textes, photos, promotions, ce que vous voulez.`)}
+${para(featuresHtml)}
 ${adminHtml ? para(adminHtml) : ""}
 ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>
