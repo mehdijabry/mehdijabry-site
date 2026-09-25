@@ -75,22 +75,29 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
 }
 
 export type EmailTracking = { opens: number; clicks: number; visits: number; firstOpenedAt: string | null; firstClickedAt: string | null; lastActivityAt: string | null };
-/** Compteurs par courriel (événements humains seulement). */
+/** Gmail / Workspace préchargent le pixel à la réception : une « ouverture » dans les 2 minutes qui suivent l'envoi n'est
+ *  pas une lecture. */
+export const PREFETCH_MS = 120_000;
+export const isPrefetch = (eventAt: Date, sentAt: Date): boolean => eventAt.getTime() - sentAt.getTime() < PREFETCH_MS;
+
+/** Compteurs par courriel (événements humains seulement : robots et préchargements exclus). */
 export async function emailTracking(emailIds: number[]): Promise<Map<number, EmailTracking>> {
   const map = new Map<number, EmailTracking>();
   if (!emailIds.length) return map;
-  const rows = await db.select({ emailId: trackingEventsTable.emailId, kind: trackingEventsTable.kind, n: sql<number>`count(*)`, first: sql<string>`min(${trackingEventsTable.createdAt})`, last: sql<string>`max(${trackingEventsTable.createdAt})` })
-    .from(trackingEventsTable).where(and(inArray(trackingEventsTable.emailId, emailIds), eq(trackingEventsTable.isBot, false)))
-    .groupBy(trackingEventsTable.emailId, trackingEventsTable.kind);
-  const iso = (v: unknown): string => { const d = new Date(String(v)); return Number.isNaN(d.getTime()) ? String(v) : d.toISOString(); };
+  const sent = await db.select({ id: sentEmailsTable.id, createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(inArray(sentEmailsTable.id, emailIds));
+  const sentAt = new Map(sent.map((s) => [s.id, new Date(s.createdAt)]));
+  const rows = await db.select({ emailId: trackingEventsTable.emailId, kind: trackingEventsTable.kind, createdAt: trackingEventsTable.createdAt })
+    .from(trackingEventsTable).where(and(inArray(trackingEventsTable.emailId, emailIds), eq(trackingEventsTable.isBot, false))).orderBy(trackingEventsTable.createdAt);
   for (const r of rows) {
     if (r.emailId == null) continue;
+    const at = new Date(r.createdAt), sentTime = sentAt.get(r.emailId);
+    if (r.kind === "open" && sentTime && isPrefetch(at, sentTime)) continue;
     const t = map.get(r.emailId) ?? { opens: 0, clicks: 0, visits: 0, firstOpenedAt: null, firstClickedAt: null, lastActivityAt: null };
-    const n = Number(r.n);
-    if (r.kind === "open") { t.opens += n; t.firstOpenedAt = iso(r.first); }
-    if (r.kind === "click") { t.clicks += n; t.firstClickedAt = iso(r.first); }
-    if (r.kind === "visit") t.visits += n;
-    if (!t.lastActivityAt || iso(r.last) > t.lastActivityAt) t.lastActivityAt = iso(r.last);
+    const iso = at.toISOString();
+    if (r.kind === "open") { t.opens += 1; t.firstOpenedAt = t.firstOpenedAt ?? iso; }
+    if (r.kind === "click") { t.clicks += 1; t.firstClickedAt = t.firstClickedAt ?? iso; }
+    if (r.kind === "visit") t.visits += 1;
+    if (!t.lastActivityAt || iso > t.lastActivityAt) t.lastActivityAt = iso;
     map.set(r.emailId, t);
   }
   return map;

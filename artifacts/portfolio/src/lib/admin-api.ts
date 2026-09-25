@@ -41,7 +41,7 @@ export type SentEmail = {
   trackToken: string | null; trackUrl: string | null; bodyHtml?: string | null;
   tracking: { opens: number; clicks: number; visits: number; firstOpenedAt: string | null; firstClickedAt: string | null; lastActivityAt: string | null };
 };
-export type TrackingEvent = { id: number; kind: "open" | "click" | "visit"; at: string; origin: string; isBot: boolean; site: string | null; path: string | null; source: string | null; visitor: string | null };
+export type TrackingEvent = { id: number; kind: "open" | "click" | "visit"; at: string; origin: string; isBot: boolean; prefetch?: boolean; site: string | null; path: string | null; source: string | null; visitor: string | null };
 export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
 
 export type ProposalInput = {

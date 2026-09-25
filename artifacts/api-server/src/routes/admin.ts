@@ -7,7 +7,7 @@ import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable,
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
-import { newTrackToken, emailTracking, siteStats } from "../lib/tracking";
+import { newTrackToken, emailTracking, siteStats, isPrefetch } from "../lib/tracking";
 import prospectsRouter from "./prospects";
 import { logger } from "../lib/logger";
 
@@ -312,6 +312,7 @@ router.get("/emails/:id/html", async (req, res) => {
 // Détail des événements d'un courriel (ouvertures, clics, visites), avec l'origine déduite du navigateur.
 router.get("/emails/:id/events", async (req, res) => {
   const id = Number(req.params["id"]);
+  const [mail] = await db.select({ createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(eq(sentEmailsTable.id, id)).limit(1);
   const rows = await db.select().from(trackingEventsTable).where(eq(trackingEventsTable.emailId, id)).orderBy(desc(trackingEventsTable.createdAt)).limit(200);
   const origin = (ua: string | null): string => {
     const u = ua ?? "";
@@ -324,7 +325,7 @@ router.get("/emails/:id/events", async (req, res) => {
     if (/Windows/i.test(u)) return "Windows";
     return u ? u.slice(0, 60) : "inconnu";
   };
-  res.json(rows.map((r) => ({ id: r.id, kind: r.kind, at: new Date(r.createdAt).toISOString(), origin: origin(r.userAgent), isBot: r.isBot, site: r.site, path: r.path, source: r.source, visitor: r.ipHash?.slice(0, 6) ?? null })));
+  res.json(rows.map((r) => ({ id: r.id, kind: r.kind, at: new Date(r.createdAt).toISOString(), origin: origin(r.userAgent), isBot: r.isBot, prefetch: r.kind === "open" && !!mail && isPrefetch(new Date(r.createdAt), new Date(mail.createdAt)), site: r.site, path: r.path, source: r.source, visitor: r.ipHash?.slice(0, 6) ?? null })));
 });
 router.get("/tracking/sites", async (_req, res) => { res.json(await siteStats()); });
 // Retire un site des statistiques (sondes, essais locaux) : ses visites sont effacées.

@@ -116,7 +116,7 @@ export default function AdminEmails() {
                   <div className="text-xs text-muted-foreground">{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""} · <a href={`/api/admin/emails/${m.id}/html`} target="_blank" rel="noopener" className="text-primary hover:underline">Voir le courriel ↗</a></div>
                   {m.status === "envoyé" && (
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)}`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Pas encore ouvert</span>}
+                      {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)} — indicatif : certaines messageries n'affichent pas les images`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground" title="Aucune ouverture humaine détectée (les préchargements automatiques sont ignorés)">Pas encore ouvert</span>}
                       {m.tracking.clicks > 0 && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium" title={`Premier clic ${shortDate(m.tracking.firstClickedAt!)}`}>Cliqué ×{m.tracking.clicks}</span>}
                       {m.tracking.visits > 0 && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">Maquette visitée ×{m.tracking.visits}</span>}
                       {(m.tracking.opens > 0 || m.tracking.clicks > 0 || m.tracking.visits > 0) && <button type="button" onClick={() => setOpenEvents(openEvents === m.id ? null : m.id)} className="text-[11px] text-primary hover:underline">{openEvents === m.id ? "masquer le détail" : "détail"}</button>}
@@ -125,7 +125,7 @@ export default function AdminEmails() {
                   {openEvents === m.id && (
                     <ul className="mt-2 space-y-1 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
                       {events.isLoading ? <li>Chargement…</li> : (events.data ?? []).length === 0 ? <li>Aucun événement.</li> : (events.data ?? []).map((e) => (
-                        <li key={e.id}>{new Date(e.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {e.kind === "open" ? "Ouverture" : e.kind === "click" ? "Clic" : `Visite ${e.path ?? ""}`} · {e.origin}{e.visitor ? ` · visiteur ${e.visitor}` : ""}{e.isBot ? " · robot (non compté)" : ""}</li>
+                        <li key={e.id}>{new Date(e.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {e.kind === "open" ? "Ouverture" : e.kind === "click" ? "Clic" : `Visite ${e.path ?? ""}`} · {e.origin}{e.visitor ? ` · visiteur ${e.visitor}` : ""}{e.isBot ? " · robot (non compté)" : e.prefetch ? " · préchargement automatique par la messagerie (non compté)" : ""}</li>
                       ))}
                     </ul>
                   )}
