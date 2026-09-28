@@ -41,6 +41,9 @@ export type ProposalEmailInput = {
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions ». */
   variant?: "card" | "plain" | null;
+  /** Bloc « ce que le lien fait et ne fait pas » (anti-hameçonnage). Affiché par défaut : un courriel d'un inconnu avec
+   *  un lien ressemble à de l'hameçonnage, et c'est la première raison de ne pas cliquer. Mettre false pour l'enlever. */
+  safetyNote?: boolean | null;
 };
 
 export const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
@@ -107,6 +110,19 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
 
   const forward = p.forwardToFranchisee ? `Si la décision revient au franchisé de ${p.city}, je vous serais reconnaissant de lui transmettre ce message.` : "";
 
+  // ── Bloc anti-hameçonnage ──
+  // Un lien reçu d'un inconnu est d'abord suspect : on dit noir sur blanc ce que le lien fait, ce qu'il ne fait pas,
+  // et comment s'en passer (taper l'adresse soi-même, appeler avant d'ouvrir).
+  const host = p.siteUrl.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  const address = [issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
+  const showSafety = p.safetyNote !== false;
+  const safety = [
+    `Il ouvre une simple page web, à l'adresse ${host}, hébergée chez Cloudflare, l'un des plus grands hébergeurs au monde.`,
+    "Rien à télécharger, rien à installer, aucun mot de passe à entrer, aucun paiement, aucune carte.",
+    `Vous n'êtes même pas obligés de cliquer : tapez ${host} vous-mêmes dans votre navigateur, c'est exactement la même page.`,
+    `Et je suis un vrai humain, à ${issuer.city || p.city} : ${signer}, ${address}. Appelez-moi au ${phone} avant d'ouvrir quoi que ce soit si vous préférez, ou tapez ${site} dans Google.`,
+  ];
+
   // ── plain text ──
   const text = [
     greeting,
@@ -118,6 +134,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     "Plutôt que de vous envoyer un devis, j'ai construit votre site — sans engagement : le regarder ne vous coûte rien, et s'il ne vous plaît pas, vous ne payez rien. Vous pouvez le voir ici :",
     p.siteUrl,
     "",
+    ...(showSafety ? ["Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage. Alors, ce que le lien fait et ne fait pas :", ...safety.map((x) => `- ${x}`), ""] : []),
     featuresText,
     "",
     ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (un plat, un prix, vos horaires, une annonce, vos réservations) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
@@ -210,6 +227,10 @@ ${para(esc(problem))}
 ${para(`Plut&ocirc;t que de vous envoyer un devis, <strong>j'ai construit votre site</strong> — sans engagement&nbsp;: le regarder ne vous co&ucirc;te rien, et s'il ne vous pla&icirc;t pas, vous ne payez rien. Vous pouvez le voir ici&nbsp;: <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
 ${p.previewImageUrl?.trim() ? `<p style="margin:0 0 18px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
 <p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
+${showSafety ? `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px"><tr><td style="background:${paper};border-radius:10px;padding:18px 20px 10px">
+  <p style="margin:0 0 10px;font-size:13px;line-height:1.4;letter-spacing:.12em;text-transform:uppercase;color:${muted}">Ce que le lien fait, et ne fait pas</p>
+  <ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.55;color:${ink}">${safety.map((x) => `<li style="margin:0 0 8px">${esc(x)}</li>`).join("")}</ul>
+</td></tr></table>` : ""}
 ${para(featuresHtml)}
 ${adminHtml ? para(adminHtml) : ""}
 ${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}

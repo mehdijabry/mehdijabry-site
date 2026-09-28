@@ -367,6 +367,7 @@ const ProposalFields = z.object({
   forwardToFranchisee: z.preprocess((v) => v === true || v === "1" || v === "true", z.boolean()).optional(),
   phone: z.string().min(7).max(30),
   variant: z.enum(["card", "plain"]).optional().nullable(),
+  safetyNote: z.preprocess((v) => (v === false || v === "false" || v === "0" ? false : v === undefined ? undefined : true), z.boolean()).optional().nullable(),
   headline: z.string().max(160).optional().nullable(),
   problemText: z.string().max(900).optional().nullable(),
   ownDomain: z.string().max(120).optional().nullable(),
