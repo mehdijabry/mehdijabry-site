@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target, MonitorDown } from "lucide-react";
+import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target, MonitorDown, RefreshCw } from "lucide-react";
 import { api, AdminApiError } from "@/lib/admin-api";
 import { useInstallPrompt } from "@/lib/pwa-install";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,40 @@ export function ErrorNote({ error, onRetry, className }: { error: unknown; onRet
   );
 }
 
+/**
+ * Recharge les données de la page affichée. `refetchQueries({ type: "active" })` ne touche qu'aux requêtes
+ * effectivement montées : on ne réveille pas les écrans qu'on ne regarde pas. Utile surtout pour les compteurs
+ * de visites et d'ouvertures de courriels, qui bougent sans qu'on recharge la page.
+ */
+function RefreshButton() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [lastAt, setLastAt] = useState<Date | null>(null);
+  async function refresh() {
+    if (busy) return;
+    setBusy(true);
+    try { await qc.refetchQueries({ type: "active" }); setLastAt(new Date()); }
+    finally { setBusy(false); }
+  }
+  const time = lastAt ? lastAt.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" }) : null;
+  return (
+    <div className="inline-flex items-center gap-2">
+      {time && <span className="hidden sm:inline text-xs text-muted-foreground tabular-nums" aria-live="polite">à jour à {time}</span>}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={refresh}
+        disabled={busy}
+        title="Recharger les données de cette page"
+      >
+        <RefreshCw className={cn("w-4 h-4", busy && "animate-spin")} aria-hidden="true" />
+        <span className="ml-1.5">{busy ? "Actualisation…" : "Actualiser"}</span>
+      </Button>
+    </div>
+  );
+}
+
 export function AdminShell({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   const [location] = useLocation();
   const qc = useQueryClient();
@@ -113,9 +147,12 @@ export function AdminShell({ title, actions, children }: { title: string; action
           </div>
         </aside>
         <main className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <h1 className="font-display text-3xl tracking-tight">{title}</h1>
-            {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+            <div className="flex flex-wrap items-center gap-2">
+              <RefreshButton />
+              {actions}
+            </div>
           </div>
           {children}
         </main>
