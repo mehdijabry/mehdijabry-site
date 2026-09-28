@@ -20,6 +20,8 @@ export type FollowupEmailInput = {
   adminPassword?: string | null;
   /** Quand le premier courriel est parti, tel qu'on le dirait à l'oral : « jeudi dernier ». */
   firstSentLabel?: string | null;
+  /** Phrase sur l'appel passé entre-temps : « J'ai aussi appelé le même jour, mais le gérant était occupé… ». */
+  callNote?: string | null;
   /** Jusqu'à quand la maquette reste en ligne : « vendredi 9 octobre ». */
   keepUntil?: string | null;
   googleRating?: string | null;
@@ -40,6 +42,7 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const city = issuer.city || "Trois-Rivières";
   const address = [issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
   const when = p.firstSentLabel?.trim() || "il y a quelques jours";
+  const call = p.callNote?.trim() ? ` ${p.callNote.trim()}` : "";
   const own = p.ownDomain?.trim();
   const rating = p.googleRating?.trim();
   const reviews = p.googleReviews ?? null;
@@ -70,7 +73,7 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   // ── texte brut ──
   const text = [
     greeting, "",
-    `Je vous ai écrit ${when} : sans que vous me demandiez rien, j'ai construit un nouveau site pour ${p.business}. Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`, "",
+    `Je vous ai écrit ${when} : sans que vous me demandiez rien, j'ai construit un nouveau site pour ${p.business}.${call} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`, "",
     "Ce que le lien fait, et ne fait pas :", ...safety.map((s) => `- ${s}`), "",
     `Le site : ${p.siteUrl}`, "",
     "Ce que vous y trouverez :", ...found.map((b) => `- ${b}`), admin ? admin : "", proof ? proof : "",
@@ -95,7 +98,7 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
 <body style="margin:0;padding:24px 16px;background:#ffffff;-webkit-text-size-adjust:100%">
 <div style="max-width:600px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif">
 ${para(esc(greeting))}
-${para(`Je vous ai écrit ${esc(when)} : sans que vous me demandiez rien, <strong>j'ai construit un nouveau site pour ${esc(p.business)}</strong>. Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`)}
+${para(`Je vous ai écrit ${esc(when)} : sans que vous me demandiez rien, <strong>j'ai construit un nouveau site pour ${esc(p.business)}</strong>.${esc(call)} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`)}
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px"><tr><td style="background:${paper};border-radius:10px;padding:18px 20px 10px">
   <p style="margin:0 0 10px;font-size:13px;line-height:1.4;letter-spacing:.12em;text-transform:uppercase;color:${muted}">Ce que le lien fait, et ne fait pas</p>
   <ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.55;color:${ink}">

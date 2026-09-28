@@ -410,6 +410,7 @@ const FollowupFields = z.object({
   adminUrl: z.url().optional().nullable().or(z.literal("")),
   adminPassword: z.string().max(60).optional().nullable(),
   firstSentLabel: z.string().max(60).optional().nullable(),
+  callNote: z.string().max(300).optional().nullable(),
   keepUntil: z.string().max(60).optional().nullable(),
   googleRating: z.string().max(10).optional().nullable(),
   googleReviews: z.coerce.number().int().min(0).optional().nullable(),
