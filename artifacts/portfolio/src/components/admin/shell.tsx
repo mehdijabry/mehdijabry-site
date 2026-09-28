@@ -20,6 +20,7 @@ const NAV = [
 
 function Login({ configured }: { configured: boolean }) {
   const qc = useQueryClient();
+  const pwa = useInstallPrompt();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,6 +48,9 @@ function Login({ configured }: { configured: boolean }) {
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={busy || !password}>{busy ? "Connexion…" : "Se connecter"}</Button>
           </>
+        )}
+        {pwa.canInstall && (
+          <button type="button" onClick={() => pwa.install()} className="w-full text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1"><MonitorDown className="w-3.5 h-3.5" /> Installer l'application sur cet ordinateur</button>
         )}
       </form>
     </div>
