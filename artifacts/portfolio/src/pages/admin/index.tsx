@@ -38,6 +38,7 @@ export default function AdminDashboard() {
           <p className="text-xs text-muted-foreground mt-2">Indicateur sur l'année civile en cours ; la règle officielle s'apprécie sur quatre trimestres glissants. Passez en mode « inscrit » dans les paramètres dès que vous avez vos numéros.</p>
         </Panel>
         <Panel title="Visites des maquettes (30 jours)">
+          <p className="text-xs text-muted-foreground mb-3">Vos propres appareils sont exclus automatiquement : tout appareil qui a ouvert cet espace admin ne compte plus dans les visites, les ouvertures ni les clics.</p>
           {sites.isError ? <ErrorNote error={sites.error} onRetry={() => sites.refetch()} /> : !sites.data ? <p className="text-sm text-muted-foreground">Chargement…</p> : sites.data.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucune visite enregistrée pour l'instant. Chaque site démo envoie une balise à chaque page vue.</p>
           ) : (

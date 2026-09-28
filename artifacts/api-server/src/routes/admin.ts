@@ -7,7 +7,8 @@ import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable,
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
-import { newTrackToken, emailTracking, siteStats, isPrefetch } from "../lib/tracking";
+import { renderFollowupEmail } from "../lib/followup-email";
+import { newTrackToken, emailTracking, siteStats, isPrefetch, rememberAdminDevice, ignoredHashes } from "../lib/tracking";
 import prospectsRouter from "./prospects";
 import { logger } from "../lib/logger";
 
@@ -32,6 +33,9 @@ router.post("/logout", (_req, res) => { clearAdminCookie(res); res.json({ ok: tr
 router.get("/me", (req, res) => { res.json({ configured: isAdminConfigured(), authenticated: hasValidSession(req) }); });
 
 router.use(requireAdmin);
+// Chaque requête admin authentifiée marque l'appareil courant comme « à nous » : ses visites, ouvertures et clics sortent des
+// statistiques (voir lib/tracking.ts). Écriture asynchrone, jamais bloquante.
+router.use((req, _res, next) => { rememberAdminDevice(req); next(); });
 // Tables are also created lazily: when the database was down at boot, the first admin request after it is
 // back creates them — no redeploy needed. A failure here reaches the JSON error handler in app.ts.
 router.use((_req, _res, next) => { ensureAdminSchema().then(() => next(), next); });
@@ -313,7 +317,8 @@ router.get("/emails/:id/html", async (req, res) => {
 router.get("/emails/:id/events", async (req, res) => {
   const id = Number(req.params["id"]);
   const [mail] = await db.select({ createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(eq(sentEmailsTable.id, id)).limit(1);
-  const rows = await db.select().from(trackingEventsTable).where(eq(trackingEventsTable.emailId, id)).orderBy(desc(trackingEventsTable.createdAt)).limit(200);
+  const own = new Set(await ignoredHashes());
+  const rows = (await db.select().from(trackingEventsTable).where(eq(trackingEventsTable.emailId, id)).orderBy(desc(trackingEventsTable.createdAt)).limit(200)).filter((r) => !r.ipHash || !own.has(r.ipHash));
   const origin = (ua: string | null): string => {
     const u = ua ?? "";
     if (/GoogleImageProxy|ggpht/i.test(u)) return "Gmail (ouverture relayée par le proxy Google)";
@@ -388,6 +393,46 @@ router.post("/emails/proposal", async (req, res) => {
   const issuer = await loadIssuer();
   const trackToken = newTrackToken();
   const mail = renderProposalEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png`, trackUrl: `${PUBLIC_BASE_URL}/go/${trackToken}` });
+  const r = await sendEmail({ to, toName: fields.toName ?? null, bcc: bcc || null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest, trackToken, trackUrl: fields.siteUrl });
+  if (!r.ok) { res.status(502).json({ error: r.error }); return; }
+  res.status(201).json({ ok: true, id: r.id });
+});
+
+// ───── Relance courtoise (2026-09-28) : second courriel quand la proposition a été ouverte sans clic ─────
+const FollowupFields = z.object({
+  toName: z.string().max(120).optional().nullable(),
+  business: z.string().min(1).max(120),
+  siteUrl: z.url(),
+  previewImageUrl: z.url().optional().nullable().or(z.literal("")),
+  ownDomain: z.string().max(120).optional().nullable(),
+  price: z.coerce.number().min(0),
+  phone: z.string().min(7).max(30),
+  adminUrl: z.url().optional().nullable().or(z.literal("")),
+  adminPassword: z.string().max(60).optional().nullable(),
+  firstSentLabel: z.string().max(60).optional().nullable(),
+  keepUntil: z.string().max(60).optional().nullable(),
+  googleRating: z.string().max(10).optional().nullable(),
+  googleReviews: z.coerce.number().int().min(0).optional().nullable(),
+  bullets: z.string().max(1200).optional().nullable(),
+  subject: z.string().max(150).optional().nullable(),
+});
+const FollowupSend = FollowupFields.extend({ to: z.email(), isTest: z.boolean().optional(), bcc: z.email().optional().nullable().or(z.literal("")) });
+
+router.get("/emails/followup/preview", async (req, res) => {
+  const parsed = FollowupFields.safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: "Paramètres invalides", details: parsed.error.issues }); return; }
+  const issuer = await loadIssuer();
+  const { html } = renderFollowupEmail({ ...parsed.data, previewImageUrl: parsed.data.previewImageUrl || null, adminUrl: parsed.data.adminUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png` });
+  res.setHeader("cache-control", "no-store");
+  res.type("html").send(html);
+});
+router.post("/emails/followup", async (req, res) => {
+  const parsed = FollowupSend.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
+  const { to, isTest, bcc, ...fields } = parsed.data;
+  const issuer = await loadIssuer();
+  const trackToken = newTrackToken();
+  const mail = renderFollowupEmail({ ...fields, previewImageUrl: fields.previewImageUrl || null, adminUrl: fields.adminUrl || null }, issuer, { logoUrl: `${PUBLIC_BASE_URL}/logo-mark.png`, trackUrl: `${PUBLIC_BASE_URL}/go/${trackToken}` });
   const r = await sendEmail({ to, toName: fields.toName ?? null, bcc: bcc || null, subject: isTest ? `[TEST] ${mail.subject}` : mail.subject, text: mail.text, html: mail.html, isTest: !!isTest, trackToken, trackUrl: fields.siteUrl });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });

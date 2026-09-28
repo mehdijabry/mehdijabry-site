@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { db, sentEmailsTable, trackingEventsTable } from "@workspace/db";
+import { and, desc, eq, gte, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
+import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable } from "@workspace/db";
 import { logger } from "./logger";
 
 /**
@@ -22,6 +22,33 @@ const hashIp = (req: Request): string => {
   const ip = (req.headers["x-forwarded-for"]?.toString().split(",")[0] ?? req.ip ?? "").trim();
   return createHash("sha256").update(`${process.env["ADMIN_SECRET"] ?? process.env["ADMIN_PASSWORD"] ?? "mj"}:${ip}`).digest("hex").slice(0, 24);
 };
+
+// ── Appareils de l'admin (2026-09-28) ──
+// Chaque requête admin authentifiée mémorise le hachage d'IP de l'appareil (au plus une écriture par heure et par appareil).
+// Les événements portant ces hachages — nos propres essais sur les maquettes, nos relectures de courriels — sortent des
+// compteurs, rétroactivement puisque le filtre s'applique à la lecture.
+const remembered = new Map<string, number>();
+export function rememberAdminDevice(req: Request): void {
+  const h = hashIp(req), now = Date.now();
+  if ((remembered.get(h) ?? 0) > now - 3600_000) return;
+  remembered.set(h, now);
+  db.insert(trackingIgnoredTable).values({ ipHash: h, label: clip(req.headers["user-agent"], 120) })
+    .onConflictDoUpdate({ target: trackingIgnoredTable.ipHash, set: { lastSeenAt: new Date() } })
+    .then(() => { ignoredCache = null; }, (err: unknown) => { remembered.delete(h); logger.warn({ err }, "tracking_ignored upsert failed"); });
+}
+let ignoredCache: { at: number; hashes: string[] } | null = null;
+export async function ignoredHashes(): Promise<string[]> {
+  if (ignoredCache && ignoredCache.at > Date.now() - 60_000) return ignoredCache.hashes;
+  const rows = await db.select({ ipHash: trackingIgnoredTable.ipHash }).from(trackingIgnoredTable);
+  ignoredCache = { at: Date.now(), hashes: rows.map((r) => r.ipHash) };
+  return ignoredCache.hashes;
+}
+/** Condition SQL « pas un de nos appareils » (undefined = aucun appareil connu, donc pas de filtre). */
+async function notOwnDevice() {
+  const ignored = await ignoredHashes();
+  return ignored.length ? or(isNull(trackingEventsTable.ipHash), notInArray(trackingEventsTable.ipHash, ignored)) : undefined;
+}
+
 const gif = (res: Response): void => { res.set({ "content-type": "image/gif", "cache-control": "no-store, no-cache, must-revalidate, private", pragma: "no-cache", expires: "0" }); res.status(200).end(GIF); };
 
 async function findByToken(token: string) {
@@ -87,7 +114,7 @@ export async function emailTracking(emailIds: number[]): Promise<Map<number, Ema
   const sent = await db.select({ id: sentEmailsTable.id, createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(inArray(sentEmailsTable.id, emailIds));
   const sentAt = new Map(sent.map((s) => [s.id, new Date(s.createdAt)]));
   const rows = await db.select({ emailId: trackingEventsTable.emailId, kind: trackingEventsTable.kind, createdAt: trackingEventsTable.createdAt })
-    .from(trackingEventsTable).where(and(inArray(trackingEventsTable.emailId, emailIds), eq(trackingEventsTable.isBot, false))).orderBy(trackingEventsTable.createdAt);
+    .from(trackingEventsTable).where(and(inArray(trackingEventsTable.emailId, emailIds), eq(trackingEventsTable.isBot, false), await notOwnDevice())).orderBy(trackingEventsTable.createdAt);
   for (const r of rows) {
     if (r.emailId == null) continue;
     const at = new Date(r.createdAt), sentTime = sentAt.get(r.emailId);
@@ -107,7 +134,7 @@ export type SiteStats = { site: string; visits: number; visitors: number; mobile
 /** Visites par site démo sur les 30 derniers jours. */
 export async function siteStats(): Promise<SiteStats[]> {
   const since = new Date(Date.now() - 30 * 86400 * 1000);
-  const rows = await db.select().from(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.isBot, false), gte(trackingEventsTable.createdAt, since))).orderBy(desc(trackingEventsTable.createdAt)).limit(5000);
+  const rows = await db.select().from(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.isBot, false), gte(trackingEventsTable.createdAt, since), await notOwnDevice())).orderBy(desc(trackingEventsTable.createdAt)).limit(5000);
   const bySite = new Map<string, { rows: typeof rows }>();
   for (const r of rows) { if (!r.site) continue; const s = bySite.get(r.site) ?? { rows: [] }; s.rows.push(r); bySite.set(r.site, s); }
   const out: SiteStats[] = [];

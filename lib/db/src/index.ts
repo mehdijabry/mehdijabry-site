@@ -127,6 +127,14 @@ async function createAdminTables(): Promise<void> {
     )`);
   await db.execute(sql`CREATE INDEX IF NOT EXISTS tracking_events_email ON tracking_events (email_id)`);
   await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS tracking_ignored (
+      id serial PRIMARY KEY,
+      ip_hash text UNIQUE NOT NULL,
+      label text,
+      first_seen_at timestamptz NOT NULL DEFAULT now(),
+      last_seen_at timestamptz NOT NULL DEFAULT now()
+    )`);
+  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS prospects (
       id serial PRIMARY KEY,
       name text NOT NULL,

@@ -43,15 +43,15 @@ export type ProposalEmailInput = {
   variant?: "card" | "plain" | null;
 };
 
-const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+export const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 /** "4385257119" → "438 525-7119" (Québec convention); anything else is left as typed. */
-const formatPhone = (raw: string): string => {
+export const formatPhone = (raw: string): string => {
   const d = raw.replace(/\D/g, "");
   if (d.length === 10) return `${d.slice(0, 3)} ${d.slice(3, 6)}-${d.slice(6)}`;
   if (d.length === 11 && d.startsWith("1")) return `${d.slice(1, 4)} ${d.slice(4, 7)}-${d.slice(7)}`;
   return raw.trim();
 };
-const dollars = (n: number): string => `${new Intl.NumberFormat("fr-CA", { maximumFractionDigits: 0 }).format(n)} $`;
+export const dollars = (n: number): string => `${new Intl.NumberFormat("fr-CA", { maximumFractionDigits: 0 }).format(n)} $`;
 
 export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
   // Dans le HTML, les liens vers la maquette passent par /go/<jeton> (clic compté) ; le texte brut garde l'adresse réelle.

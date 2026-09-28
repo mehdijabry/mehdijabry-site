@@ -95,6 +95,17 @@ export const trackingEventsTable = pgTable("tracking_events", {
 }, (t) => [index("tracking_events_email").on(t.emailId), index("tracking_events_site").on(t.site, t.createdAt)]);
 export type TrackingEventRow = typeof trackingEventsTable.$inferSelect;
 
+/** Appareils de l'administrateur (2026-09-28) : chaque requête admin authentifiée mémorise le hachage d'IP du visiteur.
+ *  Les ouvertures, clics et visites venant de ces hachages sont exclus des statistiques — nos propres essais ne doivent
+ *  pas ressembler à des prospects. Comme l'IP elle-même, rien d'identifiant n'est stocké. */
+export const trackingIgnoredTable = pgTable("tracking_ignored", {
+  id: serial("id").primaryKey(),
+  ipHash: text("ip_hash").notNull().unique(),
+  label: text("label"),                     // navigateur vu la première fois, pour s'y retrouver
+  firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 /** Prospects : commerces démarchés, ce qui a été construit pour eux (maquette, admin démo, réservations) et où en est la
  *  vente. Un prospect « gagné » devient un client (client_id). Les courriels se rattachent par adresse, les visites par
  *  l'hôte de la maquette. */
