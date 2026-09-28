@@ -1,8 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target } from "lucide-react";
+import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target, MonitorDown } from "lucide-react";
 import { api, AdminApiError } from "@/lib/admin-api";
+import { useInstallPrompt } from "@/lib/pwa-install";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,7 @@ export function AdminShell({ title, actions, children }: { title: string; action
   const [location] = useLocation();
   const qc = useQueryClient();
   const me = useQuery({ queryKey: ["admin", "me"], queryFn: api.me, retry: false, staleTime: 60_000 });
+  const pwa = useInstallPrompt();
 
   if (me.isLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Chargement…</div>;
   if (!me.data?.authenticated) return <Login configured={me.data?.configured ?? true} />;
@@ -83,7 +85,10 @@ export function AdminShell({ title, actions, children }: { title: string; action
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">mehdijabry.dev</p>
               <p className="font-display text-xl">Admin</p>
             </div>
-            <button onClick={logout} className="lg:hidden text-sm text-muted-foreground inline-flex items-center gap-1"><LogOut className="w-4 h-4" /> Quitter</button>
+            <div className="lg:hidden flex items-center gap-4 text-sm text-muted-foreground">
+              {pwa.canInstall && <button onClick={() => pwa.install()} className="inline-flex items-center gap-1"><MonitorDown className="w-4 h-4" /> Installer</button>}
+              <button onClick={logout} className="inline-flex items-center gap-1"><LogOut className="w-4 h-4" /> Quitter</button>
+            </div>
           </div>
           <nav className="mt-4 flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
             {NAV.map((n) => {
@@ -97,6 +102,9 @@ export function AdminShell({ title, actions, children }: { title: string; action
           </nav>
           <div className="hidden lg:block mt-8 space-y-2 text-sm">
             <a href="/" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><ExternalLink className="w-3.5 h-3.5" /> Voir le site</a><br />
+            {pwa.canInstall && (
+              <><button onClick={() => pwa.install()} title="Ajouter l'espace admin au Dock, comme une application" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><MonitorDown className="w-3.5 h-3.5" /> Installer l'application</button><br /></>
+            )}
             <button onClick={logout} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><LogOut className="w-3.5 h-3.5" /> Se déconnecter</button>
           </div>
         </aside>
