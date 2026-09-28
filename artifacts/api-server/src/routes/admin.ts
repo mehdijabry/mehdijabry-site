@@ -374,6 +374,7 @@ const ProposalFields = z.object({
   extraBullets: z.string().max(900).optional().nullable(),
   adminUrl: z.url().optional().nullable().or(z.literal("")),
   adminPassword: z.string().max(60).optional().nullable(),
+  adminExamples: z.string().max(200).optional().nullable(),
   subject: z.string().max(150).optional().nullable(),
   featuresText: z.string().max(600).optional().nullable(),
 });

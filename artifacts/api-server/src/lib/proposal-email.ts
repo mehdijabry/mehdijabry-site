@@ -34,6 +34,8 @@ export type ProposalEmailInput = {
   /** Espace d'administration de démonstration à faire essayer (lecture seule côté serveur). */
   adminUrl?: string | null;
   adminPassword?: string | null;
+  /** Ce qu'on invite le prospect à essayer dans l'admin. Par défaut : le cas restaurant (avec réservations). */
+  adminExamples?: string | null;
   /** Objet du courriel ; vide = « <entreprise> — votre menu et vos horaires en ligne ». */
   subject?: string | null;
   /** Phrase « Il reprend votre menu officiel… » ; vide = phrase générique (menu, horaires, photos, avis, commande en ligne). */
@@ -72,8 +74,9 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const phone = formatPhone(p.phone);
   // Signature block shared by both layouts: the logo mark (PNG — e-mail clients don't render SVG) beside the name.
   const ink = "#16161a", muted = "#6b6560", amber = "#b8863b", paper = "#f4f1ea";
+  const adminExamples = p.adminExamples?.trim() || "un plat, un prix, vos horaires, une annonce, vos réservations";
   const adminHtml = p.adminUrl?.trim()
-    ? `Et pour voir comment vous le mettriez &agrave; jour vous-m&ecirc;me (un plat, un prix, vos horaires, une annonce, vos r&eacute;servations)&nbsp;: <a href="${esc(p.adminUrl.trim())}" style="color:${amber};font-weight:700">espace d'administration</a> — mot de passe&nbsp;: <strong>${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration&nbsp;: explorez librement, rien n'y est enregistr&eacute;.`
+    ? `Et pour voir comment vous le mettriez &agrave; jour vous-m&ecirc;me (${esc(adminExamples)})&nbsp;: <a href="${esc(p.adminUrl.trim())}" style="color:${amber};font-weight:700">espace d'administration</a> — mot de passe&nbsp;: <strong>${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration&nbsp;: explorez librement, rien n'y est enregistr&eacute;.`
     : "";
   const signatureHtml = (textColor: string, mutedColor: string, accent: string) => `
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:6px"><tr>
@@ -137,7 +140,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     ...(showSafety ? ["Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage. Alors, ce que le lien fait et ne fait pas :", ...safety.map((x) => `- ${x}`), ""] : []),
     featuresText,
     "",
-    ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (un plat, un prix, vos horaires, une annonce, vos réservations) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
+    ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (${adminExamples}) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
     `L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel :`,
     ...bullets.map((b) => `- ${b}`),
     "",
