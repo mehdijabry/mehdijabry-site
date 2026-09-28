@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { api, shortDate, type ProposalInput } from "@/lib/admin-api";
+import { api, shortDate, type ProposalInput, type FollowupInput } from "@/lib/admin-api";
 
 const TEMPLATES: Array<{ key: string; label: string; subject: string; text: string }> = [
   {
@@ -77,6 +77,7 @@ export default function AdminEmails() {
     <AdminShell title="Courriels">
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="space-y-4">
+        <FollowupPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
         <ProposalPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
         <Panel title={`Nouveau courriel — envoyé depuis ${settings.data?.emailFromName ?? "Mehdi Jabry"} <${settings.data?.emailFrom ?? "contact@mehdijabry.dev"}>`}>
           <div className="flex flex-wrap gap-2 mb-4">
@@ -136,6 +137,81 @@ export default function AdminEmails() {
         </Panel>
       </div>
     </AdminShell>
+  );
+}
+
+const FOLLOWUP_DEFAULTS: FollowupInput = {
+  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 600, phone: "", adminUrl: "", adminPassword: "",
+  firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "",
+};
+/** Relances prêtes à partir : on charge, on vérifie, on envoie. */
+const FOLLOWUPS: Array<{ label: string; to: string; values: Partial<FollowupInput> }> = [
+  {
+    label: "Le Bette", to: "info@lebette.com",
+    values: {
+      toName: "Jo-Annie et Hubert", business: "Le Bette", siteUrl: "https://lebette-demo.pages.dev",
+      previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", ownDomain: "lebette.com", price: 600,
+      adminUrl: "https://lebette-demo.pages.dev/admin/", adminPassword: "bette-demo",
+      firstSentLabel: "jeudi dernier",
+      callNote: "J'ai aussi appelé le même jour, mais le gérant était occupé au moment de mon appel, ce qui se comprend en plein service.",
+      keepUntil: "vendredi 9 octobre", googleRating: "4,8", googleReviews: 425,
+      bullets: "Vos menus au complet, soir, brunch et groupes, lisibles sur un téléphone, sans PDF à télécharger.\nVos horaires, brunch du samedi et du dimanche compris, affichés avant même que le client appelle.\nLa réservation en ligne, 24 heures sur 24, sans abonnement mensuel ni commission.\nLe club de vin et la boutique mis en avant, avec les dates de cet automne.\nUn espace d'administration où vous changez un plat, un prix ou une annonce vous-mêmes, en une minute.",
+    },
+  },
+];
+
+/** Gabarit HTML « relance courtoise » : anti-hameçonnage explicite, image du site avant tout clic, « regarder ne coûte rien ». */
+function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const first = FOLLOWUPS[0]!;
+  const [f, setF] = useState<FollowupInput>({ ...FOLLOWUP_DEFAULTS, ...first.values, phone: defaultPhone });
+  const [to, setTo] = useState(first.to);
+  const [bcc, setBcc] = useState("med.mehdi.jabry@gmail.com");
+  const [isTest, setIsTest] = useState(false);
+  useEffect(() => { setF((cur) => ({ ...cur, phone: cur.phone || defaultPhone })); }, [defaultPhone]);
+  const set = <K extends keyof FollowupInput>(k: K) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setF({ ...f, [k]: e.target.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value });
+  const send = useMutation({
+    mutationFn: () => api.sendFollowup({ ...f, to, isTest, bcc: bcc || undefined }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "emails"] }); qc.invalidateQueries({ queryKey: ["admin", "prospects"] }); toast({ title: `${isTest ? "Test envoyé" : "Relance envoyée"} à ${to}` }); },
+    onError: (e) => toast({ title: "Envoi impossible", description: String((e as Error).message), variant: "destructive" }),
+  });
+  const ready = Boolean(to && f.business && f.siteUrl && f.price !== "" && f.phone);
+  return (
+    <Panel title="Relance courtoise — gabarit HTML (ce que le lien fait et ne fait pas, image du site, « regarder ne coûte rien »)">
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
+        <span className="text-muted-foreground">Charger une relance :</span>
+        {FOLLOWUPS.map((pr) => (
+          <button key={pr.label} type="button" onClick={() => { setF({ ...FOLLOWUP_DEFAULTS, ...pr.values, phone: f.phone || defaultPhone }); setTo(pr.to); }} className="rounded-full border border-border px-3 py-1 text-muted-foreground hover:text-foreground hover:border-foreground">{pr.label}</button>
+        ))}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
+        <Field label="Prénom / nom (salutation)" hint="Vide = « Bonjour, »"><Input value={f.toName} onChange={set("toName")} /></Field>
+        <Field label="Copie cachée (Cci)" hint="Exemplaire exact de ce qui part, sans suivi"><Input type="email" value={bcc} onChange={(e) => setBcc(e.target.value)} /></Field>
+        <Field label="Entreprise *"><Input value={f.business} onChange={set("business")} /></Field>
+        <Field label="Lien de la maquette *"><Input value={f.siteUrl} onChange={set("siteUrl")} /></Field>
+        <Field label="Image d'aperçu (URL)" hint="Montrée avant tout clic ; vide = pas d'image"><Input value={f.previewImageUrl} onChange={set("previewImageUrl")} /></Field>
+        <Field label="Premier courriel envoyé…" hint="Tel qu'on le dirait : « jeudi dernier »"><Input value={f.firstSentLabel} onChange={set("firstSentLabel")} /></Field>
+        <Field label="Maquette en ligne jusqu'au" hint="Vide = pas de date limite"><Input value={f.keepUntil} onChange={set("keepUntil")} /></Field>
+        <Field label="Phrase sur l'appel passé entre-temps" className="sm:col-span-2" hint="Vide = pas de mention"><Input value={f.callNote} onChange={set("callNote")} /></Field>
+        <Field label="Ce qu'ils y trouveront" className="sm:col-span-2" hint="Un point par ligne ; vide = menus, horaires, réservation, espace admin"><Textarea rows={5} value={f.bullets} onChange={(e) => setF({ ...f, bullets: e.target.value })} /></Field>
+        <Field label="Espace admin de démonstration (lien)" hint="Vide = pas de paragraphe"><Input value={f.adminUrl} onChange={set("adminUrl")} /></Field>
+        <Field label="Mot de passe de démonstration"><Input value={f.adminPassword} onChange={set("adminPassword")} /></Field>
+        <Field label="Domaine qu'ils possèdent déjà"><Input value={f.ownDomain} onChange={set("ownDomain")} /></Field>
+        <Field label="Prix ($) *"><Input type="number" value={f.price} onChange={set("price")} /></Field>
+        <Field label="Note Google"><Input value={f.googleRating} onChange={set("googleRating")} /></Field>
+        <Field label="Nombre d'avis"><Input type="number" value={f.googleReviews} onChange={set("googleReviews")} /></Field>
+        <Field label="Téléphone *"><Input value={f.phone} onChange={set("phone")} /></Field>
+        <Field label="Objet du courriel" hint="Vide = « Entreprise — j'ai construit votre site, voici comment le voir sans risque »"><Input value={f.subject} onChange={set("subject")} /></Field>
+        <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        <Button variant="outline" onClick={() => window.open(api.followupPreviewUrl(f), "_blank", "noopener")}>Aperçu</Button>
+        <Button onClick={() => send.mutate()} disabled={!ready || send.isPending} variant={isTest ? "secondary" : "default"}>{send.isPending ? "Envoi…" : isTest ? "Envoyer le test" : `Envoyer la relance à ${to || "…"}`}</Button>
+      </div>
+    </Panel>
   );
 }
 

@@ -52,6 +52,13 @@ export type ProposalInput = {
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
 };
 
+/** Relance courtoise (2026-09-28) : second courriel, anti-hameçonnage explicite, image du site, « regarder ne coûte rien ». */
+export type FollowupInput = {
+  toName: string; business: string; siteUrl: string; previewImageUrl: string; ownDomain: string; price: number | ""; phone: string;
+  adminUrl: string; adminPassword: string; firstSentLabel: string; callNote: string; keepUntil: string;
+  googleRating: string; googleReviews: number | ""; bullets: string; subject: string;
+};
+
 export const PROSPECT_STATUSES = ["nouveau", "maquette", "contacté", "relance", "négociation", "gagné", "perdu"] as const;
 export type ProspectStatus = typeof PROSPECT_STATUSES[number];
 export type ProspectInput = {
@@ -116,6 +123,12 @@ export const api = {
   forgetSite: (site: string) => adminFetch<{ ok: true }>(`/tracking/sites/${encodeURIComponent(site)}`, { method: "DELETE" }),
   sendEmail: (e: { to: string; toName?: string | null; subject: string; text: string; invoiceId?: number | null }) => adminFetch<{ ok: true; id?: string }>("/emails", { method: "POST", body: JSON.stringify(e) }),
   sendProposal: (p: ProposalInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/proposal", { method: "POST", body: JSON.stringify(p) }),
+  sendFollowup: (p: FollowupInput & { to: string; isTest: boolean; bcc?: string }) => adminFetch<{ ok: true; id?: string }>("/emails/followup", { method: "POST", body: JSON.stringify(p) }),
+  followupPreviewUrl: (p: FollowupInput) => {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(p)) { if (v === "" || v === null || v === undefined) continue; q.set(k, String(v)); }
+    return `/api/admin/emails/followup/preview?${q.toString()}`;
+  },
   proposalPreviewUrl: (p: ProposalInput) => {
     const q = new URLSearchParams();
     for (const [k, v] of Object.entries(p)) { if (v === "" || v === null || v === undefined) continue; q.set(k, typeof v === "boolean" ? (v ? "1" : "0") : String(v)); }
