@@ -108,7 +108,12 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   }
   (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
   bullets.push("Hébergement gratuit chez Cloudflare, sécurisé et sans abonnement mensuel");
-  bullets.push("À la livraison, vous recevez tous les accès (hébergement et nom de domaine, créés à votre nom) : le site vous appartient à 100 %");
+  // Quand le client possède déjà son domaine, annoncer qu'on le « crée à son nom » est faux — et un
+  // prospect qui vérifie tout le reste le remarque. On ne promet que ce qu'on ouvre réellement.
+  const domaineAOuvrir = !own || Boolean(p.newDomain?.trim() && p.newDomainPrice);
+  bullets.push(domaineAOuvrir
+    ? "À la livraison, vous recevez tous les accès (hébergement et nom de domaine, créés à votre nom) : le site vous appartient à 100 %"
+    : "À la livraison, vous recevez tous les accès de l'hébergement, créés à votre nom : le site vous appartient à 100 %");
   bullets.push(`En ligne en moins de ${hours} heures après votre accord`);
 
   const forward = p.forwardToFranchisee ? `Si la décision revient au franchisé de ${p.city}, je vous serais reconnaissant de lui transmettre ce message.` : "";
