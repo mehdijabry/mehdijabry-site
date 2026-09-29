@@ -107,7 +107,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     bullets.push(`Sinon, j'ai vérifié : ${p.newDomain.trim()} est disponible — je l'enregistre à votre nom pour ${p.newDomainYears ?? 3} ans pour ${dollars(p.newDomainPrice)} de plus`);
   }
   (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
-  bullets.push("Hébergement sécurisé, sans abonnement mensuel");
+  bullets.push("Hébergement gratuit chez Cloudflare, sécurisé et sans abonnement mensuel");
   bullets.push("À la livraison, vous recevez tous les accès (hébergement et nom de domaine, créés à votre nom) : le site vous appartient à 100 %");
   bullets.push(`En ligne en moins de ${hours} heures après votre accord`);
 
