@@ -15,6 +15,7 @@ export type FollowupEmailInput = {
   /** Domaine que le client possède déjà (ex. lebette.com). */
   ownDomain?: string | null;
   price: number;
+  monthlyPrice?: number | null;
   phone: string;
   adminUrl?: string | null;
   adminPassword?: string | null;
@@ -57,7 +58,7 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const defaultBullets = [
     "Vos menus au complet, lisibles sur un téléphone, sans PDF à télécharger.",
     "Vos horaires, affichés avant même que le client appelle.",
-    "La réservation en ligne, 24 heures sur 24, sans abonnement mensuel ni commission.",
+    "La réservation en ligne, 24 heures sur 24, sans commission.",
     "Un espace d'administration où vous changez un plat, un prix ou une annonce vous-mêmes, en une minute.",
   ];
   const bullets = (p.bullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 8);
@@ -68,7 +69,8 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const admin = p.adminUrl?.trim()
     ? `Pour l'essayer : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
     : "";
-  const money = `Regarder ne coûte rien et ne vous engage à rien. Si le site vous plaît : ${dollars(p.price)} une seule fois, pas d'abonnement${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %. S'il ne vous plaît pas : je le retire, sans relance, et on en reste là.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  const monthly = p.monthlyPrice && p.monthlyPrice > 0 ? p.monthlyPrice : null;
+  const money = `Regarder ne coûte rien et ne vous engage à rien. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %. S'il ne vous plaît pas : je le retire, sans relance, et on en reste là.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
 
   // ── texte brut ──
   const text = [

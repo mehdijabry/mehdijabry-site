@@ -46,7 +46,7 @@ export type SiteStats = { site: string; visits: number; visitors: number; mobile
 
 export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
-  googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; newDomain: string;
+  googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; monthlyPrice?: number | ""; newDomain: string;
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
   variant: "card" | "plain";
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
@@ -54,7 +54,7 @@ export type ProposalInput = {
 
 /** Relance courtoise (2026-09-28) : second courriel, anti-hameçonnage explicite, image du site, « regarder ne coûte rien ». */
 export type FollowupInput = {
-  toName: string; business: string; siteUrl: string; previewImageUrl: string; ownDomain: string; price: number | ""; phone: string;
+  toName: string; business: string; siteUrl: string; previewImageUrl: string; ownDomain: string; price: number | ""; monthlyPrice?: number | ""; phone: string;
   adminUrl: string; adminPassword: string; firstSentLabel: string; callNote: string; keepUntil: string;
   googleRating: string; googleReviews: number | ""; bullets: string; subject: string;
 };

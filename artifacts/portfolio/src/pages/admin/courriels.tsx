@@ -141,7 +141,7 @@ export default function AdminEmails() {
 }
 
 const FOLLOWUP_DEFAULTS: FollowupInput = {
-  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 600, phone: "", adminUrl: "", adminPassword: "",
+  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 300, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
   firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "",
 };
 /** Relances prêtes à partir : on charge, on vérifie, on envoie. */
@@ -200,7 +200,8 @@ function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Espace admin de démonstration (lien)" hint="Vide = pas de paragraphe"><Input value={f.adminUrl} onChange={set("adminUrl")} /></Field>
         <Field label="Mot de passe de démonstration"><Input value={f.adminPassword} onChange={set("adminPassword")} /></Field>
         <Field label="Domaine qu'ils possèdent déjà"><Input value={f.ownDomain} onChange={set("ownDomain")} /></Field>
-        <Field label="Prix ($) *"><Input type="number" value={f.price} onChange={set("price")} /></Field>
+        <Field label="Mise en ligne ($) *"><Input type="number" value={f.price} onChange={set("price")} /></Field>
+        <Field label="Par mois ($)"><Input type="number" value={f.monthlyPrice ?? ""} onChange={set("monthlyPrice")} /></Field>
         <Field label="Note Google"><Input value={f.googleRating} onChange={set("googleRating")} /></Field>
         <Field label="Nombre d'avis"><Input type="number" value={f.googleReviews} onChange={set("googleReviews")} /></Field>
         <Field label="Téléphone *"><Input value={f.phone} onChange={set("phone")} /></Field>
@@ -298,7 +299,8 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Recherche Google visée"><Input value={p.searchPhrase} onChange={set("searchPhrase")} /></Field>
         <Field label="Note Google"><Input value={p.googleRating} onChange={set("googleRating")} /></Field>
         <Field label="Nombre d'avis"><Input type="number" value={p.googleReviews} onChange={set("googleReviews")} /></Field>
-        <Field label="Prix ($) *"><Input type="number" value={p.price} onChange={set("price")} /></Field>
+        <Field label="Mise en ligne ($) *"><Input type="number" value={p.price} onChange={set("price")} /></Field>
+        <Field label="Par mois ($)"><Input type="number" value={p.monthlyPrice ?? ""} onChange={set("monthlyPrice")} /></Field>
         <Field label="Livraison (heures)"><Input type="number" value={p.deliveryHours} onChange={set("deliveryHours")} /></Field>
         <Field label="Nouveau domaine proposé" hint="Vide = pas d'option domaine"><Input value={p.newDomain} onChange={set("newDomain")} /></Field>
         <Field label="Prix du domaine ($) / années"><div className="flex gap-2"><Input type="number" value={p.newDomainPrice} onChange={set("newDomainPrice")} /><Input type="number" value={p.newDomainYears} onChange={set("newDomainYears")} /></div></Field>

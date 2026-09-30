@@ -17,6 +17,8 @@ export type ProposalEmailInput = {
   googleReviews?: number | null;
   searchPhrase?: string | null;
   price: number;
+  /** Frais mensuels (hébergement, domaine, sauvegardes, modifications courantes). Absent = offre à prix unique. */
+  monthlyPrice?: number | null;
   newDomain?: string | null;
   newDomainPrice?: number | null;
   newDomainYears?: number | null;
@@ -99,6 +101,12 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   const featuresText = p.featuresText?.trim() || `Il reprend votre menu officiel, vos horaires, vos photos, vos avis Google, l'adresse avec itinéraire et le lien vers votre commande en ligne — pensé pour le téléphone et pour ressortir sur Google quand quelqu'un cherche « ${search} ». Tout est modifiable : textes, photos, promotions, ce que vous voulez.`;
   const featuresHtml = esc(featuresText).replace("Tout est modifiable", "<strong>Tout est modifiable</strong>");
 
+  // L'offre se lit d'un coup : « 300 $ à la mise en ligne, puis 45 $/mois » — ou, sans frais
+  // mensuels, « 600 $, montant fixe, sans abonnement ». Les deux formes coexistent.
+  const monthly = p.monthlyPrice && p.monthlyPrice > 0 ? p.monthlyPrice : null;
+  const offreTitre = monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois` : `${dollars(p.price)}, montant fixe, sans abonnement mensuel`;
+  const offreSousTitre = monthly ? `Rien à payer avant la mise en ligne. Sans engagement de durée : vous arrêtez quand vous voulez.` : "Montant fixe, sans abonnement mensuel";
+
   const bullets: string[] = [
     "Le site complet, ajusté selon vos retours avant la mise en ligne",
     own ? `La mise en ligne sur votre domaine actuel, ${own} : rien ne change pour vos clients` : "La mise en ligne sur votre nom de domaine" + (broken ? ` (${broken} ou un autre)` : "") + " si vous y avez accès",
@@ -107,7 +115,9 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     bullets.push(`Sinon, j'ai vérifié : ${p.newDomain.trim()} est disponible — je l'enregistre à votre nom pour ${p.newDomainYears ?? 3} ans pour ${dollars(p.newDomainPrice)} de plus`);
   }
   (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 6).forEach((b) => bullets.push(b));
-  bullets.push("Hébergement gratuit chez Cloudflare, sécurisé et sans abonnement mensuel");
+  bullets.push(monthly
+    ? `Les ${dollars(monthly)} par mois comprennent l'hébergement chez Cloudflare, le nom de domaine, les sauvegardes, les mises à jour de sécurité et vos modifications courantes — sans engagement de durée`
+    : "Hébergement gratuit chez Cloudflare, sécurisé et sans abonnement mensuel");
   // Quand le client possède déjà son domaine, annoncer qu'on le « crée à son nom » est faux — et un
   // prospect qui vérifie tout le reste le remarque. On ne promet que ce qu'on ouvre réellement.
   const domaineAOuvrir = !own || Boolean(p.newDomain?.trim() && p.newDomainPrice);
@@ -146,7 +156,8 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     featuresText,
     "",
     ...(p.adminUrl?.trim() ? [`Et pour voir comment vous le mettriez à jour vous-même (${adminExamples}) : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "(fourni sur demande)"}. C'est une démonstration : explorez librement, rien n'y est enregistré.`, ""] : []),
-    `L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel :`,
+    `L'offre — ${offreTitre} :`,
+    ...(monthly ? [offreSousTitre] : []),
     ...bullets.map((b) => `- ${b}`),
     "",
     `Je suis à ${issuer.city || p.city} — je peux passer vous le montrer sur place, quand ça vous arrange. Répondez à ce courriel ou appelez-moi au ${phone}.`,
@@ -201,8 +212,8 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${paper};border:1px solid #e6e1d8;border-radius:12px">
               <tr><td style="padding:20px 22px">
                 <div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:${muted};padding-bottom:6px">L'offre</div>
-                <div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.1;color:${ink};padding-bottom:4px">${dollars(p.price)}</div>
-                <div style="font-size:14px;color:${muted};padding-bottom:12px">Montant fixe, sans abonnement mensuel</div>
+                <div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.1;color:${ink};padding-bottom:4px">${dollars(p.price)}${monthly ? ` <span style="font-size:16px;color:${muted}">à la mise en ligne</span> <span style="font-size:22px">+ ${dollars(monthly)}/mois</span>` : ""}</div>
+                <div style="font-size:14px;color:${muted};padding-bottom:12px">${esc(offreSousTitre)}</div>
                 <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${bulletRows}
                 </table>
               </td></tr>
@@ -241,7 +252,7 @@ ${showSafety ? `<table role="presentation" cellpadding="0" cellspacing="0" width
 </td></tr></table>` : ""}
 ${para(featuresHtml)}
 ${adminHtml ? para(adminHtml) : ""}
-${para(`<strong>L'offre — ${dollars(p.price)}, montant fixe, sans abonnement mensuel&nbsp;:</strong>`)}
+${para(`<strong>L'offre — ${esc(offreTitre)}&nbsp;:</strong>`)}${monthly ? para(esc(offreSousTitre)) : ""}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${bullets.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>
 ${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.`)}
 ${forward ? para(esc(forward)) : ""}
