@@ -43,8 +43,10 @@ export type ProposalEmailInput = {
   /** Phrase « Il reprend votre menu officiel… » ; vide = phrase générique (menu, horaires, photos, avis, commande en ligne). */
   featuresText?: string | null;
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
-   *  plus volontiers dans la boîte principale que dans « Promotions ». */
-  variant?: "card" | "plain" | null;
+   *  plus volontiers dans la boîte principale que dans « Promotions » ; « court » = la version sobre resserrée (30/09/2026) :
+   *  le constat en première ligne, l'offre en une phrase et quatre puces au plus, un seul appel à l'action, la note de
+   *  confiance en post-scriptum. Moitié moins de mots que « plain ». */
+  variant?: "card" | "plain" | "court" | null;
   /** Bloc « ce que le lien fait et ne fait pas » (anti-hameçonnage). Affiché par défaut : un courriel d'un inconnu avec
    *  un lien ressemble à de l'hameçonnage, et c'est la première raison de ne pas cliquer. Mettre false pour l'enlever. */
   safetyNote?: boolean | null;
@@ -231,6 +233,86 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   </td></tr>
 </table>
 </body></html>`;
+
+  if (p.variant === "court") {
+    // Version courte, d'après le skill emailing-prospects : pas de présentation de soi en tête (la signature
+    // s'en charge), le constat en première ligne — c'est l'aperçu que Gmail affiche sous l'objet —, l'offre en
+    // une phrase suivie de quatre puces au plus (les siennes ; celles du gabarit sont fondues en deux phrases),
+    // un seul appel à l'action, et la note anti-hameçonnage en post-scriptum : l'endroit le plus lu d'un
+    // courriel, et celui où elle gêne le moins la lecture.
+    const para = (inner: string) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink}">${inner}</p>`;
+    const mesPuces = (p.extraBullets || "").split(/\n+/).map((b) => b.trim()).filter(Boolean).slice(0, 4);
+    const nd = p.newDomain?.trim();
+    const domaine = own
+      ? `La mise en ligne se fait sur votre domaine actuel, ${own} : rien ne change pour vos clients.`
+      : nd
+        ? `${nd} est libre : je l'enregistre à votre nom${monthly ? ", c'est compris dans le mensuel" : p.newDomainPrice ? ` pour ${p.newDomainYears ?? 3} ans (${dollars(p.newDomainPrice)} de plus)` : ""}.`
+        : `La mise en ligne se fait sur votre nom de domaine${broken ? ` (${broken} ou un autre)` : ""} si vous y avez accès — sinon j'en ouvre un à votre nom.`;
+    const couvre = monthly
+      ? `Les ${dollars(monthly)} par mois couvrent l'hébergement, le nom de domaine, les sauvegardes, la sécurité et vos modifications courantes.`
+      : "Hébergement chez Cloudflare compris, sans abonnement mensuel.";
+    const offreLigne = monthly
+      ? `L'offre : ${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois — sans engagement de durée.`
+      : `L'offre : ${dollars(p.price)}, montant fixe, sans abonnement.`;
+    const cloture = `Rien à payer avant la mise en ligne. Vous recevez tous les accès — le site vous appartient — et la mise en ligne se fait en moins de ${hours} heures après votre accord.`;
+    // « Une première version, accessible par ce lien » — pas « il est en ligne » : le site n'est pas livré, c'est
+    // une proposition, et le prospect doit comprendre qu'il aura la main dessus avant la mise en ligne.
+    const construit = "Plutôt que de vous envoyer un devis, j'ai construit une première version de votre site. Elle est accessible par ce lien :";
+    const premiere = "Ce n'est qu'une première version : si vous l'acceptez, je prends en compte toutes les modifications que vous voudrez — textes, photos, prix — avant la mise en ligne.";
+    const adminCourt = p.adminUrl?.trim()
+      ? `Pour voir comment vous le modifieriez vous-même (${adminExamples}) : ${p.adminUrl.trim()} — mot de passe ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
+      : "";
+    const cta = `Répondez à ce courriel ou appelez-moi au ${phone} — je suis à ${issuer.city || p.city}, je peux passer vous le montrer.`;
+    const ps = showSafety
+      ? `P.-S. Un courriel d'un inconnu avec un lien, c'est suspect, je le sais. Tapez ${host} vous-mêmes dans votre navigateur : c'est exactement la même page. Et si vous préférez m'appeler avant d'ouvrir quoi que ce soit : ${phone}. Mon adresse est juste en dessous.`
+      : "";
+    const legal = `${signer}, ${address}. Vous recevez ce courriel parce que votre adresse est publiée sur votre site ou votre fiche d'entreprise. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`;
+
+    const textCourt = [
+      greeting, "",
+      problem, "",
+      `${construit} ${p.siteUrl}`, "",
+      featuresText, "",
+      premiere, "",
+      ...(adminCourt ? [adminCourt, ""] : []),
+      offreLigne,
+      `${couvre} ${domaine}`,
+      ...mesPuces.map((b) => `- ${b}`),
+      cloture, "",
+      cta, "",
+      ...(forward ? [forward, ""] : []),
+      "Au plaisir,", signer, `Développeur web indépendant — ${issuer.city || p.city}`, `${site} · ${issuer.emailFrom} · ${phone}`, "",
+      ...(ps ? [ps, ""] : []),
+      "—", legal,
+    ].join("\n");
+
+    const adminCourtHtml = p.adminUrl?.trim()
+      ? `Pour voir comment vous le modifieriez vous-m&ecirc;me (${esc(adminExamples)})&nbsp;: <a href="${esc(p.adminUrl.trim())}" style="color:${amber};font-weight:700">espace d'administration</a> — mot de passe <strong>${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration, rien n'y est enregistr&eacute;.`
+      : "";
+    const htmlCourt = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:24px 16px;background:#ffffff;-webkit-text-size-adjust:100%">
+<div style="max-width:600px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif">
+${para(esc(greeting))}
+${para(esc(problem))}
+${para(`${esc(construit).replace("j'ai construit une première version de votre site", "<strong>j'ai construit une première version de votre site</strong>")} <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
+${p.previewImageUrl?.trim() ? `<p style="margin:0 0 14px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
+<p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
+${para(featuresHtml)}
+${para(esc(premiere))}
+${adminCourtHtml ? para(adminCourtHtml) : ""}
+${para(`<strong>${esc(offreLigne)}</strong> ${esc(couvre)} ${esc(domaine)}`)}
+${mesPuces.length ? `<ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${mesPuces.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>` : ""}
+${para(esc(cloture))}
+${para(esc(cta).replace(esc(phone), `<a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>`))}
+${forward ? para(esc(forward)) : ""}
+<div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</div>
+${ps ? `<p style="margin:0 0 18px;font-size:15px;line-height:1.55;color:${ink}">${esc(ps)}</p>` : ""}
+<p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(legal)}</p>
+</div>
+</body></html>`;
+    return { subject, html: htmlCourt, text: textCourt };
+  }
 
   if (p.variant === "plain") {
     // Sober layout: white background, no card, no coloured blocks, a single bordered link instead of a filled button,

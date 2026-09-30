@@ -48,7 +48,7 @@ export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
   googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; monthlyPrice?: number | ""; newDomain: string;
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
-  variant: "card" | "plain";
+  variant: "card" | "plain" | "court";
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
 };
 

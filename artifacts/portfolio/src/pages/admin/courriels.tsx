@@ -220,7 +220,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://seaudecrabe-demo.pages.dev",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
-  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "plain",
+  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court",
   headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "", featuresText: "",
 };
 
@@ -233,7 +233,7 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
       toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://lebette-demo.pages.dev",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "", ownDomain: "lebette.com",
       googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
-      newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "plain",
+      newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "court",
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
       problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
@@ -305,9 +305,10 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Nouveau domaine proposé" hint="Vide = pas d'option domaine"><Input value={p.newDomain} onChange={set("newDomain")} /></Field>
         <Field label="Prix du domaine ($) / années"><div className="flex gap-2"><Input type="number" value={p.newDomainPrice} onChange={set("newDomainPrice")} /><Input type="number" value={p.newDomainYears} onChange={set("newDomainYears")} /></div></Field>
         <Field label="Téléphone *"><Input value={p.phone} onChange={set("phone")} /></Field>
-        <Field label="Mise en page" hint="« Sobre » ressemble à un courriel personnel : Gmail le classe plus souvent dans la boîte principale ; « Carte » est la version design (bouton plein, encadré), plus souvent triée dans « Promotions ».">
-          <select value={p.variant} onChange={(e) => setP({ ...p, variant: e.target.value as "card" | "plain" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-            <option value="plain">Sobre (boîte principale)</option>
+        <Field label="Mise en page" hint="« Court » : le constat en première ligne, l'offre en une phrase et quatre puces au plus, la note de confiance en post-scriptum — moitié moins de mots. « Sobre » est la version longue du même courriel personnel ; « Carte » est la version design (bouton plein, encadré), plus souvent triée dans « Promotions ».">
+          <select value={p.variant} onChange={(e) => setP({ ...p, variant: e.target.value as "card" | "plain" | "court" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="court">Court (recommandé)</option>
+            <option value="plain">Sobre (version longue)</option>
             <option value="card">Carte design (bouton, encadré)</option>
           </select>
         </Field>
