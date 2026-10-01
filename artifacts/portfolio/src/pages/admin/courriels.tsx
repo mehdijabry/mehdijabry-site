@@ -75,33 +75,7 @@ export default function AdminEmails() {
 
   return (
     <AdminShell title="Courriels">
-      <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-4">
-        <FollowupPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
-        <ProposalPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
-        <Panel title={`Nouveau courriel — envoyé depuis ${settings.data?.emailFromName ?? "Mehdi Jabry"} <${settings.data?.emailFrom ?? "contact@mehdijabry.dev"}>`}>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {TEMPLATES.map((t) => (
-              <button key={t.key} type="button" onClick={() => { setSubject(t.subject); setText(t.text); }} className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:border-foreground">{t.label}</button>
-            ))}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="proprietaire@restaurant.com" /></Field>
-            <Field label="Nom du destinataire"><Input value={toName} onChange={(e) => setToName(e.target.value)} placeholder="Seau de Crabe Trois-Rivières" /></Field>
-            <Field label="Variable {entreprise}"><Input value={vars.entreprise} onChange={(e) => setVars({ ...vars, entreprise: e.target.value })} placeholder="Seau de Crabe" /></Field>
-            <Field label="Variable {lien}"><Input value={vars.lien} onChange={(e) => setVars({ ...vars, lien: e.target.value })} placeholder="https://seaudecrabe-demo.pages.dev" /></Field>
-            <Field label="Objet *" className="sm:col-span-2"><Input value={subject} onChange={(e) => setSubject(e.target.value)} /></Field>
-            <Field label="Message *" className="sm:col-span-2" hint="Texte brut : les paragraphes et les liens sont mis en forme automatiquement. Les variables entre accolades sont remplacées à l'envoi."><Textarea rows={14} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-[13px]" /></Field>
-          </div>
-          <div className="flex items-center gap-3 mt-4">
-            <Button onClick={() => send.mutate()} disabled={!ready || send.isPending}>{send.isPending ? "Envoi…" : "Envoyer"}</Button>
-            {!ready && (to || subject) && <span className="text-xs text-muted-foreground">Remplissez le destinataire, l'objet, le message et les variables utilisées.</span>}
-          </div>
-          {(vars.entreprise || vars.lien) && (
-            <details className="mt-4 text-sm"><summary className="cursor-pointer text-muted-foreground">Aperçu du texte final</summary><pre className="mt-2 whitespace-pre-wrap font-sans text-sm bg-muted/50 rounded-md p-3">{fill(text)}</pre></details>
-          )}
-        </Panel>
-        </div>
+      <div className="space-y-4">
         <Panel title="Historique" className="p-0 overflow-hidden">
           {history.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : history.isError ? <ErrorNote error={history.error} onRetry={() => history.refetch()} className="m-4" /> : (history.data ?? []).length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">Aucun courriel envoyé pour l'instant.</p>
@@ -133,6 +107,30 @@ export default function AdminEmails() {
                 </li>
               ))}
             </ul>
+          )}
+        </Panel>
+        <FollowupPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
+        <ProposalPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
+        <Panel title={`Nouveau courriel — envoyé depuis ${settings.data?.emailFromName ?? "Mehdi Jabry"} <${settings.data?.emailFrom ?? "contact@mehdijabry.dev"}>`}>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {TEMPLATES.map((t) => (
+              <button key={t.key} type="button" onClick={() => { setSubject(t.subject); setText(t.text); }} className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground hover:text-foreground hover:border-foreground">{t.label}</button>
+            ))}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Destinataire *"><Input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="proprietaire@restaurant.com" /></Field>
+            <Field label="Nom du destinataire"><Input value={toName} onChange={(e) => setToName(e.target.value)} placeholder="Seau de Crabe Trois-Rivières" /></Field>
+            <Field label="Variable {entreprise}"><Input value={vars.entreprise} onChange={(e) => setVars({ ...vars, entreprise: e.target.value })} placeholder="Seau de Crabe" /></Field>
+            <Field label="Variable {lien}"><Input value={vars.lien} onChange={(e) => setVars({ ...vars, lien: e.target.value })} placeholder="https://seaudecrabe-demo.pages.dev" /></Field>
+            <Field label="Objet *" className="sm:col-span-2"><Input value={subject} onChange={(e) => setSubject(e.target.value)} /></Field>
+            <Field label="Message *" className="sm:col-span-2" hint="Texte brut : les paragraphes et les liens sont mis en forme automatiquement. Les variables entre accolades sont remplacées à l'envoi."><Textarea rows={14} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-[13px]" /></Field>
+          </div>
+          <div className="flex items-center gap-3 mt-4">
+            <Button onClick={() => send.mutate()} disabled={!ready || send.isPending}>{send.isPending ? "Envoi…" : "Envoyer"}</Button>
+            {!ready && (to || subject) && <span className="text-xs text-muted-foreground">Remplissez le destinataire, l'objet, le message et les variables utilisées.</span>}
+          </div>
+          {(vars.entreprise || vars.lien) && (
+            <details className="mt-4 text-sm"><summary className="cursor-pointer text-muted-foreground">Aperçu du texte final</summary><pre className="mt-2 whitespace-pre-wrap font-sans text-sm bg-muted/50 rounded-md p-3">{fill(text)}</pre></details>
           )}
         </Panel>
       </div>
