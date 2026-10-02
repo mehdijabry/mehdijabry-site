@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { api, shortDate, type ProposalInput, type FollowupInput } from "@/lib/admin-api";
+import { api, shortDate, trustedDemoUrl, trustedAdminUrl, type ProposalInput, type FollowupInput } from "@/lib/admin-api";
 
 const TEMPLATES: Array<{ key: string; label: string; subject: string; text: string }> = [
   {
@@ -147,9 +147,9 @@ const FOLLOWUPS: Array<{ label: string; to: string; values: Partial<FollowupInpu
   {
     label: "Le Bette", to: "info@lebette.com",
     values: {
-      toName: "Jo-Annie et Hubert", business: "Le Bette", siteUrl: "https://lebette-demo.pages.dev",
+      toName: "Jo-Annie et Hubert", business: "Le Bette", siteUrl: "https://mehdijabry.dev/voir/lebette",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", ownDomain: "lebette.com", price: 600,
-      adminUrl: "https://lebette-demo.pages.dev/admin/", adminPassword: "bette-demo",
+      adminUrl: "https://mehdijabry.dev/voir/lebette/admin", adminPassword: "bette-demo",
       firstSentLabel: "jeudi dernier",
       callNote: "J'ai aussi appelé le même jour, mais le gérant était occupé au moment de mon appel, ce qui se comprend en plein service.",
       keepUntil: "vendredi 9 octobre", googleRating: "4,8", googleReviews: 425,
@@ -215,7 +215,7 @@ function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
 }
 
 const PROPOSAL_DEFAULTS: ProposalInput = {
-  toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://seaudecrabe-demo.pages.dev",
+  toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/voir/seaudecrabe",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court",
@@ -228,14 +228,14 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
   {
     label: "Le Bette",
     values: {
-      toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://lebette-demo.pages.dev",
+      toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/voir/lebette",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "", ownDomain: "lebette.com",
       googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
       newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "court",
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
       problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
-      adminUrl: "https://lebette-demo.pages.dev/admin/", adminPassword: "bette-demo",
+      adminUrl: "https://mehdijabry.dev/voir/lebette/admin", adminPassword: "bette-demo",
     },
   },
 ];
@@ -254,9 +254,9 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
     const pr = prospects.data?.find((x) => x.id === prospectId);
     if (!pr) return;
     setTo(pr.email ?? "");
-    setP((cur) => ({ ...cur, toName: pr.contactName ?? "", business: pr.name, city: pr.city || cur.city, siteUrl: pr.mockUrl ?? "", previewImageUrl: pr.mockUrl ? `${pr.mockUrl.replace(/\/+$/, "")}/img/apercu-courriel.jpg` : "",
+    setP((cur) => ({ ...cur, toName: pr.contactName ?? "", business: pr.name, city: pr.city || cur.city, siteUrl: trustedDemoUrl(pr.mockUrl), previewImageUrl: pr.mockUrl ? `${pr.mockUrl.replace(/\/+$/, "")}/img/apercu-courriel.jpg` : "",
       brokenDomain: pr.brokenDomain ?? "", ownDomain: pr.ownDomain ?? "", googleRating: pr.googleRating ?? "", googleReviews: pr.googleReviews ?? "", price: pr.price ?? cur.price,
-      adminUrl: pr.adminUrl ?? "", adminPassword: pr.adminDemoPassword ?? "", newDomain: pr.ownDomain ? "" : cur.newDomain, headline: "", problemText: "", searchPhrase: `${pr.name} ${pr.city || ""}`.trim(),
+      adminUrl: trustedAdminUrl(pr.adminUrl), adminPassword: pr.adminDemoPassword ?? "", newDomain: pr.ownDomain ? "" : cur.newDomain, headline: "", problemText: "", searchPhrase: `${pr.name} ${pr.city || ""}`.trim(),
       extraBullets: [pr.adminUrl ? "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone" : "", pr.hasReservations ? "La réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert" : ""].filter(Boolean).join("\n") }));
   }, [prospects.data, prospectId]);
   const [bcc, setBcc] = useState("");

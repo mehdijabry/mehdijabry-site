@@ -259,10 +259,15 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     // une proposition, et le prospect doit comprendre qu'il aura la main dessus avant la mise en ligne.
     const construit = "Plutôt que de vous envoyer un devis, j'ai construit une première version de votre site. Elle est accessible par ce lien :";
     const premiere = "Ce n'est qu'une première version : si vous l'acceptez, je prends en compte toutes les modifications que vous voudrez — textes, photos, prix — avant la mise en ligne.";
+    // Risque mis en évidence tôt et seul sur sa ligne (2026-10-02) : enterré dans la clôture, personne ne le
+    // lit avant de décider de cliquer ou non. C'est la phrase qui doit lever le doute, pas la confirmer après coup.
+    const risque = "Vous ne risquez rien : si elle ne vous convient pas, vous n'avez rien à faire et rien à payer — vous n'aurez rien perdu.";
     const adminCourt = p.adminUrl?.trim()
       ? `Pour voir comment vous le modifieriez vous-même (${adminExamples}) : ${p.adminUrl.trim()} — mot de passe ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
       : "";
-    const cta = `Répondez à ce courriel ou appelez-moi au ${phone} — je suis à ${issuer.city || p.city}, je peux passer vous le montrer.`;
+    // Une seule micro-action (2026-10-02) : « répondez oui » coûte moins d'effort que « répondez ou appelez »,
+    // qui oblige le lecteur à choisir entre deux options avant même d'avoir décidé s'il est intéressé.
+    const cta = `Une seule chose à faire pour avancer : répondez « oui » à ce courriel. (Vous pouvez aussi m'appeler au ${phone} si vous préférez.)`;
     const ps = showSafety
       ? `P.-S. Un courriel d'un inconnu avec un lien, c'est suspect, je le sais. Tapez ${host} vous-mêmes dans votre navigateur : c'est exactement la même page. Et si vous préférez m'appeler avant d'ouvrir quoi que ce soit : ${phone}. Mon adresse est juste en dessous.`
       : "";
@@ -274,6 +279,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
       `${construit} ${p.siteUrl}`, "",
       featuresText, "",
       premiere, "",
+      risque, "",
       ...(adminCourt ? [adminCourt, ""] : []),
       offreLigne,
       `${couvre} ${domaine}`,
@@ -300,6 +306,7 @@ ${p.previewImageUrl?.trim() ? `<p style="margin:0 0 14px"><a href="${esc(link)}"
 <p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
 ${para(featuresHtml)}
 ${para(esc(premiere))}
+<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};font-weight:700">${esc(risque)}</p>
 ${adminCourtHtml ? para(adminCourtHtml) : ""}
 ${para(`<strong>${esc(offreLigne)}</strong> ${esc(couvre)} ${esc(domaine)}`)}
 ${mesPuces.length ? `<ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${mesPuces.map((b) => `<li style="margin:0 0 6px">${esc(b)}</li>`).join("")}</ul>` : ""}
