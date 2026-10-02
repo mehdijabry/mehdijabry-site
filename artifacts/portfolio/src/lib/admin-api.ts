@@ -50,6 +50,8 @@ export type ProposalInput = {
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
   variant: "card" | "plain" | "court";
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
+  /** Annonce le prix comme « offre de lancement, le temps de signer mes tout premiers clients » (2026-10-02). */
+  launchOffer?: boolean;
 };
 
 /** Relance courtoise (2026-09-28) : second courriel, anti-hameçonnage explicite, image du site, « regarder ne coûte rien ». */

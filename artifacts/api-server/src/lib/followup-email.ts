@@ -71,9 +71,10 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
     : "";
   const monthly = p.monthlyPrice && p.monthlyPrice > 0 ? p.monthlyPrice : null;
   // Élément nouveau par rapport au premier courriel (2026-10-02) : une relance qui répète la même offre
-  // n'ajoute aucune raison de regarder à nouveau. Le tarif de lancement — le temps de signer les tout
-  // premiers clients — est cette raison.
-  const money = `Nouveau depuis mon dernier message : une offre de lancement, le temps de signer mes tout premiers clients. Regarder ne coûte toujours rien et ne vous engage à rien. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  // n'ajoute aucune raison de regarder à nouveau — et baisser le prix pour faire revenir quelqu'un qui n'a
+  // pas répondu ressemble à du rabais de fin de saison, pas à un studio qui a de la demande. Le tarif de
+  // lancement évolue plutôt à la hausse : la mise à jour elle-même est la raison de regarder à nouveau.
+  const money = `Mise à jour depuis mon dernier message : le tarif de lancement a changé, le temps que je signe mes tout premiers clients. Regarder reste sans coût et sans engagement. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
   // Phrase de confiance mise en évidence tôt et seule sur sa ligne (2026-10-02) — même raisonnement que la
   // proposition initiale : noyée dans un paragraphe, personne ne la lit avant de décider de cliquer ou non.
   const risque = "Vous ne risquez rien : si le site ne vous plaît pas, je le retire, sans relance, et vous n'aurez rien payé.";
@@ -124,7 +125,7 @@ ${para("<strong>Ce que vous y trouverez :</strong>")}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${found.map((b) => li(esc(b))).join("")}</ul>
 ${admin ? para(esc(admin).replace(esc(p.adminUrl!.trim()), `<a href="${esc(p.adminUrl!.trim())}" style="color:${amber};font-weight:700">${esc(p.adminUrl!.trim())}</a>`)) : ""}
 ${proof ? para(esc(proof)) : ""}
-${para(bold(money, "Nouveau depuis mon dernier message : une offre de lancement, le temps de signer mes tout premiers clients."))}
+${para(bold(money, "Mise à jour depuis mon dernier message : le tarif de lancement a changé, le temps que je signe mes tout premiers clients."))}
 <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};font-weight:700">${esc(risque)}</p>
 ${para("Une seule chose à faire pour avancer : répondez « oui » à ce courriel.")}
 <div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml}</div>

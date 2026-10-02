@@ -50,6 +50,9 @@ export type ProposalEmailInput = {
   /** Bloc « ce que le lien fait et ne fait pas » (anti-hameçonnage). Affiché par défaut : un courriel d'un inconnu avec
    *  un lien ressemble à de l'hameçonnage, et c'est la première raison de ne pas cliquer. Mettre false pour l'enlever. */
   safetyNote?: boolean | null;
+  /** Annonce le prix comme « offre de lancement, le temps de signer mes tout premiers clients » (2026-10-02) —
+   *  à utiliser tant qu'il n'y a pas encore de client payant ; false une fois les premiers clients signés. */
+  launchOffer?: boolean | null;
 };
 
 export const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
@@ -251,9 +254,10 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     const couvre = monthly
       ? `Les ${dollars(monthly)} par mois couvrent l'hébergement, le nom de domaine, les sauvegardes, la sécurité et vos modifications courantes.`
       : "Hébergement chez Cloudflare compris, sans abonnement mensuel.";
+    const offrePrefixe = p.launchOffer ? "Offre de lancement, le temps de signer mes tout premiers clients" : "L'offre";
     const offreLigne = monthly
-      ? `L'offre : ${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois — sans engagement de durée.`
-      : `L'offre : ${dollars(p.price)}, montant fixe, sans abonnement.`;
+      ? `${offrePrefixe} : ${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois — sans engagement de durée.`
+      : `${offrePrefixe} : ${dollars(p.price)}, montant fixe, sans abonnement.`;
     const cloture = `Rien à payer avant la mise en ligne. Vous recevez tous les accès — le site vous appartient — et la mise en ligne se fait en moins de ${hours} heures après votre accord.`;
     // « Une première version, accessible par ce lien » — pas « il est en ligne » : le site n'est pas livré, c'est
     // une proposition, et le prospect doit comprendre qu'il aura la main dessus avant la mise en ligne.

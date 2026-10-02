@@ -139,7 +139,7 @@ export default function AdminEmails() {
 }
 
 const FOLLOWUP_DEFAULTS: FollowupInput = {
-  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 199, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
+  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 449, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
   firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "",
 };
 /** Relances prêtes à partir : on charge, on vérifie, on envoie. */
@@ -218,7 +218,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/voir/seaudecrabe",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
-  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court",
+  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court", launchOffer: true,
   headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "", featuresText: "",
 };
 
@@ -311,6 +311,7 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
           </select>
         </Field>
         <div className="space-y-2 pt-6 text-sm">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={p.launchOffer ?? false} onChange={(e) => setP({ ...p, launchOffer: e.target.checked })} /> Offre de lancement (« le temps de signer mes tout premiers clients » — à décocher une fois les premiers clients signés)</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={p.forwardToFranchisee} onChange={(e) => setP({ ...p, forwardToFranchisee: e.target.checked })} /> Ajouter la ligne « transmettre au franchisé » (envoi au siège)</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>
         </div>
