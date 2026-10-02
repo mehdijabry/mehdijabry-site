@@ -21,6 +21,7 @@ const DEMOS: Record<string, { target: string; title: string }> = {
   sacrecoeurcafe: { target: "https://sacrecoeurcafe-demo.pages.dev", title: "Café Sacré-Cœur" },
   ocentro: { target: "https://ocentro-demo.pages.dev", title: "O'Centro" },
   bistrohabibi: { target: "https://bistrohabibi-demo.pages.dev", title: "Bistro Habibi" },
+  samson: { target: "https://samson-demo.pages.dev", title: "Chocolaterie Samson" },
 };
 
 // Les robots d'aperçu de lien (Gmail, iMessage, WhatsApp, Slack…) font une requête GET et lisent le HTML
