@@ -48,7 +48,7 @@ export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
   googleRating: string; googleReviews: number | ""; searchPhrase: string; price: number | ""; monthlyPrice?: number | ""; newDomain: string;
   newDomainPrice: number | ""; newDomainYears: number | ""; deliveryHours: number | ""; forwardToFranchisee: boolean; phone: string;
-  variant: "card" | "plain" | "court";
+  variant: "card" | "plain" | "court" | "brut";
   headline: string; problemText: string; ownDomain: string; extraBullets: string; adminUrl: string; adminPassword: string; subject: string; featuresText: string;
   /** Annonce le prix comme « offre de lancement, le temps de signer mes tout premiers clients » (2026-10-02). */
   launchOffer?: boolean;
@@ -59,6 +59,8 @@ export type FollowupInput = {
   toName: string; business: string; siteUrl: string; previewImageUrl: string; ownDomain: string; price: number | ""; monthlyPrice?: number | ""; phone: string;
   adminUrl: string; adminPassword: string; firstSentLabel: string; callNote: string; keepUntil: string;
   googleRating: string; googleReviews: number | ""; bullets: string; subject: string;
+  /** « brut » (recommandé depuis le 02/10) = ~120 mots, pas de bloc anti-hameçonnage ; « classic » = archive. */
+  variant?: "classic" | "brut";
 };
 
 export const PROSPECT_STATUSES = ["nouveau", "maquette", "contacté", "relance", "négociation", "gagné", "perdu"] as const;

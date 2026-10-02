@@ -45,8 +45,10 @@ export type ProposalEmailInput = {
   /** « card » = mise en page design (carte, bouton) ; « plain » = courriel sobre, proche d'un message personnel — Gmail le classe
    *  plus volontiers dans la boîte principale que dans « Promotions » ; « court » = la version sobre resserrée (30/09/2026) :
    *  le constat en première ligne, l'offre en une phrase et quatre puces au plus, un seul appel à l'action, la note de
-   *  confiance en post-scriptum. Moitié moins de mots que « plain ». */
-  variant?: "card" | "plain" | "court" | null;
+   *  confiance en post-scriptum. Moitié moins de mots que « plain ». « brut » = la version 2026-10-02 (par défaut
+   *  depuis) : ~140 mots, aucune carte ni bouton ni image forcée, une seule question en guise d'appel à l'action.
+   *  Les variantes précédentes restent dans le code mais ne sont plus proposées par défaut dans l'admin. */
+  variant?: "card" | "plain" | "court" | "brut" | null;
   /** Bloc « ce que le lien fait et ne fait pas » (anti-hameçonnage). Affiché par défaut : un courriel d'un inconnu avec
    *  un lien ressemble à de l'hameçonnage, et c'est la première raison de ne pas cliquer. Mettre false pour l'enlever. */
   safetyNote?: boolean | null;
@@ -236,6 +238,70 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   </td></tr>
 </table>
 </body></html>`;
+
+  if (p.variant === "brut") {
+    // Version « brut » (2026-10-02), par défaut depuis. Construite après avoir lu de vrais courriels à froid qui
+    // convertissent dans ce créneau précis (« j'ai déjà construit votre truc ») : trois à cinq phrases, texte
+    // brut sans carte ni bouton ni image forcée, et une question en guise d'appel à l'action plutôt qu'une
+    // instruction — ça demande moins d'effort de répondre à une question qu'à un ordre. Comparée à « court » :
+    // pas de bloc anti-hameçonnage (l'hypothèse testée est que trop se justifier éveille le doute au lieu de
+    // l'éteindre), et le mensuel est présenté explicitement comme facultatif.
+    const prenom = signer.split(" ")[0] ?? signer;
+    const prixBrut = monthly
+      ? `Si ça vous plaît : ${dollars(p.price)} à la mise en ligne. Les ${dollars(monthly)} par mois ensuite sont à votre choix, pas obligatoires — c'est pour que je m'occupe de l'hébergement${own ? "" : ", du nom de domaine"} et de vos modifications à votre place. Si le site ne vous plaît pas, vous ne me devez rien.`
+      : `Si ça vous plaît : ${dollars(p.price)}, une seule fois, pas d'abonnement. Si le site ne vous plaît pas, vous ne me devez rien.`;
+    const adminBrut = p.adminUrl?.trim()
+      ? `Vous pourrez aussi changer ${adminExamples} vous-même, sans me rappeler, depuis un espace d'administration : ${p.adminUrl.trim()} — mot de passe ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
+      : "";
+    const modifBrut = "Et avant la mise en ligne, si quelque chose doit changer — un texte, une photo, un prix — dites-le-moi : rien n'est figé. Pour en parler, écrivez-moi ou appelez-moi, ça ne vous engage à rien.";
+    const questionBrut = "Qu'en pensez-vous ?";
+    const legalBrut = `${signer}, ${address}. Vous recevez ce courriel parce que votre adresse est publiée sur votre site ou votre fiche d'entreprise. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`;
+
+    const textBrut = [
+      greeting, "",
+      problem, "",
+      `Je vous ai construit un nouveau site, sans que vous me demandiez rien. Le regarder ne coûte rien : ${p.siteUrl}`, "",
+      prixBrut, "",
+      ...(adminBrut ? [adminBrut, ""] : []),
+      modifBrut, "",
+      questionBrut, "",
+      ...(forward ? [forward, ""] : []),
+      prenom, "",
+      signer, `Développeur web indépendant — ${issuer.city || p.city}`, `${site} · ${issuer.emailFrom} · ${phone}`, "",
+      "—", legalBrut,
+    ].join("\n");
+
+    const adminBrutHtml = p.adminUrl?.trim()
+      ? `Vous pourrez aussi changer ${esc(adminExamples)} vous-m&ecirc;me, sans me rappeler, depuis un espace d'administration : <a href="${esc(p.adminUrl.trim())}" style="color:#a9712c;text-decoration:none;border-bottom:1px solid #d9b98c">${esc(p.adminUrl.trim().replace(/^https?:\/\//, ""))}</a> — mot de passe <strong style="color:#16161a">${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration, rien n'y est enregistr&eacute;.`
+      : "";
+    const htmlBrut = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:40px 20px;background:#fbfaf8;-webkit-text-size-adjust:100%">
+<div style="max-width:540px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:16.5px;line-height:1.7;color:#232220">
+<p style="margin:0 0 20px">${esc(greeting)}</p>
+<p style="margin:0 0 20px">${esc(problem)}</p>
+<p style="margin:0 0 20px">Je vous ai construit un nouveau site, sans que vous me demandiez rien. Le regarder ne co&ucirc;te rien&nbsp;: <a href="${esc(link)}" style="color:#a9712c;text-decoration:none;border-bottom:1px solid #d9b98c">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a></p>
+<p style="margin:0 0 20px">${esc(prixBrut)}</p>
+${adminBrutHtml ? `<p style="margin:0 0 20px">${adminBrutHtml}</p>` : ""}
+<p style="margin:0 0 28px">${esc(modifBrut)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 30px"><tr>
+  <td style="padding-right:14px"><div style="width:5px;height:38px;background:#d9b98c;border-radius:3px"></div></td>
+  <td style="font-size:17px;line-height:1.5;color:#16161a">${esc(questionBrut)}</td>
+</tr></table>
+${forward ? `<p style="margin:0 0 20px">${esc(forward)}</p>` : ""}
+<p style="margin:0 0 3px;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#16161a">${esc(prenom)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 30px;border-top:1px solid #e6e1d8;padding-top:14px;width:100%"><tr>
+  <td valign="top" style="padding-right:12px">${opts.logoUrl ? `<img src="${esc(opts.logoUrl)}" width="36" height="36" alt="${esc(signer)}" style="display:block;width:36px;height:36px;border-radius:8px">` : ""}</td>
+  <td valign="top" style="font-size:14px;line-height:1.55;color:#6b6560">
+    <strong style="color:#232220">${esc(signer)}</strong> — d&eacute;veloppeur web ind&eacute;pendant, ${esc(issuer.city || p.city)}<br>
+    ${esc(phone)} &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:#6b6560;text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(site)}
+  </td>
+</tr></table>
+<p style="margin:0;color:#aba69e;font-size:11.5px;line-height:1.5">${esc(legalBrut)}</p>
+</div>
+</body></html>`;
+    return { subject, html: htmlBrut, text: textBrut };
+  }
 
   if (p.variant === "court") {
     // Version courte, d'après le skill emailing-prospects : pas de présentation de soi en tête (la signature

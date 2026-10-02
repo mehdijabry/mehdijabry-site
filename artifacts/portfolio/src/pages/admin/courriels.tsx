@@ -140,7 +140,7 @@ export default function AdminEmails() {
 
 const FOLLOWUP_DEFAULTS: FollowupInput = {
   toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 449, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
-  firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "",
+  firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "", variant: "brut",
 };
 /** Relances prêtes à partir : on charge, on vérifie, on envoie. */
 const FOLLOWUPS: Array<{ label: string; to: string; values: Partial<FollowupInput> }> = [
@@ -154,6 +154,7 @@ const FOLLOWUPS: Array<{ label: string; to: string; values: Partial<FollowupInpu
       callNote: "J'ai aussi appelé le même jour, mais le gérant était occupé au moment de mon appel, ce qui se comprend en plein service.",
       keepUntil: "vendredi 9 octobre", googleRating: "4,8", googleReviews: 425,
       bullets: "Vos menus au complet, soir, brunch et groupes, lisibles sur un téléphone, sans PDF à télécharger.\nVos horaires, brunch du samedi et du dimanche compris, affichés avant même que le client appelle.\nLa réservation en ligne, 24 heures sur 24, sans abonnement mensuel ni commission.\nLe club de vin et la boutique mis en avant, avec les dates de cet automne.\nUn espace d'administration où vous changez un plat, un prix ou une annonce vous-mêmes, en une minute.",
+      variant: "classic",
     },
   },
 ];
@@ -204,6 +205,12 @@ function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Nombre d'avis"><Input type="number" value={f.googleReviews} onChange={set("googleReviews")} /></Field>
         <Field label="Téléphone *"><Input value={f.phone} onChange={set("phone")} /></Field>
         <Field label="Objet du courriel" hint="Vide = « Entreprise — j'ai construit votre site, voici comment le voir sans risque »"><Input value={f.subject} onChange={set("subject")} /></Field>
+        <Field label="Mise en page" hint="« Brut » (recommandé depuis le 02/10) : ~120 mots, pas de bloc anti-hameçonnage, une seule question en guise d'appel à l'action. « Classic » (archive) : bloc détaillé « ce que le lien fait et ne fait pas » + liste de fonctionnalités.">
+          <select value={f.variant ?? "brut"} onChange={(e) => setF({ ...f, variant: e.target.value as "classic" | "brut" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="brut">Brut (recommandé)</option>
+            <option value="classic">Classic (archive)</option>
+          </select>
+        </Field>
         <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>
       </div>
       <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -218,7 +225,7 @@ const PROPOSAL_DEFAULTS: ProposalInput = {
   toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/maquette-v1/seaudecrabe",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
-  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court", launchOffer: true,
+  newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "brut", launchOffer: true,
   headline: "", problemText: "", ownDomain: "", extraBullets: "", adminUrl: "", adminPassword: "", subject: "", featuresText: "",
 };
 
@@ -231,7 +238,7 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
       toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/maquette-v1/lebette",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "", ownDomain: "lebette.com",
       googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
-      newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "court",
+      newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "brut",
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
       problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
@@ -303,11 +310,12 @@ function ProposalPanel({ defaultPhone }: { defaultPhone: string }) {
         <Field label="Nouveau domaine proposé" hint="Vide = pas d'option domaine"><Input value={p.newDomain} onChange={set("newDomain")} /></Field>
         <Field label="Prix du domaine ($) / années"><div className="flex gap-2"><Input type="number" value={p.newDomainPrice} onChange={set("newDomainPrice")} /><Input type="number" value={p.newDomainYears} onChange={set("newDomainYears")} /></div></Field>
         <Field label="Téléphone *"><Input value={p.phone} onChange={set("phone")} /></Field>
-        <Field label="Mise en page" hint="« Court » : le constat en première ligne, l'offre en une phrase et quatre puces au plus, la note de confiance en post-scriptum — moitié moins de mots. « Sobre » est la version longue du même courriel personnel ; « Carte » est la version design (bouton plein, encadré), plus souvent triée dans « Promotions ».">
-          <select value={p.variant} onChange={(e) => setP({ ...p, variant: e.target.value as "card" | "plain" | "court" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-            <option value="court">Court (recommandé)</option>
-            <option value="plain">Sobre (version longue)</option>
-            <option value="card">Carte design (bouton, encadré)</option>
+        <Field label="Mise en page" hint="« Brut » (recommandé depuis le 02/10) : ~140 mots, aucune carte ni bouton ni image forcée, une seule question en guise d'appel à l'action — inspiré de vrais courriels à froid qui convertissent dans ce créneau. Les trois autres sont les anciennes versions, gardées en archives : « Court » (le constat en première ligne, quatre puces au plus), « Sobre » (version longue), « Carte » (bouton plein, encadré — plus souvent triée dans « Promotions »).">
+          <select value={p.variant} onChange={(e) => setP({ ...p, variant: e.target.value as "card" | "plain" | "court" | "brut" })} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="brut">Brut (recommandé)</option>
+            <option value="court">Court (archive)</option>
+            <option value="plain">Sobre (archive, version longue)</option>
+            <option value="card">Carte design (archive, bouton, encadré)</option>
           </select>
         </Field>
         <div className="space-y-2 pt-6 text-sm">

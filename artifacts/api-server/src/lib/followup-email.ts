@@ -30,6 +30,10 @@ export type FollowupEmailInput = {
   /** « Ce que vous y trouverez », un point par ligne ; vide = menus, horaires, réservation, espace admin. */
   bullets?: string | null;
   subject?: string | null;
+  /** « classic » (par défaut avant le 02/10, gardé en archive) = bloc anti-hameçonnage détaillé + liste de ce que le
+   *  site contient ; « brut » (recommandé depuis) = même esprit que la proposition « brut » : ~120 mots, aucun bloc
+   *  anti-hameçonnage, une seule question en guise d'appel à l'action. */
+  variant?: "classic" | "brut" | null;
 };
 
 export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
@@ -79,7 +83,68 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   // proposition initiale : noyée dans un paragraphe, personne ne la lit avant de décider de cliquer ou non.
   const risque = "Vous ne risquez rien : si le site ne vous plaît pas, je le retire, sans relance, et vous n'aurez rien payé.";
 
-  // ── texte brut ──
+  if (p.variant === "brut") {
+    // Même esprit que la proposition « brut » (2026-10-02) : pas de bloc anti-hameçonnage (l'hypothèse testée est
+    // que trop se justifier éveille le doute au lieu de l'éteindre), pas de liste de fonctionnalités — la relance
+    // s'appuie sur ce que le premier courriel a déjà montré — et une question en guise d'appel à l'action.
+    const prenom = signer.split(" ")[0] ?? signer;
+    const rappel = `Je vous ai écrit ${when} : j'ai construit un nouveau site pour ${p.business}, sans que vous me demandiez rien.${call}`;
+    const keepUntilSentence = p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : "";
+    const prixBrut = monthly
+      ? `Depuis mon premier message, le tarif de lancement a changé : ${dollars(p.price)} à la mise en ligne. Les ${dollars(monthly)} par mois ensuite restent à votre choix, pas obligatoires — c'est pour que je m'occupe de l'hébergement${own ? "" : ", du nom de domaine"} et de vos modifications à votre place. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`
+      : `Depuis mon premier message, le tarif de lancement a changé : ${dollars(p.price)}, une seule fois, pas d'abonnement. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`;
+    const adminBrut = p.adminUrl?.trim()
+      ? `Vous pourrez aussi changer un plat, un prix ou vos horaires vous-même, sans me rappeler, depuis un espace d'administration : ${p.adminUrl.trim()} — mot de passe ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
+      : "";
+    const modifBrut = "Et avant la mise en ligne, si quelque chose doit changer — un texte, une photo, un prix — dites-le-moi : rien n'est figé. Pour en parler, écrivez-moi ou appelez-moi, ça ne vous engage à rien.";
+    const questionBrut = "Qu'en pensez-vous ?";
+    const legalBrut = `${signer}, ${address}. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`;
+
+    const textBrut = [
+      greeting, "",
+      rappel, "",
+      `Vous pouvez le voir ici, ça ne coûte rien : ${p.siteUrl}`, "",
+      prixBrut, "",
+      ...(adminBrut ? [adminBrut, ""] : []),
+      modifBrut, "",
+      questionBrut, "",
+      prenom, "",
+      signer, `Développeur web indépendant — ${city}`, `${site} · ${issuer.emailFrom} · ${phone}`, "",
+      "—", legalBrut,
+    ].join("\n");
+
+    const adminBrutHtml = p.adminUrl?.trim()
+      ? `Vous pourrez aussi changer un plat, un prix ou vos horaires vous-m&ecirc;me, sans me rappeler, depuis un espace d'administration : <a href="${esc(p.adminUrl.trim())}" style="color:#a9712c;text-decoration:none;border-bottom:1px solid #d9b98c">${esc(p.adminUrl.trim().replace(/^https?:\/\//, ""))}</a> — mot de passe <strong style="color:#16161a">${esc(p.adminPassword?.trim() || "fourni sur demande")}</strong>. C'est une d&eacute;monstration, rien n'y est enregistr&eacute;.`
+      : "";
+    const htmlBrut = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
+<body style="margin:0;padding:40px 20px;background:#fbfaf8;-webkit-text-size-adjust:100%">
+<div style="max-width:540px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:16.5px;line-height:1.7;color:#232220">
+<p style="margin:0 0 20px">${esc(greeting)}</p>
+<p style="margin:0 0 20px">${esc(rappel)}</p>
+<p style="margin:0 0 20px">Vous pouvez le voir ici, &ccedil;a ne co&ucirc;te rien&nbsp;: <a href="${esc(link)}" style="color:#a9712c;text-decoration:none;border-bottom:1px solid #d9b98c">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a></p>
+<p style="margin:0 0 20px">${esc(prixBrut)}</p>
+${adminBrutHtml ? `<p style="margin:0 0 20px">${adminBrutHtml}</p>` : ""}
+<p style="margin:0 0 28px">${esc(modifBrut)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 30px"><tr>
+  <td style="padding-right:14px"><div style="width:5px;height:38px;background:#d9b98c;border-radius:3px"></div></td>
+  <td style="font-size:17px;line-height:1.5;color:#16161a">${esc(questionBrut)}</td>
+</tr></table>
+<p style="margin:0 0 3px;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#16161a">${esc(prenom)}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 30px;border-top:1px solid #e6e1d8;padding-top:14px;width:100%"><tr>
+  <td valign="top" style="padding-right:12px">${opts.logoUrl ? `<img src="${esc(opts.logoUrl)}" width="36" height="36" alt="${esc(signer)}" style="display:block;width:36px;height:36px;border-radius:8px">` : ""}</td>
+  <td valign="top" style="font-size:14px;line-height:1.55;color:#6b6560">
+    <strong style="color:#232220">${esc(signer)}</strong> — d&eacute;veloppeur web ind&eacute;pendant, ${esc(city)}<br>
+    ${esc(phone)} &middot; <a href="mailto:${esc(issuer.emailFrom)}" style="color:#6b6560;text-decoration:none">${esc(issuer.emailFrom)}</a> &middot; ${esc(site)}
+  </td>
+</tr></table>
+<p style="margin:0;color:#aba69e;font-size:11.5px;line-height:1.5">${esc(legalBrut)}</p>
+</div>
+</body></html>`;
+    return { subject, html: htmlBrut, text: textBrut };
+  }
+
+  // ── texte (variante « classic ») ──
   const text = [
     greeting, "",
     `Je vous ai écrit ${when} : sans que vous me demandiez rien, j'ai construit un nouveau site pour ${p.business}.${call} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`, "",
