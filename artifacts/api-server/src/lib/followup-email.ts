@@ -70,7 +70,13 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
     ? `Pour l'essayer : ${p.adminUrl.trim()} — mot de passe : ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
     : "";
   const monthly = p.monthlyPrice && p.monthlyPrice > 0 ? p.monthlyPrice : null;
-  const money = `Regarder ne coûte rien et ne vous engage à rien. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %. S'il ne vous plaît pas : je le retire, sans relance, et on en reste là.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  // Élément nouveau par rapport au premier courriel (2026-10-02) : une relance qui répète la même offre
+  // n'ajoute aucune raison de regarder à nouveau. Le tarif de lancement — le temps de signer les tout
+  // premiers clients — est cette raison.
+  const money = `Nouveau depuis mon dernier message : une offre de lancement, le temps de signer mes tout premiers clients. Regarder ne coûte toujours rien et ne vous engage à rien. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  // Phrase de confiance mise en évidence tôt et seule sur sa ligne (2026-10-02) — même raisonnement que la
+  // proposition initiale : noyée dans un paragraphe, personne ne la lit avant de décider de cliquer ou non.
+  const risque = "Vous ne risquez rien : si le site ne vous plaît pas, je le retire, sans relance, et vous n'aurez rien payé.";
 
   // ── texte brut ──
   const text = [
@@ -80,7 +86,8 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
     `Le site : ${p.siteUrl}`, "",
     "Ce que vous y trouverez :", ...found.map((b) => `- ${b}`), admin ? admin : "", proof ? proof : "",
     "", money, "",
-    "Un simple « oui, on regarde » ou « non merci » en réponse me suffit.", "",
+    risque, "",
+    "Une seule chose à faire pour avancer : répondez « oui » à ce courriel.", "",
     "Au plaisir,", signer, `Développeur web indépendant — ${city}`, `${site} · ${issuer.emailFrom} · ${phone}`, "",
     `${signer}, ${address}. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`,
   ].filter((l) => l !== null).join("\n");
@@ -117,8 +124,9 @@ ${para("<strong>Ce que vous y trouverez :</strong>")}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${found.map((b) => li(esc(b))).join("")}</ul>
 ${admin ? para(esc(admin).replace(esc(p.adminUrl!.trim()), `<a href="${esc(p.adminUrl!.trim())}" style="color:${amber};font-weight:700">${esc(p.adminUrl!.trim())}</a>`)) : ""}
 ${proof ? para(esc(proof)) : ""}
-${para(bold(money, "Regarder ne coûte rien et ne vous engage à rien."))}
-${para("Un simple « oui, on regarde » ou « non merci » en réponse me suffit.")}
+${para(bold(money, "Nouveau depuis mon dernier message : une offre de lancement, le temps de signer mes tout premiers clients."))}
+<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};font-weight:700">${esc(risque)}</p>
+${para("Une seule chose à faire pour avancer : répondez « oui » à ce courriel.")}
 <div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml}</div>
 <p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc(address)}. Pour ne plus recevoir de message de ma part, répondez simplement «&nbsp;STOP&nbsp;».</p>
 </div>
