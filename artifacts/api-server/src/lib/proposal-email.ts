@@ -304,7 +304,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
 <body style="margin:0;padding:24px 16px;background:#ffffff;-webkit-text-size-adjust:100%">
 <div style="max-width:600px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif">
 ${para(esc(greeting))}
-${para(esc(problem))}
+<p style="margin:0 0 18px;font-size:19px;line-height:1.4;color:${ink};font-weight:700">${esc(problem)}</p>
 ${para(`${esc(construit).replace("j'ai construit une première version de votre site", "<strong>j'ai construit une première version de votre site</strong>")} <a href="${esc(link)}" style="color:${amber}">${esc(p.siteUrl.replace(/^https?:\/\//, ""))}</a>`)}
 ${p.previewImageUrl?.trim() ? `<p style="margin:0 0 14px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aper&ccedil;u du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p>` : ""}
 <p style="margin:0 0 22px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir votre site &rarr;</a></p>
