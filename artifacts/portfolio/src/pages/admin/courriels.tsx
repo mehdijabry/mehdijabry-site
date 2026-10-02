@@ -211,6 +211,7 @@ function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
             <option value="classic">Classic (archive)</option>
           </select>
         </Field>
+        <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={f.launchPriceUpdated ?? true} onChange={(e) => setF({ ...f, launchPriceUpdated: e.target.checked })} /> Le prix a changé depuis la proposition initiale (variante « brut ») — décocher pour un dossier dont le prix annoncé reste le même (ex. ancien tarif à 600 $)</label>
         <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} /> Envoi de test (objet préfixé [TEST], exclu des statistiques)</label>
       </div>
       <div className="flex flex-wrap items-center gap-2 mt-4">

@@ -61,6 +61,9 @@ export type FollowupInput = {
   googleRating: string; googleReviews: number | ""; bullets: string; subject: string;
   /** « brut » (recommandé depuis le 02/10) = ~120 mots, pas de bloc anti-hameçonnage ; « classic » = archive. */
   variant?: "classic" | "brut";
+  /** Variante « brut » seulement. false = le prix n'a pas changé depuis la proposition déjà envoyée (ex. anciens
+   *  dossiers à 600 $) : la relance ne prétend pas à une mise à jour tarifaire qui n'a pas eu lieu. */
+  launchPriceUpdated?: boolean;
 };
 
 export const PROSPECT_STATUSES = ["nouveau", "maquette", "contacté", "relance", "négociation", "gagné", "perdu"] as const;

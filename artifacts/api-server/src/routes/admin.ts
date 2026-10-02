@@ -422,6 +422,7 @@ const FollowupFields = z.object({
   bullets: z.string().max(1200).optional().nullable(),
   subject: z.string().max(150).optional().nullable(),
   variant: z.enum(["classic", "brut"]).optional().nullable(),
+  launchPriceUpdated: z.preprocess((v) => (v === false || v === "false" || v === "0" ? false : v === undefined ? undefined : true), z.boolean()).optional().nullable(),
 });
 const FollowupSend = FollowupFields.extend({ to: z.email(), isTest: z.boolean().optional(), bcc: z.email().optional().nullable().or(z.literal("")) });
 

@@ -34,6 +34,11 @@ export type FollowupEmailInput = {
    *  site contient ; « brut » (recommandé depuis) = même esprit que la proposition « brut » : ~120 mots, aucun bloc
    *  anti-hameçonnage, une seule question en guise d'appel à l'action. */
   variant?: "classic" | "brut" | null;
+  /** Variante « brut » seulement. true (défaut) = « price » diffère de ce que la proposition initiale annonçait,
+   *  la relance le présente comme la mise à jour du tarif de lancement. false = « price » reprend exactement le
+   *  montant déjà annoncé (ex. anciens dossiers à 600 $, avant la refonte tarifaire du 02/10) : annoncer un
+   *  « changement » qui n'en est pas un serait un fait inventé — voir le skill emailing-prospects, § 5. */
+  launchPriceUpdated?: boolean | null;
 };
 
 export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
@@ -90,9 +95,10 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
     const prenom = signer.split(" ")[0] ?? signer;
     const rappel = `Je vous ai écrit ${when} : j'ai construit un nouveau site pour ${p.business}, sans que vous me demandiez rien.${call}`;
     const keepUntilSentence = p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : "";
+    const prixPrefixe = p.launchPriceUpdated === false ? "Mon offre reste la même : " : "Depuis mon premier message, le tarif de lancement a changé : ";
     const prixBrut = monthly
-      ? `Depuis mon premier message, le tarif de lancement a changé : ${dollars(p.price)} à la mise en ligne. Les ${dollars(monthly)} par mois ensuite restent à votre choix, pas obligatoires — c'est pour que je m'occupe de l'hébergement${own ? "" : ", du nom de domaine"} et de vos modifications à votre place. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`
-      : `Depuis mon premier message, le tarif de lancement a changé : ${dollars(p.price)}, une seule fois, pas d'abonnement. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`;
+      ? `${prixPrefixe}${dollars(p.price)} à la mise en ligne. Les ${dollars(monthly)} par mois ensuite restent à votre choix, pas obligatoires — c'est pour que je m'occupe de l'hébergement${own ? "" : ", du nom de domaine"} et de vos modifications à votre place. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`
+      : `${prixPrefixe}${dollars(p.price)}, une seule fois, pas d'abonnement. Si le site ne vous plaît pas, vous ne me devez rien.${keepUntilSentence}`;
     const adminBrut = p.adminUrl?.trim()
       ? `Vous pourrez aussi changer un plat, un prix ou vos horaires vous-même, sans me rappeler, depuis un espace d'administration : ${p.adminUrl.trim()} — mot de passe ${p.adminPassword?.trim() || "fourni sur demande"}. C'est une démonstration, rien n'y est enregistré.`
       : "";
