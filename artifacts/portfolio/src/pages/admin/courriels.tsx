@@ -147,9 +147,9 @@ const FOLLOWUPS: Array<{ label: string; to: string; values: Partial<FollowupInpu
   {
     label: "Le Bette", to: "info@lebette.com",
     values: {
-      toName: "Jo-Annie et Hubert", business: "Le Bette", siteUrl: "https://mehdijabry.dev/voir/lebette",
+      toName: "Jo-Annie et Hubert", business: "Le Bette", siteUrl: "https://mehdijabry.dev/maquette-v1/lebette",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", ownDomain: "lebette.com", price: 600,
-      adminUrl: "https://mehdijabry.dev/voir/lebette/admin", adminPassword: "bette-demo",
+      adminUrl: "https://mehdijabry.dev/maquette-v1/lebette/admin", adminPassword: "bette-demo",
       firstSentLabel: "jeudi dernier",
       callNote: "J'ai aussi appelé le même jour, mais le gérant était occupé au moment de mon appel, ce qui se comprend en plein service.",
       keepUntil: "vendredi 9 octobre", googleRating: "4,8", googleReviews: 425,
@@ -215,7 +215,7 @@ function FollowupPanel({ defaultPhone }: { defaultPhone: string }) {
 }
 
 const PROPOSAL_DEFAULTS: ProposalInput = {
-  toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/voir/seaudecrabe",
+  toName: "", business: "Seau de Crabe Trois-Rivières", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/maquette-v1/seaudecrabe",
   previewImageUrl: "https://seaudecrabe-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "seaudecrabe.com", googleRating: "4,7",
   googleReviews: 324, searchPhrase: "seafood boil Trois-Rivières", price: 600, newDomain: "seau2crab.com", newDomainPrice: 100,
   newDomainYears: 3, deliveryHours: 48, forwardToFranchisee: false, phone: "", variant: "court", launchOffer: true,
@@ -228,14 +228,14 @@ const PROSPECTS: Array<{ label: string; values: Partial<ProposalInput> }> = [
   {
     label: "Le Bette",
     values: {
-      toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/voir/lebette",
+      toName: "Jo-Annie et Hubert", business: "Le Bette", city: "Trois-Rivières", siteUrl: "https://mehdijabry.dev/maquette-v1/lebette",
       previewImageUrl: "https://lebette-demo.pages.dev/img/apercu-courriel.jpg", brokenDomain: "", ownDomain: "lebette.com",
       googleRating: "4,8", googleReviews: 425, searchPhrase: "restaurant tapas Trois-Rivières", price: 600,
       newDomain: "", newDomainPrice: "", newDomainYears: "", deliveryHours: 48, forwardToFranchisee: false, variant: "court",
       headline: "Vos clients cherchent votre menu et vos horaires — votre site ne les montre pas.",
       problemText: "En regardant votre site après votre fiche Google, j'ai remarqué qu'il ne montre ni vos horaires, ni votre menu autrement qu'en PDF, ni vos photos — et qu'un texte de remplissage (« à remplacer ») y est encore visible. Avec 425 avis et une note de 4,8, votre cuisine mérite une vitrine à sa hauteur.",
       extraBullets: "Un espace d'administration simple : vous changez un plat, un prix, vos horaires ou annoncez une soirée vous-même, depuis votre téléphone\nLa réservation en ligne intégrée, confirmée à l'instant, sans frais par couvert — et vos clients gardent Restomontreal s'ils y tiennent",
-      adminUrl: "https://mehdijabry.dev/voir/lebette/admin", adminPassword: "bette-demo",
+      adminUrl: "https://mehdijabry.dev/maquette-v1/lebette/admin", adminPassword: "bette-demo",
     },
   },
 ];

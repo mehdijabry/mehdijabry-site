@@ -145,23 +145,23 @@ export const shortDate = (d: string | null | undefined): string =>
   d ? new Intl.DateTimeFormat("fr-CA", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(d.length === 10 ? d + "T12:00:00" : d)) : "—";
 
 /**
- * "https://lebette-demo.pages.dev" → "https://mehdijabry.dev/voir/lebette" (2026-10-02).
+ * "https://lebette-demo.pages.dev" → "https://mehdijabry.dev/maquette-v1/lebette" (2026-10-02).
  * Un lien *.pages.dev envoyé par un inconnu ressemble à un lien d'hameçonnage aux yeux du prospect — c'est la
- * raison la plus probable d'un courriel ouvert mais jamais cliqué. mehdijabry.dev/voir/<slug> redirige vers la
+ * raison la plus probable d'un courriel ouvert mais jamais cliqué. mehdijabry.dev/maquette-v1/<slug> redirige vers la
  * même maquette (voir api-server/src/lib/demo-redirect.ts) mais affiche un domaine que le prospect reconnaît.
  * Ne touche pas aux URL qui ne suivent pas ce format (domaine propre du client, etc.) : retourne tel quel.
  */
 export const trustedDemoUrl = (rawUrl: string | null | undefined): string => {
   const u = (rawUrl || "").trim();
   const m = u.match(/^https?:\/\/([a-z0-9-]+)-demo\.pages\.dev\/?$/i);
-  return m ? `https://mehdijabry.dev/voir/${m[1].toLowerCase()}` : u;
+  return m ? `https://mehdijabry.dev/maquette-v1/${m[1].toLowerCase()}` : u;
 };
 
 /** Même raisonnement que trustedDemoUrl, pour le lien vers l'espace d'administration de démonstration. */
 export const trustedAdminUrl = (rawUrl: string | null | undefined): string => {
   const u = (rawUrl || "").trim();
   const m = u.match(/^https?:\/\/([a-z0-9-]+)-demo\.pages\.dev\/admin\/?$/i);
-  return m ? `https://mehdijabry.dev/voir/${m[1].toLowerCase()}/admin` : u;
+  return m ? `https://mehdijabry.dev/maquette-v1/${m[1].toLowerCase()}/admin` : u;
 };
 
 export const todayIso = (): string => new Date().toISOString().slice(0, 10);

@@ -54,11 +54,11 @@ app.get("/f/:token", publicInvoiceHandler);
 app.get("/o/:token.gif", trackOpenHandler);
 app.get("/go/:token", trackClickHandler);
 app.get("/api/track/visit.gif", trackVisitHandler);
-// Lien de maquette montré au prospect : mehdijabry.dev/voir/<slug> plutôt qu'un sous-domaine *.pages.dev
+// Lien de maquette montré au prospect : mehdijabry.dev/maquette-v1/<slug> plutôt qu'un sous-domaine *.pages.dev
 // (voir lib/demo-redirect.ts — la raison tient en une phrase : un inconnu qui envoie un lien vers un
 // hébergeur gratuit inconnu, c'est le profil même d'un lien de phishing aux yeux d'un destinataire prudent).
-app.get("/voir/:slug/admin", voirAdminHandler);
-app.get("/voir/:slug", voirHandler);
+app.get("/maquette-v1/:slug/admin", voirAdminHandler);
+app.get("/maquette-v1/:slug", voirHandler);
 
 // ───── Static SPA serving (production only) ─────
 // In production (Render), the build process produces:

@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 /**
- * « /voir/:slug » (2026-10-02) — un lien de maquette montré au prospect doit pointer vers mehdijabry.dev,
+ * « /maquette-v1/:slug » (2026-10-02) — un lien de maquette montré au prospect doit pointer vers mehdijabry.dev,
  * pas vers un sous-domaine *.pages.dev : les guides anti-hameçonnage classent justement ces sous-domaines
  * d'hébergement gratuit comme un signal de méfiance pour un destinataire qui ne nous connaît pas encore.
  * Cette route fait la redirection ; elle est enregistrée avant le SPA catch-all dans app.ts.
@@ -76,7 +76,7 @@ export function voirHandler(req: Request, res: Response): void {
   respond(req, res, DEMOS[slug], "");
 }
 
-/** « /voir/:slug/admin » — même raisonnement, pour le lien vers l'espace d'administration de démonstration. */
+/** « /maquette-v1/:slug/admin » — même raisonnement, pour le lien vers l'espace d'administration de démonstration. */
 export function voirAdminHandler(req: Request, res: Response): void {
   const slug = String(req.params["slug"] ?? "").toLowerCase().trim();
   respond(req, res, DEMOS[slug], "/admin/");
