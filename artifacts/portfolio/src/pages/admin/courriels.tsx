@@ -139,7 +139,7 @@ export default function AdminEmails() {
 }
 
 const FOLLOWUP_DEFAULTS: FollowupInput = {
-  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 349, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
+  toName: "", business: "", siteUrl: "", previewImageUrl: "", ownDomain: "", price: 199, monthlyPrice: 45, phone: "", adminUrl: "", adminPassword: "",
   firstSentLabel: "la semaine dernière", callNote: "", keepUntil: "", googleRating: "", googleReviews: "", bullets: "", subject: "",
 };
 /** Relances prêtes à partir : on charge, on vérifie, on envoie. */
