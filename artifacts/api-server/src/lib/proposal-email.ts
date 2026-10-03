@@ -139,7 +139,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
   // Un lien reçu d'un inconnu est d'abord suspect : on dit noir sur blanc ce que le lien fait, ce qu'il ne fait pas,
   // et comment s'en passer (taper l'adresse soi-même, appeler avant d'ouvrir).
   const host = p.siteUrl.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
-  const address = [issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
+  const address = [issuer.addressLine1, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
   const showSafety = p.safetyNote !== false;
   const safety = [
     `Il ouvre une simple page web, à l'adresse ${host}, hébergée chez Cloudflare, l'un des plus grands hébergeurs au monde.`,
@@ -176,7 +176,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
     `${site} · ${issuer.emailFrom} · ${phone}`,
     "",
     "—",
-    `${signer}, ${[issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ")}. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`,
+    `${signer}, ${[issuer.addressLine1, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ")}. Pour ne plus recevoir de message de ma part, répondez simplement « STOP ».`,
   ].join("\n");
 
   // ── HTML ──
@@ -232,7 +232,7 @@ export function renderProposalEmail(p: ProposalEmailInput, issuer: IssuerSetting
         </table>
       </td></tr>
       <tr><td style="padding:18px 8px 0;font-family:Helvetica Neue,Arial,sans-serif;font-size:12px;line-height:1.5;color:${muted}">
-        ${esc(signer)}, ${esc([issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Vous recevez ce courriel parce que votre adresse est publi&eacute;e sur votre site ou votre fiche d'entreprise. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».
+        ${esc(signer)}, ${esc([issuer.addressLine1, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Vous recevez ce courriel parce que votre adresse est publi&eacute;e sur votre site ou votre fiche d'entreprise. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».
       </td></tr>
     </table>
   </td></tr>
@@ -416,7 +416,7 @@ ${para(`<strong>L'offre — ${esc(offreTitre)}&nbsp;:</strong>`)}${monthly ? par
 ${para(`Je suis &agrave; ${esc(issuer.city || p.city)} — je peux passer vous le montrer sur place, quand &ccedil;a vous arrange. R&eacute;pondez &agrave; ce courriel ou appelez-moi au <a href="tel:${esc(phone.replace(/[^\d+]/g, ""))}" style="color:${ink};font-weight:700;text-decoration:none">${esc(phone)}</a>.`)}
 ${forward ? para(esc(forward)) : ""}
 <div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml(ink, muted, amber)}</div>
-<p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc([issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».</p>
+<p style="margin:0;font-size:12px;line-height:1.5;color:${muted}">${esc(signer)}, ${esc([issuer.addressLine1, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", "))}. Pour ne plus recevoir de message de ma part, r&eacute;pondez simplement «&nbsp;STOP&nbsp;».</p>
 </div>
 </body></html>`;
     return { subject, html: plainHtml, text };

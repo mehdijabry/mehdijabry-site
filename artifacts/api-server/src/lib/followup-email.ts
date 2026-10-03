@@ -50,7 +50,7 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const site = (issuer.website || "mehdijabry.dev").replace(/^https?:\/\//i, "").replace(/\/+$/, "");
   const phone = formatPhone(p.phone);
   const city = issuer.city || "Trois-Rivières";
-  const address = [issuer.addressLine1, issuer.addressLine2, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
+  const address = [issuer.addressLine1, `${issuer.city} (${issuer.province})`].filter(Boolean).join(", ");
   const when = p.firstSentLabel?.trim() || "il y a quelques jours";
   const call = p.callNote?.trim() ? ` ${p.callNote.trim()}` : "";
   const own = p.ownDomain?.trim();
