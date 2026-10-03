@@ -51,6 +51,39 @@ function ogHtml(opts: { title: string; description: string; image: string; url: 
 </head><body><p><a href="${esc(opts.redirectTo)}">${esc(opts.redirectTo)}</a></p></body></html>`;
 }
 
+/**
+ * Rend absolue (vers `origin`) chaque référence relative href/src d'un document HTML — feuille de style,
+ * scripts, images, favicon, et le lien « /admin » du pied de page. Les URL déjà absolues (http/https),
+ * les ancres (#…) et mailto:/tel: ne sont pas touchées. Un seul passage regex : pas de dépendance à un
+ * analyseur HTML pour un besoin aussi ciblé (ces gabarits n'ont que ce genre d'attributs à réécrire).
+ */
+function absolutize(html: string, origin: string): string {
+  return html.replace(/((?:href|src)=")(?!https?:|\/\/|#|mailto:|tel:)([^"]*)(")/g, (_m, pre: string, path: string, post: string) => {
+    const abs = path.startsWith("/") ? `${origin}${path}` : `${origin}/${path}`;
+    return `${pre}${abs}${post}`;
+  });
+}
+
+/**
+ * Pour une vraie personne, on PROXIE le contenu de la maquette plutôt que de rediriger : l'adresse du
+ * navigateur doit rester mehdijabry.dev/maquette-v1/<slug> (pas le sous-domaine *.pages.dev) — un lien de
+ * maquette montré à un prospect ne doit jamais faire quitter notre propre domaine. Les ressources
+ * (style.css, app.js, images) restent chargées depuis le sous-domaine *.pages.dev — un chargement de
+ * ressource ne change pas l'adresse affichée, seule une navigation le ferait. Si la maquette ne répond
+ * pas, on bascule sur l'ancienne redirection plutôt que d'afficher une page cassée.
+ */
+async function proxy(req: Request, res: Response, entry: { target: string; title: string }, suffix: string): Promise<void> {
+  const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  const upstream = `${entry.target}${suffix}${qs}`;
+  try {
+    const r = await fetch(upstream, { headers: { "user-agent": String(req.headers["user-agent"] ?? "") } });
+    const html = await r.text();
+    res.status(r.status).set("cache-control", "public, max-age=60").type("html").send(absolutize(html, entry.target));
+  } catch {
+    res.redirect(302, upstream);
+  }
+}
+
 function respond(req: Request, res: Response, entry: { target: string; title: string } | undefined, suffix: string): void {
   if (!entry) {
     res.redirect(302, "/");
@@ -70,7 +103,7 @@ function respond(req: Request, res: Response, entry: { target: string; title: st
     }));
     return;
   }
-  res.redirect(302, redirectTo);
+  void proxy(req, res, entry, suffix);
 }
 
 export function voirHandler(req: Request, res: Response): void {
