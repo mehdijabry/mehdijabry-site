@@ -120,6 +120,7 @@ export const api = {
   deleteInvoice: (id: number) => adminFetch<{ ok: true }>(`/invoices/${id}`, { method: "DELETE" }),
   sendInvoice: (id: number, body: { to?: string; message?: string }) => adminFetch<{ ok: true; invoice: Invoice }>(`/invoices/${id}/send`, { method: "POST", body: JSON.stringify(body) }),
   emails: () => adminFetch<SentEmail[]>("/emails"),
+  deleteEmail: (id: number) => adminFetch<{ ok: true }>(`/emails/${id}`, { method: "DELETE" }),
   emailEvents: (id: number) => adminFetch<TrackingEvent[]>(`/emails/${id}/events`),
   siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
   prospects: () => adminFetch<Prospect[]>("/prospects"),

@@ -298,6 +298,15 @@ router.get("/emails", async (_req, res) => {
   const t = await emailTracking(rows.map((r) => r.id));
   res.json(rows.map((r) => ({ ...r, tracking: t.get(r.id) ?? { opens: 0, clicks: 0, visits: 0, firstOpenedAt: null, firstClickedAt: null, lastActivityAt: null } })));
 });
+// Retire un envoi de l'historique (erreur, test égaré) — efface aussi ses événements de suivi associés.
+router.delete("/emails/:id", async (req, res) => {
+  const id = Number(req.params["id"]);
+  const [row] = await db.select({ id: sentEmailsTable.id }).from(sentEmailsTable).where(eq(sentEmailsTable.id, id)).limit(1);
+  if (!row) { res.status(404).json({ error: "Courriel introuvable" }); return; }
+  await db.delete(trackingEventsTable).where(eq(trackingEventsTable.emailId, id));
+  await db.delete(sentEmailsTable).where(eq(sentEmailsTable.id, id));
+  res.json({ ok: true });
+});
 // Aperçu d'un courriel tel que le client l'a reçu. Le pixel de suivi est retiré et les liens suivis pointent
 // directement vers la destination : regarder son propre envoi ne doit pas compter comme une ouverture ou un clic.
 router.get("/emails/:id/html", async (req, res) => {

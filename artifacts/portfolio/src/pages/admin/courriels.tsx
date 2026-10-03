@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { api, shortDate, trustedDemoUrl, trustedAdminUrl, type ProposalInput, type FollowupInput } from "@/lib/admin-api";
+import { api, shortDate, trustedDemoUrl, trustedAdminUrl, type ProposalInput, type FollowupInput, type SentEmail, type TrackingEvent } from "@/lib/admin-api";
 
 const TEMPLATES: Array<{ key: string; label: string; subject: string; text: string }> = [
   {
@@ -63,9 +63,16 @@ export default function AdminEmails() {
   const [vars, setVars] = useState({ entreprise: "", lien: "" });
   const [openEvents, setOpenEvents] = useState<number | null>(null);
   const events = useQuery({ queryKey: ["admin", "email-events", openEvents], queryFn: () => api.emailEvents(openEvents!), enabled: openEvents !== null });
+  const deleteEmail = useMutation({
+    mutationFn: (id: number) => api.deleteEmail(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "emails"] }); toast({ title: "Courriel retiré de l'historique" }); },
+    onError: (e) => toast({ title: "Suppression impossible", description: String((e as Error).message), variant: "destructive" }),
+  });
 
   const fill = (s: string) => s.replace(/\{entreprise\}/g, vars.entreprise || "{entreprise}").replace(/\{lien\}/g, vars.lien || "{lien}");
   const ready = to && subject && text && !/\{(entreprise|lien)\}/.test(fill(subject) + fill(text));
+  const realEmails = (history.data ?? []).filter((m) => !m.isTest);
+  const testEmails = (history.data ?? []).filter((m) => m.isTest);
 
   const send = useMutation({
     mutationFn: () => api.sendEmail({ to, toName: toName || null, subject: fill(subject), text: fill(text) }),
@@ -80,33 +87,27 @@ export default function AdminEmails() {
           {history.isLoading ? <p className="p-5 text-sm text-muted-foreground">Chargement…</p> : history.isError ? <ErrorNote error={history.error} onRetry={() => history.refetch()} className="m-4" /> : (history.data ?? []).length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">Aucun courriel envoyé pour l'instant.</p>
           ) : (
-            <ul className="divide-y divide-border/60 max-h-[70vh] overflow-y-auto">
-              {(history.data ?? []).map((m) => (
-                <li key={m.id} className="p-3 text-sm">
-                  <div className="flex justify-between gap-2">
-                    <span className="font-medium truncate">{m.toName || m.toEmail}</span>
-                    <span className={`text-xs shrink-0 ${m.status === "envoyé" ? "text-emerald-600" : "text-destructive"}`}>{m.status}</span>
-                  </div>
-                  <div className="text-muted-foreground truncate">{m.subject}</div>
-                  <div className="text-xs text-muted-foreground">{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""} · <a href={`/api/admin/emails/${m.id}/html`} target="_blank" rel="noopener" className="text-primary hover:underline">Voir le courriel ↗</a></div>
-                  {m.status === "envoyé" && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)} — indicatif : certaines messageries n'affichent pas les images`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground" title="Aucune ouverture humaine détectée (les préchargements automatiques sont ignorés)">Pas encore ouvert</span>}
-                      {m.tracking.clicks > 0 && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium" title={`Premier clic ${shortDate(m.tracking.firstClickedAt!)}`}>Cliqué ×{m.tracking.clicks}</span>}
-                      {m.tracking.visits > 0 && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">Maquette visitée ×{m.tracking.visits}</span>}
-                      {(m.tracking.opens > 0 || m.tracking.clicks > 0 || m.tracking.visits > 0) && <button type="button" onClick={() => setOpenEvents(openEvents === m.id ? null : m.id)} className="text-[11px] text-primary hover:underline">{openEvents === m.id ? "masquer le détail" : "détail"}</button>}
-                    </div>
-                  )}
-                  {openEvents === m.id && (
-                    <ul className="mt-2 space-y-1 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
-                      {events.isLoading ? <li>Chargement…</li> : (events.data ?? []).length === 0 ? <li>Aucun événement.</li> : (events.data ?? []).map((e) => (
-                        <li key={e.id}>{new Date(e.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {e.kind === "open" ? "Ouverture" : e.kind === "click" ? "Clic" : `Visite ${e.path ?? ""}`} · {e.origin}{e.visitor ? ` · visiteur ${e.visitor}` : ""}{e.isBot ? " · robot (non compté)" : e.prefetch ? " · préchargement automatique par la messagerie (non compté)" : ""}</li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              {realEmails.length === 0 ? (
+                <p className="p-6 text-sm text-muted-foreground">Aucun envoi réel pour l'instant.</p>
+              ) : (
+                <ul className="divide-y divide-border/60 max-h-[70vh] overflow-y-auto">
+                  {realEmails.map((m) => (
+                    <EmailRow key={m.id} m={m} openEvents={openEvents} setOpenEvents={setOpenEvents} eventsLoading={events.isLoading} eventsData={events.data} onDelete={() => deleteEmail.mutate(m.id)} deleting={deleteEmail.isPending && deleteEmail.variables === m.id} />
+                  ))}
+                </ul>
+              )}
+              {testEmails.length > 0 && (
+                <details className="border-t border-border/60">
+                  <summary className="cursor-pointer select-none p-3 text-sm font-medium text-muted-foreground hover:text-foreground">Tests ({testEmails.length})</summary>
+                  <ul className="divide-y divide-border/60 max-h-[70vh] overflow-y-auto border-t border-border/60">
+                    {testEmails.map((m) => (
+                      <EmailRow key={m.id} m={m} openEvents={openEvents} setOpenEvents={setOpenEvents} eventsLoading={events.isLoading} eventsData={events.data} onDelete={() => deleteEmail.mutate(m.id)} deleting={deleteEmail.isPending && deleteEmail.variables === m.id} />
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </>
           )}
         </Panel>
         <FollowupPanel defaultPhone={settings.data?.phone || "438 525-7119"} />
@@ -135,6 +136,42 @@ export default function AdminEmails() {
         </Panel>
       </div>
     </AdminShell>
+  );
+}
+
+/** Une ligne de l'historique — utilisée pour la pile des envois réels comme pour celle des tests. */
+function EmailRow({ m, openEvents, setOpenEvents, eventsLoading, eventsData, onDelete, deleting }: {
+  m: SentEmail; openEvents: number | null; setOpenEvents: (id: number | null) => void;
+  eventsLoading: boolean; eventsData: TrackingEvent[] | undefined; onDelete: () => void; deleting: boolean;
+}) {
+  return (
+    <li className="p-3 text-sm">
+      <div className="flex justify-between gap-2">
+        <span className="font-medium truncate">{m.toName || m.toEmail}{m.isTest && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground align-middle">Test</span>}</span>
+        <span className={`text-xs shrink-0 ${m.status === "envoyé" ? "text-emerald-600" : "text-destructive"}`}>{m.status}</span>
+      </div>
+      <div className="text-muted-foreground truncate">{m.subject}</div>
+      <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1">
+        <span>{shortDate(m.createdAt)}{m.invoiceId ? " · facture" : ""}{m.error ? ` · ${m.error}` : ""}</span>
+        <span>· <a href={`/api/admin/emails/${m.id}/html`} target="_blank" rel="noopener" className="text-primary hover:underline">Voir le courriel ↗</a></span>
+        <span>· <button type="button" onClick={() => { if (confirm(`Retirer ce courriel (${m.toEmail}) de l'historique ?`)) onDelete(); }} disabled={deleting} className="text-destructive hover:underline disabled:opacity-50">{deleting ? "suppression…" : "supprimer"}</button></span>
+      </div>
+      {m.status === "envoyé" && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {m.tracking.opens > 0 ? <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300" title={`Première ouverture ${shortDate(m.tracking.firstOpenedAt!)} — indicatif : certaines messageries n'affichent pas les images`}>Ouvert ×{m.tracking.opens}</span> : <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground" title="Aucune ouverture humaine détectée (les préchargements automatiques sont ignorés)">Pas encore ouvert</span>}
+          {m.tracking.clicks > 0 && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium" title={`Premier clic ${shortDate(m.tracking.firstClickedAt!)}`}>Cliqué ×{m.tracking.clicks}</span>}
+          {m.tracking.visits > 0 && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">Maquette visitée ×{m.tracking.visits}</span>}
+          {(m.tracking.opens > 0 || m.tracking.clicks > 0 || m.tracking.visits > 0) && <button type="button" onClick={() => setOpenEvents(openEvents === m.id ? null : m.id)} className="text-[11px] text-primary hover:underline">{openEvents === m.id ? "masquer le détail" : "détail"}</button>}
+        </div>
+      )}
+      {openEvents === m.id && (
+        <ul className="mt-2 space-y-1 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
+          {eventsLoading ? <li>Chargement…</li> : (eventsData ?? []).length === 0 ? <li>Aucun événement.</li> : (eventsData ?? []).map((e) => (
+            <li key={e.id}>{new Date(e.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {e.kind === "open" ? "Ouverture" : e.kind === "click" ? "Clic" : `Visite ${e.path ?? ""}`} · {e.origin}{e.visitor ? ` · visiteur ${e.visitor}` : ""}{e.isBot ? " · robot (non compté)" : e.prefetch ? " · préchargement automatique par la messagerie (non compté)" : ""}</li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 
