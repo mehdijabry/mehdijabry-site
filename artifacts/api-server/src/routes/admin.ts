@@ -348,6 +348,21 @@ router.post("/emails", async (req, res) => {
   res.status(201).json({ ok: true, id: r.id });
 });
 
+/**
+ * Envoi brut d'un HTML/texte tout fait (2026-10-03) — pour prévisualiser un gabarit en cours de test dans
+ * une vraie boîte de réception (rendu Gmail app, etc.) sans toucher aux gabarits de prod ni à /emails.
+ * Toujours marqué isTest ; pas de destinataire caché. Supprimer une fois le besoin passé.
+ */
+const RawTestEmail = z.object({ to: z.email(), subject: z.string().min(1).max(200), html: z.string().min(1).max(200000), text: z.string().min(1).max(20000) });
+router.post("/emails/raw-test", async (req, res) => {
+  const parsed = RawTestEmail.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
+  const { to, subject, html, text } = parsed.data;
+  const r = await sendEmail({ to, subject: `[TEST] ${subject}`, text, html, isTest: true });
+  if (!r.ok) { res.status(502).json({ error: r.error }); return; }
+  res.status(201).json({ ok: true, id: r.id });
+});
+
 // ───── Proposition de site clés en main (gabarit HTML) ─────
 const ProposalFields = z.object({
   toName: z.string().max(120).optional().nullable(),
