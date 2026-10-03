@@ -349,16 +349,18 @@ router.post("/emails", async (req, res) => {
 });
 
 /**
- * Envoi brut d'un HTML/texte tout fait (2026-10-03) — pour prévisualiser un gabarit en cours de test dans
- * une vraie boîte de réception (rendu Gmail app, etc.) sans toucher aux gabarits de prod ni à /emails.
- * Toujours marqué isTest ; pas de destinataire caché. Supprimer une fois le besoin passé.
+ * Envoi brut d'un HTML/texte tout fait (2026-10-03) — pour un gabarit en cours de test construit hors des
+ * gabarits de prod (aucun gabarit proposal/followup touché ni par cette route, ni par /emails).
+ * isTest vaut true par défaut (objet préfixé [TEST]) : il faut le mettre explicitement à false pour un
+ * envoi réel au prospect — jamais le comportement implicite. Supprimer une fois le besoin passé.
  */
-const RawTestEmail = z.object({ to: z.email(), subject: z.string().min(1).max(200), html: z.string().min(1).max(200000), text: z.string().min(1).max(20000) });
+const RawTestEmail = z.object({ to: z.email(), bcc: z.email().optional().nullable(), subject: z.string().min(1).max(200), html: z.string().min(1).max(200000), text: z.string().min(1).max(20000), isTest: z.boolean().optional() });
 router.post("/emails/raw-test", async (req, res) => {
   const parsed = RawTestEmail.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Courriel invalide", details: parsed.error.issues }); return; }
-  const { to, subject, html, text } = parsed.data;
-  const r = await sendEmail({ to, subject: `[TEST] ${subject}`, text, html, isTest: true });
+  const { to, bcc, subject, html, text, isTest } = parsed.data;
+  const test = isTest ?? true;
+  const r = await sendEmail({ to, bcc: bcc || null, subject: test ? `[TEST] ${subject}` : subject, text, html, isTest: test });
   if (!r.ok) { res.status(502).json({ error: r.error }); return; }
   res.status(201).json({ ok: true, id: r.id });
 });
