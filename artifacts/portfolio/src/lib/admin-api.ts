@@ -43,7 +43,7 @@ export type SentEmail = {
 };
 export type TrackingEvent = { id: number; kind: "open" | "click" | "visit"; at: string; origin: string; isBot: boolean; prefetch?: boolean; site: string | null; path: string | null; source: string | null; visitor: string | null };
 export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
-export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string }[] };
+export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string; kind: "visit" | "section" }[] };
 
 export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;

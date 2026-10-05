@@ -56,7 +56,7 @@ async function findByToken(token: string) {
   const [row] = await db.select().from(sentEmailsTable).where(eq(sentEmailsTable.trackToken, token)).limit(1);
   return row ?? null;
 }
-async function record(kind: "open" | "click" | "visit", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
+async function record(kind: "open" | "click" | "visit" | "section", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
   const ua = clip(req.headers["user-agent"], 300);
   try {
     await db.insert(trackingEventsTable).values({ kind, emailId: extra.emailId ?? null, site: extra.site ?? null, path: extra.path ?? null, referrer: extra.referrer ?? null, source: extra.source ?? null, userAgent: ua, ipHash: hashIp(req), isBot: extra.isBot ?? Boolean(ua && BOT_RE.test(ua)) });
@@ -97,6 +97,25 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
     const e = clip(q["e"], 40);
     if (e) { const row = await findByToken(e); emailId = row?.id ?? null; }
     await record("visit", req, { site, emailId, path: clip(q["path"], 200), referrer: clip(q["ref"], 300), source: clip(q["src"], 40) });
+  }
+  gif(res);
+}
+
+/**
+ * Profondeur de défilement (2026-10-05) : GET /api/track/section.gif?site=&id=&e= — posée une fois par section
+ * <section id="…"> atteinte par chargement de page (app.js, IntersectionObserver). Kind distinct de « visit » pour
+ * ne pas gonfler les compteurs de visites (emailTracking, siteStats) ; prospectJourney() les inclut explicitement
+ * pour reconstruire ce que le visiteur a réellement parcouru, pas seulement la page d'arrivée.
+ */
+export async function trackSectionHandler(req: Request, res: Response): Promise<void> {
+  const q = req.query as Record<string, unknown>;
+  const site = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
+  const id = clip(q["id"], 60);
+  if (site && id) {
+    let emailId: number | null = null;
+    const e = clip(q["e"], 40);
+    if (e) { const row = await findByToken(e); emailId = row?.id ?? null; }
+    await record("section", req, { site, emailId, path: id });
   }
   gif(res);
 }
@@ -143,7 +162,7 @@ export function originLabel(ua: string | null): string {
   return u ? u.slice(0, 60) : "inconnu";
 }
 
-export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string }[] };
+export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string; kind: "visit" | "section" }[] };
 const SESSION_GAP_MS = 30 * 60_000; // au-delà de 30 min d'inactivité, on considère que c'est une nouvelle visite
 const hostOf = (url: string | null): string | null => { try { return url ? new URL(url).hostname.toLowerCase() : null; } catch { return null; } };
 
@@ -173,7 +192,7 @@ export async function prospectJourney(opts: { mockUrl: string | null; emailIds: 
     and(eq(trackingEventsTable.site, "mehdijabry.dev"), sql`${trackingEventsTable.path} like ${"/maquette-v1/" + slug + "%"}`),
   );
   const rows = await db.select().from(trackingEventsTable)
-    .where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.isBot, false), siteMatch, await notOwnDevice()))
+    .where(and(inArray(trackingEventsTable.kind, ["visit", "section"]), eq(trackingEventsTable.isBot, false), siteMatch, await notOwnDevice()))
     .orderBy(trackingEventsTable.createdAt);
   const mine = rows.filter((r) => r.ipHash && knownHashes.has(r.ipHash));
 
@@ -188,7 +207,7 @@ export async function prospectJourney(opts: { mockUrl: string | null; emailIds: 
       sessions.push({
         visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent), viaEmail: cur.some((e) => e.emailId != null),
         startedAt: new Date(cur[0]!.createdAt).toISOString(), endedAt: new Date(cur[cur.length - 1]!.createdAt).toISOString(),
-        pages: cur.map((e) => ({ path: e.path ?? "/", at: new Date(e.createdAt).toISOString() })),
+        pages: cur.map((e) => ({ path: e.path ?? "/", at: new Date(e.createdAt).toISOString(), kind: e.kind === "section" ? "section" as const : "visit" as const })),
       });
       cur = [];
     };

@@ -8,7 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import { publicInvoiceHandler } from "./routes/admin";
-import { trackOpenHandler, trackClickHandler, trackVisitHandler } from "./lib/tracking";
+import { trackOpenHandler, trackClickHandler, trackVisitHandler, trackSectionHandler } from "./lib/tracking";
 import { voirHandler, voirAdminHandler } from "./lib/demo-redirect";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,6 +54,7 @@ app.get("/f/:token", publicInvoiceHandler);
 app.get("/o/:token.gif", trackOpenHandler);
 app.get("/go/:token", trackClickHandler);
 app.get("/api/track/visit.gif", trackVisitHandler);
+app.get("/api/track/section.gif", trackSectionHandler);
 // Lien de maquette montré au prospect : mehdijabry.dev/maquette-v1/<slug> plutôt qu'un sous-domaine *.pages.dev
 // (voir lib/demo-redirect.ts — la raison tient en une phrase : un inconnu qui envoie un lien vers un
 // hébergeur gratuit inconnu, c'est le profil même d'un lien de phishing aux yeux d'un destinataire prudent).

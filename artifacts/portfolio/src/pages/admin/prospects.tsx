@@ -168,7 +168,11 @@ export default function AdminProspects() {
                           <div key={i} className="border-b border-border/50 pb-1.5 last:border-0 last:pb-0">
                             <p className="font-medium text-foreground">{s.device}{s.viaEmail ? " · depuis le courriel" : ""} · visiteur {s.visitor}</p>
                             <ol className="mt-1 space-y-0.5">
-                              {s.pages.map((pg, j) => <li key={j}>{new Date(pg.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {pg.path}</li>)}
+                              {s.pages.map((pg, j) => (
+                                <li key={j}>
+                                  {new Date(pg.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {pg.kind === "section" ? <>a défilé jusqu'à « {pg.path} »</> : pg.path}
+                                </li>
+                              ))}
                             </ol>
                           </div>
                         ))}
