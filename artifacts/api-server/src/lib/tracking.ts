@@ -136,10 +136,19 @@ async function resolveLabel(opts: { site?: string | null; path?: string | null; 
  * On garde donc la trace de son empreinte d'adresse IP : un appareil qui a déjà cliqué un de nos liens
  * reste reconnu comme « le prospect » à ses visites suivantes.
  */
+/** D'où vient le visiteur, pour le dire dans la notification. */
+function canal(src: string | null, emailId: number | null): string {
+  if (src === "courriel" || emailId != null) return "depuis votre courriel";
+  if (src === "messenger") return "depuis Messenger";
+  if (src === "instagram") return "depuis Instagram";
+  if (src === "sms") return "depuis votre SMS";
+  return src ? `depuis le lien « ${src} »` : "depuis votre lien";
+}
+
 async function visitorKnownFromEmail(ipHash: string): Promise<boolean> {
   try {
     const [row] = await db.select({ id: trackingEventsTable.id }).from(trackingEventsTable)
-      .where(and(eq(trackingEventsTable.ipHash, ipHash), or(isNotNull(trackingEventsTable.emailId), eq(trackingEventsTable.source, "courriel")))).limit(1);
+      .where(and(eq(trackingEventsTable.ipHash, ipHash), or(isNotNull(trackingEventsTable.emailId), isNotNull(trackingEventsTable.source)))).limit(1);
     return Boolean(row);
   } catch { return false; }
 }
@@ -224,14 +233,18 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
      * ou vient d'un appareil qui a déjà cliqué l'un de nos liens. Toutes les autres visites restent
      * enregistrées et visibles dans le panneau Suivi — simplement, elles ne réveillent personne.
      */
-    const fromLink = emailId != null || clip(q["src"], 40) === "courriel";
+    // Tout lien que Mehdi partage lui-même porte un marqueur `src` : « courriel » pour le lien suivi
+    // d'une proposition, « messenger », « sms », « instagram »… pour un envoi à la main. Un visiteur
+    // ordinaire arrive sans marqueur. C'est donc ce marqueur — quel qu'il soit — qui distingue
+    // « le prospect a ouvert le lien qu'on lui a donné » de « quelqu'un est passé sur la maquette ».
+    const fromLink = emailId != null || Boolean(clip(q["src"], 40));
     const returning = !fromLink && !isBot && (await visitorKnownFromEmail(ih));
     const isProspect = fromLink || returning;
     if (isProspect && !isBot && isNewSession && !(await ignoredHashes()).includes(ih) && !(await pushedRecentlyFor(site))) {
       void resolveLabel({ site, path, emailRow })
         .then((label) => sendPush({
           title: "👀 Visite de la maquette",
-          body: returning ? `${label} · revenu sur la maquette` : `${label} · depuis votre courriel`,
+          body: returning ? `${label} · revenu sur la maquette` : `${label} · ${canal(clip(q["src"], 40), emailId)}`,
           url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(site)}`,
           tag: "visit", kind: "visit", site, emailId,
         }))
@@ -429,7 +442,7 @@ export type ActivityEvent = {
  */
 async function prospectHashes(): Promise<Set<string>> {
   const rows = await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable)
-    .where(or(isNotNull(trackingEventsTable.emailId), eq(trackingEventsTable.source, "courriel")));
+    .where(or(isNotNull(trackingEventsTable.emailId), isNotNull(trackingEventsTable.source)));
   return new Set(rows.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
 }
 
