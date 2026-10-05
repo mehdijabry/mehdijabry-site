@@ -452,6 +452,7 @@ const FollowupFields = z.object({
   firstMonthFree: z.preprocess((v) => (v === false || v === "false" || v === "0" ? false : v === undefined ? undefined : true), z.boolean()).optional().nullable(),
   secondCta: z.object({ label: z.string().min(1).max(80), url: z.url() }).optional().nullable(),
   priceUpfront: z.preprocess((v) => (v === false || v === "false" || v === "0" ? false : v === undefined ? undefined : true), z.boolean()).optional().nullable(),
+  moneyOverride: z.string().max(500).optional().nullable(),
 });
 const FollowupSend = FollowupFields.extend({ to: z.email(), isTest: z.boolean().optional(), bcc: z.email().optional().nullable().or(z.literal("")) });
 

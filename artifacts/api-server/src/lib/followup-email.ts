@@ -50,6 +50,10 @@ export type FollowupEmailInput = {
    *  juste après l'ouverture, au lieu d'attendre la fin du courriel. Variante « classic » seulement ; absent
    *  par défaut (2026-10-05, offre groupée Le Chack / Paul Piché Traiteur). */
   priceUpfront?: boolean | null;
+  /** Remplace entièrement le paragraphe de prix généré automatiquement (qui suppose un seul site). À écrire
+   *  au long, prix compris — ex. pour une offre groupée : « 575 $ à la mise en ligne, pour les deux sites… »
+   *  (2026-10-05, offre groupée Le Chack / Paul Piché Traiteur). */
+  moneyOverride?: string | null;
 };
 
 export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
@@ -103,7 +107,11 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const monthlyPhrase = monthly
     ? `${dollars(p.price)} à la mise en ligne${p.firstMonthFree ? ", le premier mois offert" : ""}, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps`
     : `${dollars(p.price)} une seule fois, pas d'abonnement`;
-  const money = `${moneyIntro} Regarder reste sans coût et sans engagement. Si le site vous plaît : ${monthlyPhrase}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  // moneyOverride (2026-10-05, offre groupée Le Chack / Paul Piché Traiteur) : la phrase de prix générée ici
+  // suppose un seul site — « si LE site vous plaît » — et ne dit jamais « les deux ». Pour un dossier à deux
+  // sites, forcer ces fragments à porter un message de groupe donnait une phrase confuse ; plus simple et plus
+  // honnête de remplacer le paragraphe entier par un texte écrit pour l'occasion.
+  const money = p.moneyOverride?.trim() ? p.moneyOverride.trim() : `${moneyIntro} Regarder reste sans coût et sans engagement. Si le site vous plaît : ${monthlyPhrase}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
   // Phrase de confiance mise en évidence tôt et seule sur sa ligne (2026-10-02) — même raisonnement que la
   // proposition initiale : noyée dans un paragraphe, personne ne la lit avant de décider de cliquer ou non.
   const risque = "Vous ne risquez rien : si le site ne vous plaît pas, je le retire, sans relance, et vous n'aurez rien payé.";
