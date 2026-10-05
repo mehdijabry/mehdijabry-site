@@ -42,7 +42,32 @@ export type SentEmail = {
   tracking: { opens: number; clicks: number; visits: number; firstOpenedAt: string | null; firstClickedAt: string | null; lastActivityAt: string | null };
 };
 export type TrackingEvent = { id: number; kind: "open" | "click" | "visit"; at: string; origin: string; isBot: boolean; prefetch?: boolean; site: string | null; path: string | null; source: string | null; visitor: string | null };
-export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
+
+/** Suivi approfondi (2026-10-05) — panneau « Suivi ». */
+export type ActivityKind = "open" | "click" | "visit" | "section";
+export type ActivityEvent = {
+  id: number; kind: ActivityKind; at: string; label: string;
+  site: string | null; path: string | null; source: string | null; referrer: string | null;
+  origin: string; visitor: string | null; viaEmail: boolean; isBot: boolean; prefetch: boolean;
+  emailId: number | null; emailTo: string | null;
+};
+export type SiteActivity = {
+  site: string; label: string; prospectId: number | null; prospectName: string | null; mockUrl: string | null;
+  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number };
+  firstVisitAt: string | null; lastVisitAt: string | null;
+  days: { day: string; visits: number }[];
+  sections: { id: string; visitors: number; hits: number }[];
+  pages: { path: string; hits: number }[];
+  sources: { label: string; hits: number }[];
+  devices: { label: string; hits: number }[];
+  sessions: JourneySession[];
+};
+/** Une notification push telle qu'elle a été envoyée — l'historique que le téléphone ne garde pas. */
+export type PushNotification = {
+  id: number; kind: string; title: string; body: string; url: string | null; site: string | null;
+  emailId: number | null; prospectId: number | null; devices: number; at: string;
+};
+export type SiteStats = { site: string; label: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
 export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string; kind: "visit" | "section" }[] };
 
 export type ProposalInput = {
@@ -124,6 +149,16 @@ export const api = {
   deleteEmail: (id: number) => adminFetch<{ ok: true }>(`/emails/${id}`, { method: "DELETE" }),
   emailEvents: (id: number) => adminFetch<TrackingEvent[]>(`/emails/${id}/events`),
   siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
+  activity: (opts: { limit?: number; site?: string | null; bots?: boolean } = {}) => {
+    const q = new URLSearchParams();
+    if (opts.limit) q.set("limit", String(opts.limit));
+    if (opts.site) q.set("site", opts.site);
+    if (opts.bots) q.set("bots", "1");
+    return adminFetch<ActivityEvent[]>(`/tracking/activity${q.size ? `?${q}` : ""}`);
+  },
+  siteActivity: (site: string) => adminFetch<SiteActivity>(`/tracking/site/${encodeURIComponent(site)}`),
+  pushHistory: (limit = 100) => adminFetch<PushNotification[]>(`/push/history?limit=${limit}`),
+  clearPushHistory: () => adminFetch<{ ok: true }>("/push/history", { method: "DELETE" }),
   prospectJourney: (id: number) => adminFetch<JourneySession[]>(`/prospects/${id}/journey`),
   prospects: () => adminFetch<Prospect[]>("/prospects"),
   createProspect: (p: ProspectInput) => adminFetch<Prospect>("/prospects", { method: "POST", body: JSON.stringify(p) }),

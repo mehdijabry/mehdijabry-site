@@ -3,12 +3,12 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod/v4";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { Resend } from "resend";
-import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable, trackingEventsTable, pushSubscriptionsTable } from "@workspace/db";
+import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable, trackingEventsTable, pushSubscriptionsTable, pushNotificationsTable } from "@workspace/db";
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
 import { renderFollowupEmail } from "../lib/followup-email";
-import { newTrackToken, emailTracking, siteStats, isPrefetch, rememberAdminDevice, ignoredHashes, originLabel } from "../lib/tracking";
+import { newTrackToken, emailTracking, siteStats, siteActivity, recentActivity, isPrefetch, rememberAdminDevice, ignoredHashes, originLabel } from "../lib/tracking";
 import { pushConfigured, vapidPublicKey, sendPush } from "../lib/push";
 import prospectsRouter from "./prospects";
 import { logger } from "../lib/logger";
@@ -339,6 +339,32 @@ router.delete("/tracking/sites/:site", async (req, res) => {
   await db.delete(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.site, site)));
   res.json({ ok: true });
 });
+
+// ───── Suivi approfondi (2026-10-05) — panneau « Suivi » ─────
+// Le flux d'activité et la fiche d'une maquette : ce que les notifications push annoncent sans le détailler.
+router.get("/tracking/activity", async (req, res) => {
+  const q = req.query as Record<string, unknown>;
+  const limit = Number(q["limit"] ?? 120);
+  const site = typeof q["site"] === "string" && q["site"] ? String(q["site"]).toLowerCase().slice(0, 120) : null;
+  res.json(await recentActivity({ limit: Number.isFinite(limit) ? limit : 120, site, includeBots: q["bots"] === "1" }));
+});
+router.get("/tracking/site/:site", async (req, res) => {
+  const site = String(req.params["site"] ?? "").toLowerCase().slice(0, 120);
+  if (!/^[a-z0-9.-]+$/.test(site)) { res.status(400).json({ error: "Site invalide" }); return; }
+  res.json(await siteActivity(site));
+});
+
+// ───── Historique des notifications (2026-10-05) ─────
+// Une notification balayée sur le téléphone est perdue : cet historique est la seule trace de ce qui a été annoncé.
+router.get("/push/history", async (req, res) => {
+  const limit = Math.min(Math.max(Number((req.query as Record<string, unknown>)["limit"] ?? 100) || 100, 1), 300);
+  const rows = await db.select().from(pushNotificationsTable).orderBy(desc(pushNotificationsTable.createdAt)).limit(limit);
+  res.json(rows.map((r) => ({
+    id: r.id, kind: r.kind, title: r.title, body: r.body, url: r.url, site: r.site,
+    emailId: r.emailId, prospectId: r.prospectId, devices: r.devices, at: new Date(r.createdAt).toISOString(),
+  })));
+});
+router.delete("/push/history", async (_req, res) => { await db.delete(pushNotificationsTable); res.json({ ok: true }); });
 // Notifications push (2026-10-05) : abonnement de l'appareil admin (iPhone de Mehdi en premier lieu), voir lib/push.ts.
 router.get("/push/public-key", (_req, res) => { res.json({ configured: pushConfigured, key: vapidPublicKey }); });
 const PushSubscriptionInput = z.object({
@@ -359,7 +385,7 @@ router.post("/push/unsubscribe", async (req, res) => {
   res.json({ ok: true });
 });
 router.post("/push/test", async (_req, res) => {
-  await sendPush({ title: "🔔 Test", body: "Les notifications fonctionnent.", url: "/admin" });
+  await sendPush({ title: "🔔 Test", body: "Les notifications fonctionnent.", url: `${PUBLIC_BASE_URL}/admin/suivi`, kind: "test" });
   res.json({ ok: true, configured: pushConfigured });
 });
 router.post("/emails", async (req, res) => {

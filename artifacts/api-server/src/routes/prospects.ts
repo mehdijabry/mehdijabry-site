@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { z } from "zod/v4";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db, prospectsTable, clientsTable, sentEmailsTable } from "@workspace/db";
-import { emailTracking, siteStats, prospectJourney } from "../lib/tracking";
+import { emailTracking, siteStats, prospectJourney, canonicalSiteFromUrl } from "../lib/tracking";
 
 /**
  * Prospects (2026-09-24) — /api/admin/prospects. Monté derrière requireAdmin par routes/admin.ts.
@@ -25,7 +25,9 @@ const ProspectSchema = z.object({
   notes: opt(4000), nextAction: opt(300),
   nextActionAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable().or(z.literal("").transform(() => null)),
 });
-const host = (url: string | null): string | null => { try { return url ? new URL(url).hostname.toLowerCase() : null; } catch { return null; } };
+// Clé de la maquette : canonicalSiteFromUrl ramène un mockUrl en lien proxy (mehdijabry.dev/maquette-v1/<slug>)
+// à l'hôte de la maquette, sous lequel les visites sont comptées. Avant cette normalisation (2026-10-05), un
+// prospect dont le mockUrl était le lien proxy héritait des visites de TOUTES les maquettes proxifiées.
 
 async function withActivity(rows: (typeof prospectsTable.$inferSelect)[]) {
   const sites = await siteStats();
@@ -34,7 +36,7 @@ async function withActivity(rows: (typeof prospectsTable.$inferSelect)[]) {
   return rows.map((p) => {
     const mine = p.email ? emails.filter((e) => e.toEmail.toLowerCase() === p.email!.toLowerCase()) : [];
     const agg = mine.reduce((a, e) => { const t = tracking.get(e.id); if (t) { a.opens += t.opens; a.clicks += t.clicks; if (t.lastActivityAt && (!a.lastActivityAt || t.lastActivityAt > a.lastActivityAt)) a.lastActivityAt = t.lastActivityAt; } return a; }, { opens: 0, clicks: 0, lastActivityAt: null as string | null });
-    const site = sites.find((s) => s.site === host(p.mockUrl));
+    const site = sites.find((s) => s.site === canonicalSiteFromUrl(p.mockUrl));
     return {
       ...p, price: p.price == null ? null : Number(p.price),
       activity: {

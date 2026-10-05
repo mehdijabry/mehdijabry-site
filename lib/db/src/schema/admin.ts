@@ -149,3 +149,20 @@ export const pushSubscriptionsTable = pgTable("push_subscriptions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 export type PushSubscriptionRow = typeof pushSubscriptionsTable.$inferSelect;
+
+/** Historique des notifications push (2026-10-05) — chaque alerte envoyée est conservée ici. Sans cet historique,
+ *  une notification reçue sur l'iPhone puis balayée est perdue : on sait qu'il s'est passé quelque chose, mais plus
+ *  quoi ni sur quelle maquette. Le panneau « Suivi » de l'admin lit cette table. */
+export const pushNotificationsTable = pgTable("push_notifications", {
+  id: serial("id").primaryKey(),
+  kind: text("kind").notNull(),             // open · click · visit · test
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  url: text("url"),                         // là où mène le clic sur la notification
+  site: text("site"),                       // maquette concernée (hôte normalisé), si applicable
+  emailId: integer("email_id"),
+  prospectId: integer("prospect_id"),
+  devices: integer("devices").notNull().default(0),   // nombre d'appareils effectivement joints
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [index("push_notifications_created").on(t.createdAt)]);
+export type PushNotificationRow = typeof pushNotificationsTable.$inferSelect;

@@ -48,7 +48,7 @@ export default function AdminDashboard() {
                 return (
                   <li key={s.site}>
                     <div className="flex items-baseline justify-between gap-2">
-                      <a href={`https://${s.site}`} target="_blank" rel="noopener" className="font-medium hover:underline truncate">{s.site}</a>
+                      <a href={`https://${s.site}`} target="_blank" rel="noopener" className="font-medium hover:underline truncate">{s.label}</a>
                       <span className="tabular-nums text-muted-foreground text-xs shrink-0">{s.visits} visite{s.visits > 1 ? "s" : ""} · {s.visitors} visiteur{s.visitors > 1 ? "s" : ""}{s.fromEmail ? ` · ${s.fromEmail} via courriel` : ""}</span>
                     </div>
                     <div className="mt-1 flex h-6 items-end gap-px" aria-hidden>

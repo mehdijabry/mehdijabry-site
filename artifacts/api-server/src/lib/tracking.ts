@@ -17,6 +17,29 @@ const GIF = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA
 const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|fetch|scan|monitor|facebookexternalhit|slackbot|whatsapp|twitterbot|linkedinbot|telegrambot|discordbot|curl|wget|python-requests|go-http-client|safelinks|proofpoint|mimecast|barracuda|outlook-ios|yahoocachesystem/i;
 const MAIL_PROXY_RE = /googleimageproxy|ggpht\.com|yahoomailproxy|outlook/i;
 
+/**
+ * Clé canonique d'une maquette (2026-10-05). Une même maquette est visitée de deux façons :
+ *   • directement sur <slug>-demo.pages.dev ;
+ *   • via le lien montré aux prospects, mehdijabry.dev/maquette-v1/<slug>, qui PROXIE la maquette — la balise de
+ *     app.js reporte alors `location.hostname` = « mehdijabry.dev », identique pour toutes les maquettes.
+ * Sans cette normalisation, toutes les visites passées par le lien proxy s'agglomèrent sous un seul « site » :
+ * Aura Lunosa, La Flânerie et le Chemin du Roy affichaient les deux mêmes visites, à la même seconde. On normalise
+ * à l'écriture (données propres ensuite) ET à la lecture (les lignes déjà enregistrées sont réattribuées).
+ */
+export function canonicalSite(site: string | null | undefined, path: string | null | undefined): string | null {
+  if (!site) return null;
+  const s = site.toLowerCase();
+  if (s === "mehdijabry.dev" || s.endsWith(".mehdijabry.dev")) {
+    const m = /^\/maquette-v1\/([a-z0-9-]+)/i.exec(path ?? "");
+    if (m) return `${m[1]!.toLowerCase()}-demo.pages.dev`;
+  }
+  return s;
+}
+/** Même normalisation à partir d'une URL complète (le champ `mockUrl` d'un prospect, par exemple). */
+export function canonicalSiteFromUrl(url: string | null | undefined): string | null {
+  try { return url ? canonicalSite(new URL(url).hostname, new URL(url).pathname) : null; } catch { return null; }
+}
+
 export const newTrackToken = (): string => randomBytes(12).toString("base64url");
 const clip = (v: unknown, max: number): string | null => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
 const hashIp = (req: Request): string => {
@@ -69,23 +92,18 @@ async function resolveLabel(opts: { site?: string | null; path?: string | null; 
       .where(sql`lower(${prospectsTable.email}) = lower(${opts.emailRow.toEmail})`).limit(1);
     return p?.name ?? opts.emailRow.toEmail;
   }
-  if (!opts.site) return "inconnu";
-  let slug = opts.site.replace(/-demo\.pages\.dev$/, "");
-  if (opts.site === "mehdijabry.dev" && opts.path) {
-    const m = /^\/maquette-v1\/([a-z0-9-]+)/.exec(opts.path);
-    if (m) slug = m[1]!;
-  }
+  const site = canonicalSite(opts.site, opts.path);
+  if (!site) return "inconnu";
   const rows = await db.select({ name: prospectsTable.name, mockUrl: prospectsTable.mockUrl }).from(prospectsTable);
-  for (const r of rows) {
-    const h = hostOf(r.mockUrl);
-    if (h && h.replace(/-demo\.pages\.dev$/, "") === slug) return r.name;
-  }
-  return slug;
+  // Comparaison sur la clé canonique des deux côtés : le mockUrl d'un prospect est souvent le lien proxy
+  // (mehdijabry.dev/maquette-v1/<slug>), jamais l'hôte de la maquette.
+  for (const r of rows) if (canonicalSiteFromUrl(r.mockUrl) === site) return r.name;
+  return site.replace(/-demo\.pages\.dev$/, "");
 }
 async function record(kind: "open" | "click" | "visit" | "section", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
   const ua = clip(req.headers["user-agent"], 300);
   try {
-    await db.insert(trackingEventsTable).values({ kind, emailId: extra.emailId ?? null, site: extra.site ?? null, path: extra.path ?? null, referrer: extra.referrer ?? null, source: extra.source ?? null, userAgent: ua, ipHash: hashIp(req), isBot: extra.isBot ?? Boolean(ua && BOT_RE.test(ua)) });
+    await db.insert(trackingEventsTable).values({ kind, emailId: extra.emailId ?? null, site: canonicalSite(extra.site, extra.path), path: extra.path ?? null, referrer: extra.referrer ?? null, source: extra.source ?? null, userAgent: ua, ipHash: hashIp(req), isBot: extra.isBot ?? Boolean(ua && BOT_RE.test(ua)) });
   } catch (err) { logger.warn({ err, kind }, "tracking insert failed"); }
 }
 
@@ -100,7 +118,7 @@ export async function trackOpenHandler(req: Request, res: Response): Promise<voi
     await record("open", req, { emailId: row.id, isBot });
     if (!isBot && !isPrefetch(new Date(), new Date(row.createdAt))) {
       void resolveLabel({ emailRow: { toEmail: row.toEmail } })
-        .then((label) => sendPush({ title: "📬 Courriel ouvert", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "open" }))
+        .then((label) => sendPush({ title: "📬 Courriel ouvert", body: label, url: `${PUBLIC_BASE_URL}/admin/suivi`, tag: "open", kind: "open", emailId: row.id }))
         .catch(() => {});
     }
   }
@@ -118,7 +136,7 @@ export async function trackClickHandler(req: Request, res: Response): Promise<vo
   await record("click", req, { emailId: row.id, referrer: clip(req.headers["referer"], 300), isBot });
   if (!isBot) {
     void resolveLabel({ emailRow: { toEmail: row.toEmail } })
-      .then((label) => sendPush({ title: "🖱️ Lien cliqué", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "click" }))
+      .then((label) => sendPush({ title: "🖱️ Lien cliqué", body: label, url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(canonicalSiteFromUrl(row.trackUrl) ?? "")}`, tag: "click", kind: "click", emailId: row.id, site: canonicalSiteFromUrl(row.trackUrl) }))
       .catch(() => {});
   }
   const target = new URL(row.trackUrl);
@@ -132,14 +150,17 @@ export async function trackClickHandler(req: Request, res: Response): Promise<vo
  *  rechargement de page alerterait l'iPhone de Mehdi. */
 export async function trackVisitHandler(req: Request, res: Response): Promise<void> {
   const q = req.query as Record<string, unknown>;
-  const site = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
+  const rawSite = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
+  const path = clip(q["path"], 200);
+  // La maquette vue par le lien proxy reporte « mehdijabry.dev » : on la ramène à sa clé canonique avant
+  // d'enregistrer, de chercher la session en cours et de nommer la notification.
+  const site = canonicalSite(rawSite, path);
   if (site) {
     let emailId: number | null = null, emailRow: { toEmail: string } | null = null;
     const e = clip(q["e"], 40);
     if (e) { const row = await findByToken(e); if (row) { emailId = row.id; emailRow = { toEmail: row.toEmail }; } }
     const ua = String(req.headers["user-agent"] ?? "");
     const isBot = Boolean(ua && BOT_RE.test(ua));
-    const path = clip(q["path"], 200);
     const ih = hashIp(req);
     let isNewSession = true;
     if (!isBot) {
@@ -152,7 +173,7 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
     await record("visit", req, { site, emailId, path, referrer: clip(q["ref"], 300), source: clip(q["src"], 40), isBot });
     if (!isBot && isNewSession && !(await ignoredHashes()).includes(ih)) {
       void resolveLabel({ site, path, emailRow })
-        .then((label) => sendPush({ title: "👀 Visite de la maquette", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "visit" }))
+        .then((label) => sendPush({ title: "👀 Visite de la maquette", body: label, url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(site)}`, tag: "visit", kind: "visit", site, emailId }))
         .catch(() => {});
     }
   }
@@ -167,7 +188,13 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
  */
 export async function trackSectionHandler(req: Request, res: Response): Promise<void> {
   const q = req.query as Record<string, unknown>;
-  const site = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
+  const rawSite = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
+  // La balise de section n'envoie pas le chemin de la page (contrairement à celle de visite). Pour normaliser
+  // malgré tout une maquette vue par le lien proxy, on lit `p` quand la maquette l'envoie (ajouté 2026-10-05)
+  // et, à défaut, le chemin du Referer — c'est la page qui a chargé l'image, donc la maquette elle-même. Ça
+  // couvre les 25 maquettes déjà déployées sans avoir à les redéployer.
+  const refPath = (() => { try { return new URL(String(req.headers["referer"] ?? "")).pathname; } catch { return null; } })();
+  const site = canonicalSite(rawSite, clip(q["p"], 200) ?? refPath);
   const id = clip(q["id"], 60);
   if (site && id) {
     let emailId: number | null = null;
@@ -222,7 +249,6 @@ export function originLabel(ua: string | null): string {
 
 export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string; kind: "visit" | "section" }[] };
 const SESSION_GAP_MS = 30 * 60_000; // au-delà de 30 min d'inactivité, on considère que c'est une nouvelle visite
-const hostOf = (url: string | null): string | null => { try { return url ? new URL(url).hostname.toLowerCase() : null; } catch { return null; } };
 
 /**
  * Parcours d'un prospect sur sa maquette (2026-10-05) — reconstruit, pour affichage dans l'admin, la suite des
@@ -234,36 +260,30 @@ const hostOf = (url: string | null): string | null => { try { return url ? new U
  *     app.js ne reporte ?e= que sur le tout premier chargement de page, pas sur la navigation interne au site.
  * Les visites sont regroupées en « sessions » par hachage, avec une coupure au-delà de 30 minutes d'inactivité.
  */
-export async function prospectJourney(opts: { mockUrl: string | null; emailIds: number[] }): Promise<JourneySession[]> {
-  const siteHost = hostOf(opts.mockUrl);
-  if (!siteHost) return [];
-  const slug = siteHost.replace(/-demo\.pages\.dev$/, "");
+type EventRow = typeof trackingEventsTable.$inferSelect;
 
-  const known = opts.emailIds.length
-    ? await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable).where(inArray(trackingEventsTable.emailId, opts.emailIds))
-    : [];
-  const knownHashes = new Set(known.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
-  if (!knownHashes.size) return [];
-
-  const siteMatch = or(
-    eq(trackingEventsTable.site, siteHost),
+/** Condition SQL « cet événement appartient à cette maquette » — lignes normalisées (site = <slug>-demo.pages.dev)
+ *  comme lignes antérieures à la normalisation (site = mehdijabry.dev, path = /maquette-v1/<slug>…). */
+function siteEventsMatch(site: string) {
+  const slug = site.replace(/-demo\.pages\.dev$/, "");
+  return or(
+    eq(trackingEventsTable.site, site),
     and(eq(trackingEventsTable.site, "mehdijabry.dev"), sql`${trackingEventsTable.path} like ${"/maquette-v1/" + slug + "%"}`),
   );
-  const rows = await db.select().from(trackingEventsTable)
-    .where(and(inArray(trackingEventsTable.kind, ["visit", "section"]), eq(trackingEventsTable.isBot, false), siteMatch, await notOwnDevice()))
-    .orderBy(trackingEventsTable.createdAt);
-  const mine = rows.filter((r) => r.ipHash && knownHashes.has(r.ipHash));
+}
 
-  const byHash = new Map<string, typeof mine>();
-  for (const r of mine) { const h = r.ipHash!; const list = byHash.get(h) ?? []; list.push(r); byHash.set(h, list); }
-
+/** Regroupe des événements en sessions : une coupure au-delà de 30 minutes d'inactivité pour un même visiteur. */
+function buildSessions(rows: EventRow[]): JourneySession[] {
+  const byHash = new Map<string, EventRow[]>();
+  for (const r of rows) { if (!r.ipHash) continue; const list = byHash.get(r.ipHash) ?? []; list.push(r); byHash.set(r.ipHash, list); }
   const sessions: JourneySession[] = [];
   for (const [h, evs] of byHash) {
-    let cur: typeof evs = [];
+    evs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    let cur: EventRow[] = [];
     const flush = () => {
       if (!cur.length) return;
       sessions.push({
-        visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent), viaEmail: cur.some((e) => e.emailId != null),
+        visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent), viaEmail: cur.some((e) => e.emailId != null || e.source === "courriel"),
         startedAt: new Date(cur[0]!.createdAt).toISOString(), endedAt: new Date(cur[cur.length - 1]!.createdAt).toISOString(),
         pages: cur.map((e) => ({ path: e.path ?? "/", at: new Date(e.createdAt).toISOString(), kind: e.kind === "section" ? "section" as const : "visit" as const })),
       });
@@ -278,20 +298,40 @@ export async function prospectJourney(opts: { mockUrl: string | null; emailIds: 
   return sessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 }
 
-export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
+export async function prospectJourney(opts: { mockUrl: string | null; emailIds: number[] }): Promise<JourneySession[]> {
+  const site = canonicalSiteFromUrl(opts.mockUrl);
+  if (!site) return [];
+
+  const known = opts.emailIds.length
+    ? await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable).where(inArray(trackingEventsTable.emailId, opts.emailIds))
+    : [];
+  const knownHashes = new Set(known.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
+  if (!knownHashes.size) return [];
+
+  const rows = await db.select().from(trackingEventsTable)
+    .where(and(inArray(trackingEventsTable.kind, ["visit", "section"]), eq(trackingEventsTable.isBot, false), siteEventsMatch(site), await notOwnDevice()))
+    .orderBy(trackingEventsTable.createdAt);
+  return buildSessions(rows.filter((r) => r.ipHash && knownHashes.has(r.ipHash)));
+}
+
+export type SiteStats = { site: string; label: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
 /** Visites par site démo sur les 30 derniers jours. */
 export async function siteStats(): Promise<SiteStats[]> {
   const since = new Date(Date.now() - 30 * 86400 * 1000);
   const rows = await db.select().from(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.isBot, false), gte(trackingEventsTable.createdAt, since), await notOwnDevice())).orderBy(desc(trackingEventsTable.createdAt)).limit(5000);
   const bySite = new Map<string, { rows: typeof rows }>();
-  for (const r of rows) { if (!r.site) continue; const s = bySite.get(r.site) ?? { rows: [] }; s.rows.push(r); bySite.set(r.site, s); }
+  // Normalisation à la lecture : les visites déjà enregistrées sous « mehdijabry.dev » via le lien proxy sont
+  // réattribuées à leur maquette (voir canonicalSite).
+  for (const r of rows) { const key = canonicalSite(r.site, r.path); if (!key) continue; const s = bySite.get(key) ?? { rows: [] }; s.rows.push(r); bySite.set(key, s); }
+  // Nom du prospect plutôt que l'hôte technique : « Aura Lunosa » se lit, « auralunosa-demo.pages.dev » non.
+  const { bySite: names } = await labelMaps();
   const out: SiteStats[] = [];
   for (const [site, { rows: rs }] of bySite) {
     const days = new Map<string, number>();
     for (let i = 13; i >= 0; i--) days.set(new Date(Date.now() - i * 86400 * 1000).toISOString().slice(0, 10), 0);
     for (const r of rs) { const d = new Date(r.createdAt).toISOString().slice(0, 10); if (days.has(d)) days.set(d, (days.get(d) ?? 0) + 1); }
     out.push({
-      site, visits: rs.length, visitors: new Set(rs.map((r) => r.ipHash)).size,
+      site, label: siteLabel(site, names), visits: rs.length, visitors: new Set(rs.map((r) => r.ipHash)).size,
       mobile: rs.filter((r) => /Mobile|Android|iPhone/i.test(r.userAgent ?? "")).length,
       fromEmail: rs.filter((r) => r.source === "courriel" || r.emailId != null).length,
       lastVisitAt: rs[0] ? new Date(rs[0].createdAt).toISOString() : null,
@@ -299,4 +339,141 @@ export async function siteStats(): Promise<SiteStats[]> {
     });
   }
   return out.sort((a, b) => b.visits - a.visits);
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════
+// Suivi approfondi (2026-10-05) — panneau « Suivi » de l'admin
+//
+// Les notifications push disent qu'il s'est passé quelque chose ; ces deux fonctions disent QUOI. Le flux
+// d'activité liste tous les événements, toutes maquettes confondues ; la fiche de maquette reconstruit, pour
+// un seul site, ses visiteurs, leurs sessions, les sections qu'ils ont atteintes et d'où ils venaient.
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+export type ActivityEvent = {
+  id: number; kind: "open" | "click" | "visit" | "section"; at: string; label: string;
+  site: string | null; path: string | null; source: string | null; referrer: string | null;
+  origin: string; visitor: string | null; viaEmail: boolean; isBot: boolean; prefetch: boolean;
+  emailId: number | null; emailTo: string | null;
+};
+
+/** Noms lisibles : adresse du courriel → prospect, hôte de maquette → prospect. Chargé une fois par requête. */
+async function labelMaps() {
+  const prospects = await db.select({ name: prospectsTable.name, email: prospectsTable.email, mockUrl: prospectsTable.mockUrl }).from(prospectsTable);
+  const byEmail = new Map<string, string>(), bySite = new Map<string, string>();
+  for (const p of prospects) {
+    if (p.email) byEmail.set(p.email.toLowerCase(), p.name);
+    const s = canonicalSiteFromUrl(p.mockUrl);
+    if (s) bySite.set(s, p.name);
+  }
+  return { byEmail, bySite };
+}
+
+/** Nom d'affichage d'une maquette : le prospect à qui elle est destinée, sinon son slug. */
+export function siteLabel(site: string, bySite: Map<string, string>): string {
+  return bySite.get(site) ?? site.replace(/-demo\.pages\.dev$/, "");
+}
+
+/**
+ * Flux d'activité, le plus récent d'abord. `site` restreint à une maquette ; `includeBots` garde les robots
+ * (filtres anti-pourriel, aperçus de lien) qui sont sinon masqués — ils expliquent les ouvertures fantômes.
+ */
+export async function recentActivity(opts: { limit?: number; site?: string | null; includeBots?: boolean } = {}): Promise<ActivityEvent[]> {
+  const limit = Math.min(Math.max(opts.limit ?? 120, 1), 500);
+  const conds = [opts.site ? siteEventsMatch(opts.site) : undefined, opts.includeBots ? undefined : eq(trackingEventsTable.isBot, false), await notOwnDevice()].filter(Boolean);
+  const rows = await db.select().from(trackingEventsTable)
+    .where(conds.length ? and(...conds) : undefined)
+    .orderBy(desc(trackingEventsTable.createdAt)).limit(limit);
+
+  const { byEmail, bySite } = await labelMaps();
+  const emailIds = [...new Set(rows.map((r) => r.emailId).filter((i): i is number => i != null))];
+  const emails = emailIds.length
+    ? await db.select({ id: sentEmailsTable.id, toEmail: sentEmailsTable.toEmail, createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(inArray(sentEmailsTable.id, emailIds))
+    : [];
+  const emailById = new Map(emails.map((e) => [e.id, e]));
+
+  return rows.map((r) => {
+    const email = r.emailId != null ? emailById.get(r.emailId) : undefined;
+    const site = canonicalSite(r.site, r.path);
+    const label = (email ? byEmail.get(email.toEmail.toLowerCase()) : undefined) ?? (site ? siteLabel(site, bySite) : null) ?? email?.toEmail ?? "inconnu";
+    return {
+      id: r.id, kind: r.kind as ActivityEvent["kind"], at: new Date(r.createdAt).toISOString(), label,
+      site, path: r.path, source: r.source, referrer: r.referrer,
+      origin: originLabel(r.userAgent), visitor: r.ipHash ? r.ipHash.slice(0, 6) : null,
+      viaEmail: r.emailId != null || r.source === "courriel", isBot: r.isBot,
+      prefetch: Boolean(r.kind === "open" && email && isPrefetch(new Date(r.createdAt), new Date(email.createdAt))),
+      emailId: r.emailId, emailTo: email?.toEmail ?? null,
+    };
+  });
+}
+
+export type SiteActivity = {
+  site: string; label: string; prospectId: number | null; prospectName: string | null; mockUrl: string | null;
+  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number };
+  firstVisitAt: string | null; lastVisitAt: string | null;
+  days: { day: string; visits: number }[];
+  sections: { id: string; visitors: number; hits: number }[];
+  pages: { path: string; hits: number }[];
+  sources: { label: string; hits: number }[];
+  devices: { label: string; hits: number }[];
+  sessions: JourneySession[];
+};
+
+/**
+ * Tout ce qu'on sait d'une maquette. Les sessions ne sont PAS limitées aux visiteurs venus du courriel (comme
+ * prospectJourney) : ici on veut aussi les visites directes, c'est le but du panneau.
+ */
+export async function siteActivity(site: string): Promise<SiteActivity> {
+  const rows = await db.select().from(trackingEventsTable)
+    .where(and(eq(trackingEventsTable.isBot, false), siteEventsMatch(site), await notOwnDevice()))
+    .orderBy(trackingEventsTable.createdAt);
+
+  const visits = rows.filter((r) => r.kind === "visit");
+  const sections = rows.filter((r) => r.kind === "section");
+  const { bySite } = await labelMaps();
+
+  const [prospect] = await db.select({ id: prospectsTable.id, name: prospectsTable.name, mockUrl: prospectsTable.mockUrl, email: prospectsTable.email }).from(prospectsTable)
+    .where(sql`${prospectsTable.mockUrl} is not null`).limit(500)
+    .then((list) => list.filter((p) => canonicalSiteFromUrl(p.mockUrl) === site));
+
+  // Ouvertures et clics des courriels envoyés à ce prospect — l'entonnoir complet, pas seulement les visites.
+  let opens = 0, clicks = 0;
+  if (prospect?.email) {
+    const mails = await db.select({ id: sentEmailsTable.id }).from(sentEmailsTable)
+      .where(and(eq(sentEmailsTable.isTest, false), sql`lower(${sentEmailsTable.toEmail}) = lower(${prospect.email})`));
+    if (mails.length) {
+      const tracking = await emailTracking(mails.map((m) => m.id));
+      for (const t of tracking.values()) { opens += t.opens; clicks += t.clicks; }
+    }
+  }
+
+  const count = <T>(items: T[], key: (t: T) => string | null) => {
+    const m = new Map<string, number>();
+    for (const it of items) { const k = key(it); if (!k) continue; m.set(k, (m.get(k) ?? 0) + 1); }
+    return [...m].sort((a, b) => b[1] - a[1]);
+  };
+  const sectionVisitors = new Map<string, Set<string>>();
+  for (const s of sections) { if (!s.path) continue; const set = sectionVisitors.get(s.path) ?? new Set<string>(); if (s.ipHash) set.add(s.ipHash); sectionVisitors.set(s.path, set); }
+
+  const days = new Map<string, number>();
+  for (let i = 29; i >= 0; i--) days.set(new Date(Date.now() - i * 86400 * 1000).toISOString().slice(0, 10), 0);
+  for (const v of visits) { const d = new Date(v.createdAt).toISOString().slice(0, 10); if (days.has(d)) days.set(d, (days.get(d) ?? 0) + 1); }
+
+  return {
+    site, label: siteLabel(site, bySite),
+    prospectId: prospect?.id ?? null, prospectName: prospect?.name ?? null, mockUrl: prospect?.mockUrl ?? null,
+    totals: {
+      visits: visits.length, visitors: new Set(visits.map((v) => v.ipHash)).size, sections: sections.length,
+      mobile: visits.filter((v) => /Mobile|Android|iPhone/i.test(v.userAgent ?? "")).length,
+      fromEmail: visits.filter((v) => v.source === "courriel" || v.emailId != null).length,
+      opens, clicks,
+    },
+    firstVisitAt: visits[0] ? new Date(visits[0].createdAt).toISOString() : null,
+    lastVisitAt: visits.length ? new Date(visits[visits.length - 1]!.createdAt).toISOString() : null,
+    days: [...days].map(([day, v]) => ({ day, visits: v })),
+    sections: count(sections, (s) => s.path).map(([id, hits]) => ({ id, hits, visitors: sectionVisitors.get(id)?.size ?? 0 })),
+    pages: count(visits, (v) => v.path ?? "/").map(([path, hits]) => ({ path, hits })),
+    sources: count(visits, (v) => (v.source === "courriel" || v.emailId != null) ? "Courriel de prospection" : v.referrer ? new URL(v.referrer, "https://x").hostname || "Lien externe" : "Accès direct").map(([label, hits]) => ({ label, hits })),
+    devices: count(visits, (v) => originLabel(v.userAgent)).map(([label, hits]) => ({ label, hits })),
+    sessions: buildSessions(rows.filter((r) => r.kind === "visit" || r.kind === "section")),
+  };
 }

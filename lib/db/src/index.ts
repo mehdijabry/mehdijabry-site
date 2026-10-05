@@ -171,6 +171,20 @@ async function createAdminTables(): Promise<void> {
       user_agent text,
       created_at timestamptz NOT NULL DEFAULT now()
     )`);
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS push_notifications (
+      id serial PRIMARY KEY,
+      kind text NOT NULL,
+      title text NOT NULL,
+      body text NOT NULL,
+      url text,
+      site text,
+      email_id integer,
+      prospect_id integer,
+      devices integer NOT NULL DEFAULT 0,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`);
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS push_notifications_created ON push_notifications (created_at)`);
 }
 
 export * from "./schema";
