@@ -39,6 +39,13 @@ export type FollowupEmailInput = {
    *  montant déjà annoncé (ex. anciens dossiers à 600 $, avant la refonte tarifaire du 02/10) : annoncer un
    *  « changement » qui n'en est pas un serait un fait inventé — voir le skill emailing-prospects, § 5. */
   launchPriceUpdated?: boolean | null;
+  /** Promo « premier mois offert » (2026-10-05, dossier à deux sites Le Chack / Paul Piché Traiteur) : insère la
+   *  clause dans la phrase de prix, variante « classic » seulement. Comme launchPriceUpdated, un fait à ne poser
+   *  que si c'est vrai — jamais le défaut implicite. */
+  firstMonthFree?: boolean | null;
+  /** Second lien mis en avant, en plus du site principal — pour un dossier à deux sites sous un même propriétaire
+   *  (2026-10-05). Rendu comme un second bouton, variante « classic » seulement ; absent par défaut. */
+  secondCta?: { label: string; url: string } | null;
 };
 
 export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
@@ -89,7 +96,10 @@ export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSetting
   const moneyIntro = p.launchPriceUpdated === false
     ? "Mon offre n'a pas changé depuis mon premier message."
     : "Mise à jour depuis mon dernier message : le tarif de lancement a changé, le temps que je signe mes tout premiers clients.";
-  const money = `${moneyIntro} Regarder reste sans coût et sans engagement. Si le site vous plaît : ${monthly ? `${dollars(p.price)} à la mise en ligne, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps` : `${dollars(p.price)} une seule fois, pas d'abonnement`}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
+  const monthlyPhrase = monthly
+    ? `${dollars(p.price)} à la mise en ligne${p.firstMonthFree ? ", le premier mois offert" : ""}, puis ${dollars(monthly)} par mois pour l'hébergement, le domaine et vos modifications — résiliable en tout temps`
+    : `${dollars(p.price)} une seule fois, pas d'abonnement`;
+  const money = `${moneyIntro} Regarder reste sans coût et sans engagement. Si le site vous plaît : ${monthlyPhrase}${own ? `, ${own} conservé` : ""}, et le site vous appartient à 100 %.${p.keepUntil?.trim() ? ` Je garde la maquette en ligne jusqu'au ${p.keepUntil.trim()}.` : ""}`;
   // Phrase de confiance mise en évidence tôt et seule sur sa ligne (2026-10-02) — même raisonnement que la
   // proposition initiale : noyée dans un paragraphe, personne ne la lit avant de décider de cliquer ou non.
   const risque = "Vous ne risquez rien : si le site ne vous plaît pas, je le retire, sans relance, et vous n'aurez rien payé.";
@@ -162,6 +172,7 @@ ${adminBrutHtml ? `<p style="margin:0 0 20px">${adminBrutHtml}</p>` : ""}
     `Je vous ai écrit ${when} : sans que vous me demandiez rien, j'ai construit un nouveau site pour ${p.business}.${call} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`, "",
     "Ce que le lien fait, et ne fait pas :", ...safety.map((s) => `- ${s}`), "",
     `Le site : ${p.siteUrl}`, "",
+    ...(p.secondCta ? [`Et aussi : ${p.secondCta.label} — ${p.secondCta.url}`, ""] : []),
     "Ce que vous y trouverez :", ...found.map((b) => `- ${b}`), admin ? admin : "", proof ? proof : "",
     "", money, "",
     risque, "",
@@ -198,6 +209,7 @@ ${para(`Je vous ai écrit ${esc(when)} : sans que vous me demandiez rien, <stron
 ${p.previewImageUrl?.trim() ? `${para("Voici déjà la page d'accueil, sans rien ouvrir :")}<p style="margin:0 0 6px"><a href="${esc(link)}"><img src="${esc(p.previewImageUrl.trim())}" width="600" alt="Aperçu du site ${esc(p.business)}" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid #e6e1d8;border-radius:8px"></a></p><p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:${muted}">Cliquez l'image pour naviguer dans le site, ou tapez ${esc(host)} dans votre navigateur.</p>` : ""}
 <p style="margin:0 0 6px"><a href="${esc(link)}" style="display:inline-block;border:2px solid ${ink};color:${ink};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">Voir le site ${esc(p.business)} &rarr;</a></p>
 <p style="margin:0 0 22px;font-size:13px;line-height:1.5;color:${muted}">ou tapez <strong>${esc(host)}</strong></p>
+${p.secondCta ? `<p style="margin:0 0 6px"><a href="${esc(p.secondCta.url)}" style="display:inline-block;border:2px solid ${amber};color:${amber};text-decoration:none;font-weight:700;font-size:15px;padding:10px 22px;border-radius:999px">${esc(p.secondCta.label)} &rarr;</a></p><p style="margin:0 0 22px;font-size:13px;line-height:1.5;color:${muted}">ou tapez <strong>${esc(p.secondCta.url.replace(/^https?:\/\//, ""))}</strong></p>` : ""}
 ${para("<strong>Ce que vous y trouverez :</strong>")}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${found.map((b) => li(esc(b))).join("")}</ul>
 ${admin ? para(esc(admin).replace(esc(p.adminUrl!.trim()), `<a href="${esc(p.adminUrl!.trim())}" style="color:${amber};font-weight:700">${esc(p.adminUrl!.trim())}</a>`)) : ""}
