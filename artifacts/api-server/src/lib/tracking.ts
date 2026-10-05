@@ -130,6 +130,77 @@ export async function emailTracking(emailIds: number[]): Promise<Map<number, Ema
   return map;
 }
 
+/** Origine devinée du navigateur, à partir du user-agent — partagée entre /emails/:id/events et le parcours. */
+export function originLabel(ua: string | null): string {
+  const u = ua ?? "";
+  if (/GoogleImageProxy|ggpht/i.test(u)) return "Gmail (ouverture relayée par le proxy Google)";
+  if (/YahooMailProxy/i.test(u)) return "Yahoo Mail";
+  if (/Outlook|Microsoft Office/i.test(u)) return "Outlook";
+  if (/iPhone|iPad/i.test(u)) return "iPhone / iPad";
+  if (/Android/i.test(u)) return "Android";
+  if (/Macintosh/i.test(u)) return "Mac";
+  if (/Windows/i.test(u)) return "Windows";
+  return u ? u.slice(0, 60) : "inconnu";
+}
+
+export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string }[] };
+const SESSION_GAP_MS = 30 * 60_000; // au-delà de 30 min d'inactivité, on considère que c'est une nouvelle visite
+const hostOf = (url: string | null): string | null => { try { return url ? new URL(url).hostname.toLowerCase() : null; } catch { return null; } };
+
+/**
+ * Parcours d'un prospect sur sa maquette (2026-10-05) — reconstruit, pour affichage dans l'admin, la suite des
+ * pages vues par le ou les visiteurs venus de ses courriels. Le lien se fait en deux temps :
+ *  1. On repère les hachages d'IP qui ont déjà un événement rattaché à l'un de ses courriels (le clic, et la
+ *     première page vue juste après, portent toujours emailId — voir trackVisitHandler).
+ *  2. On regarde ensuite TOUTES les visites de son site (direct, ex. sacrecoeurcafe-demo.pages.dev, OU via le
+ *     lien court /maquette-v1/<slug> sur mehdijabry.dev) qui partagent un de ces hachages, même sans emailId —
+ *     app.js ne reporte ?e= que sur le tout premier chargement de page, pas sur la navigation interne au site.
+ * Les visites sont regroupées en « sessions » par hachage, avec une coupure au-delà de 30 minutes d'inactivité.
+ */
+export async function prospectJourney(opts: { mockUrl: string | null; emailIds: number[] }): Promise<JourneySession[]> {
+  const siteHost = hostOf(opts.mockUrl);
+  if (!siteHost) return [];
+  const slug = siteHost.replace(/-demo\.pages\.dev$/, "");
+
+  const known = opts.emailIds.length
+    ? await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable).where(inArray(trackingEventsTable.emailId, opts.emailIds))
+    : [];
+  const knownHashes = new Set(known.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
+  if (!knownHashes.size) return [];
+
+  const siteMatch = or(
+    eq(trackingEventsTable.site, siteHost),
+    and(eq(trackingEventsTable.site, "mehdijabry.dev"), sql`${trackingEventsTable.path} like ${"/maquette-v1/" + slug + "%"}`),
+  );
+  const rows = await db.select().from(trackingEventsTable)
+    .where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.isBot, false), siteMatch, await notOwnDevice()))
+    .orderBy(trackingEventsTable.createdAt);
+  const mine = rows.filter((r) => r.ipHash && knownHashes.has(r.ipHash));
+
+  const byHash = new Map<string, typeof mine>();
+  for (const r of mine) { const h = r.ipHash!; const list = byHash.get(h) ?? []; list.push(r); byHash.set(h, list); }
+
+  const sessions: JourneySession[] = [];
+  for (const [h, evs] of byHash) {
+    let cur: typeof evs = [];
+    const flush = () => {
+      if (!cur.length) return;
+      sessions.push({
+        visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent), viaEmail: cur.some((e) => e.emailId != null),
+        startedAt: new Date(cur[0]!.createdAt).toISOString(), endedAt: new Date(cur[cur.length - 1]!.createdAt).toISOString(),
+        pages: cur.map((e) => ({ path: e.path ?? "/", at: new Date(e.createdAt).toISOString() })),
+      });
+      cur = [];
+    };
+    for (const e of evs) {
+      if (cur.length && new Date(e.createdAt).getTime() - new Date(cur[cur.length - 1]!.createdAt).getTime() > SESSION_GAP_MS) flush();
+      cur.push(e);
+    }
+    flush();
+  }
+  return sessions.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+}
+
 export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
 /** Visites par site démo sur les 30 derniers jours. */
 export async function siteStats(): Promise<SiteStats[]> {

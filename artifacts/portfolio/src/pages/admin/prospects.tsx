@@ -38,6 +38,8 @@ export default function AdminProspects() {
   const [form, setForm] = useState<ProspectInput>(EMPTY);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"actifs" | "tous">("actifs");
+  const [openJourney, setOpenJourney] = useState<number | null>(null);
+  const journey = useQuery({ queryKey: ["admin", "prospect-journey", openJourney], queryFn: () => api.prospectJourney(openJourney!), enabled: openJourney !== null });
 
   const invalidate = () => { qc.invalidateQueries({ queryKey: ["admin", "prospects"] }); qc.invalidateQueries({ queryKey: ["admin", "clients"] }); };
   const save = useMutation({
@@ -149,8 +151,29 @@ export default function AdminProspects() {
                     <ul className="space-y-1.5">
                       <li>{a.opens ? `Courriel ouvert ×${a.opens}` : a.emails ? "Courriel pas encore ouvert" : "—"}</li>
                       <li>{a.clicks ? `Lien cliqué ×${a.clicks}` : a.emails ? "Pas encore cliqué" : "—"}</li>
-                      <li>{a.visits ? `Maquette visitée ×${a.visits} (${a.visitors} visiteur${a.visitors > 1 ? "s" : ""}, 30 j) · dernière ${shortDate(a.lastVisitAt!)}` : p.mockUrl ? "Aucune visite de la maquette (30 j)" : "—"}</li>
+                      <li>
+                        {a.visits ? `Maquette visitée ×${a.visits} (${a.visitors} visiteur${a.visitors > 1 ? "s" : ""}, 30 j) · dernière ${shortDate(a.lastVisitAt!)}` : p.mockUrl ? "Aucune visite de la maquette (30 j)" : "—"}
+                        {a.visits > 0 && (
+                          <button type="button" onClick={() => setOpenJourney(openJourney === p.id ? null : p.id)} className="ml-1.5 text-[11px] text-primary hover:underline">
+                            {openJourney === p.id ? "masquer le parcours" : "voir le parcours"}
+                          </button>
+                        )}
+                      </li>
                     </ul>
+                    {openJourney === p.id && (
+                      <div className="mt-2 space-y-2 rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground">
+                        {journey.isLoading ? <p>Chargement…</p> : (journey.data ?? []).length === 0 ? (
+                          <p>Aucun parcours identifiable au-delà de la première page (l'adresse IP ne se relie à aucun autre événement rattaché au courriel).</p>
+                        ) : (journey.data ?? []).map((s, i) => (
+                          <div key={i} className="border-b border-border/50 pb-1.5 last:border-0 last:pb-0">
+                            <p className="font-medium text-foreground">{s.device}{s.viaEmail ? " · depuis le courriel" : ""} · visiteur {s.visitor}</p>
+                            <ol className="mt-1 space-y-0.5">
+                              {s.pages.map((pg, j) => <li key={j}>{new Date(pg.at).toLocaleString("fr-CA", { dateStyle: "short", timeStyle: "short" })} · {pg.path}</li>)}
+                            </ol>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground mb-2">Suite</p>

@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { z } from "zod/v4";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db, prospectsTable, clientsTable, sentEmailsTable } from "@workspace/db";
-import { emailTracking, siteStats } from "../lib/tracking";
+import { emailTracking, siteStats, prospectJourney } from "../lib/tracking";
 
 /**
  * Prospects (2026-09-24) — /api/admin/prospects. Monté derrière requireAdmin par routes/admin.ts.
@@ -80,6 +80,17 @@ router.post("/:id/convert", async (req, res) => {
   }
   const [row] = await db.update(prospectsTable).set({ status: "gagné", clientId, updatedAt: new Date() }).where(eq(prospectsTable.id, id)).returning();
   res.json({ ...(await withActivity([row!]))[0], clientId });
+});
+// Parcours sur la maquette (2026-10-05) : la suite des pages vues, reconstruite à partir des événements de suivi
+// rattachés aux courriels de ce prospect. Voir prospectJourney() dans lib/tracking.ts pour la méthode.
+router.get("/:id/journey", async (req, res) => {
+  const id = Number(req.params["id"]);
+  const [p] = await db.select().from(prospectsTable).where(eq(prospectsTable.id, id)).limit(1);
+  if (!p) { res.status(404).json({ error: "Prospect introuvable" }); return; }
+  const emails = p.email
+    ? await db.select({ id: sentEmailsTable.id }).from(sentEmailsTable).where(and(eq(sentEmailsTable.isTest, false), sql`lower(${sentEmailsTable.toEmail}) = lower(${p.email})`))
+    : [];
+  res.json(await prospectJourney({ mockUrl: p.mockUrl, emailIds: emails.map((e) => e.id) }));
 });
 router.get("/stats", async (_req, res) => {
   const rows = await db.select({ status: prospectsTable.status, n: sql<number>`count(*)` }).from(prospectsTable).groupBy(prospectsTable.status);

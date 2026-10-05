@@ -43,6 +43,7 @@ export type SentEmail = {
 };
 export type TrackingEvent = { id: number; kind: "open" | "click" | "visit"; at: string; origin: string; isBot: boolean; prefetch?: boolean; site: string | null; path: string | null; source: string | null; visitor: string | null };
 export type SiteStats = { site: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
+export type JourneySession = { visitor: string; device: string; viaEmail: boolean; startedAt: string; endedAt: string; pages: { path: string; at: string }[] };
 
 export type ProposalInput = {
   toName: string; business: string; city: string; siteUrl: string; previewImageUrl: string; brokenDomain: string;
@@ -123,6 +124,7 @@ export const api = {
   deleteEmail: (id: number) => adminFetch<{ ok: true }>(`/emails/${id}`, { method: "DELETE" }),
   emailEvents: (id: number) => adminFetch<TrackingEvent[]>(`/emails/${id}/events`),
   siteStats: () => adminFetch<SiteStats[]>("/tracking/sites"),
+  prospectJourney: (id: number) => adminFetch<JourneySession[]>(`/prospects/${id}/journey`),
   prospects: () => adminFetch<Prospect[]>("/prospects"),
   createProspect: (p: ProspectInput) => adminFetch<Prospect>("/prospects", { method: "POST", body: JSON.stringify(p) }),
   updateProspect: (id: number, p: ProspectInput) => adminFetch<Prospect>(`/prospects/${id}`, { method: "PUT", body: JSON.stringify(p) }),
