@@ -53,7 +53,7 @@ export type ActivityEvent = {
 };
 export type SiteActivity = {
   site: string; label: string; prospectId: number | null; prospectName: string | null; mockUrl: string | null;
-  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number };
+  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number; botHits: number };
   firstVisitAt: string | null; lastVisitAt: string | null;
   days: { day: string; visits: number }[];
   sections: { id: string; visitors: number; hits: number }[];

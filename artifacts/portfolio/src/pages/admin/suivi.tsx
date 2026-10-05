@@ -113,7 +113,7 @@ export default function AdminTracking() {
             </label>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            Vos propres appareils sont exclus. Une « lecture » est une section de page atteinte en défilant — c'est ce qui distingue un visiteur qui a lu de quelqu'un qui a refermé tout de suite.
+            Vos propres appareils sont exclus, ainsi que les robots (indexation, antivirus de courriel) — cochez la case pour les voir. Une « lecture » est une section de page atteinte en défilant : c'est ce qui distingue un visiteur qui a lu de quelqu'un qui a refermé tout de suite.
           </p>
           {feed.isError ? <ErrorNote error={feed.error} onRetry={() => feed.refetch()} /> : !feed.data ? <p className="text-sm text-muted-foreground">Chargement…</p> : shown.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucun événement{kinds.size ? " de ce type" : ""} pour l'instant.</p>
@@ -251,6 +251,11 @@ function SiteDetail({ d }: { d: SiteActivity }) {
           {d.firstVisitAt && ` · première visite ${dt(d.firstVisitAt)}`}
           {d.lastVisitAt && ` · dernière ${ago(d.lastVisitAt)}`}
         </p>
+        {d.totals.botHits > 0 && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {d.totals.botHits} passage{d.totals.botHits > 1 ? "s" : ""} de robot écarté{d.totals.botHits > 1 ? "s" : ""} des chiffres ci-dessus — robots d'indexation et antivirus de courriel qui suivent le lien envoyé.
+          </p>
+        )}
 
         <div className="mt-4">
           <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground mb-1.5">30 derniers jours</p>

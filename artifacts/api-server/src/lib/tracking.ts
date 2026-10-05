@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { and, desc, eq, gte, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable, prospectsTable } from "@workspace/db";
 import { logger } from "./logger";
-import { sendPush } from "./push";
+import { sendPush, pushedRecentlyFor } from "./push";
 
 /**
  * Suivi des courriels de prospection et des maquettes (2026-09-24).
@@ -16,6 +16,33 @@ export const PUBLIC_BASE_URL = (process.env["PUBLIC_BASE_URL"] ?? "https://mehdi
 const GIF = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
 const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|fetch|scan|monitor|facebookexternalhit|slackbot|whatsapp|twitterbot|linkedinbot|telegrambot|discordbot|curl|wget|python-requests|go-http-client|safelinks|proofpoint|mimecast|barracuda|outlook-ios|yahoocachesystem/i;
 const MAIL_PROXY_RE = /googleimageproxy|ggpht\.com|yahoomailproxy|outlook/i;
+/**
+ * Robots qui ne se déclarent pas (2026-10-06). Dans la nuit du 5 au 6 octobre, Mehdi a reçu des
+ * notifications toute la nuit sans trouver la moindre visite réelle derrière. Les relevés montrent la
+ * signature, sans ambiguïté :
+ *   • la même adresse IP charge une maquette DEUX fois à 10 secondes d'intervalle, une fois avec un
+ *     user-agent Windows puis une fois avec un user-agent Android — 25 « visiteurs » sur 136 ;
+ *   • chaque chargement déclenche les 6 ou 7 sections de la page dans LA MÊME SECONDE, ce qu'aucun
+ *     humain ne peut faire en défilant ;
+ *   • 78 événements viennent de « X11; Linux », c'est-à-dire d'un serveur, pas d'un client de
+ *     Trois-Rivières (un navigateur de bureau sous Linux l'annonce ainsi, et c'est aussi la signature
+ *     par défaut de Chrome sans interface, utilisé par les robots d'indexation et les antivirus de
+ *     courriel qui suivent les liens qu'on envoie).
+ * Ces user-agents sont donc classés « robot » : ils ne déclenchent plus d'alerte et sortent des
+ * compteurs. La règle s'applique aussi À LA LECTURE, donc les visites déjà enregistrées sont
+ * reclassées sans migration.
+ */
+const AUTOMATION_RE = /headlesschrome|phantomjs|puppeteer|playwright|selenium|webdriver|okhttp|java\/|libwww|httpclient|apache-http|axios|node-fetch|got\/|dart:io/i;
+export function isAutomatedAgent(ua: string | null | undefined): boolean {
+  const u = (ua ?? "").trim();
+  if (!u) return true;                       // une vraie page envoie toujours un user-agent
+  if (BOT_RE.test(u) || AUTOMATION_RE.test(u)) return true;
+  if (/\(X11;/i.test(u)) return true;        // serveur Linux — voir le commentaire ci-dessus
+  if (/^mozilla\/[\d.]+$/i.test(u)) return true; // « Mozilla/5.0 » tout court, sans plateforme
+  return false;
+}
+/** Un événement déjà en base compte-t-il comme robot ? (drapeau enregistré OU user-agent reclassé) */
+const rowIsBot = (r: { isBot: boolean; userAgent: string | null }): boolean => r.isBot || isAutomatedAgent(r.userAgent);
 
 /**
  * Clé canonique d'une maquette (2026-10-05). Une même maquette est visitée de deux façons :
@@ -103,7 +130,7 @@ async function resolveLabel(opts: { site?: string | null; path?: string | null; 
 async function record(kind: "open" | "click" | "visit" | "section", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
   const ua = clip(req.headers["user-agent"], 300);
   try {
-    await db.insert(trackingEventsTable).values({ kind, emailId: extra.emailId ?? null, site: canonicalSite(extra.site, extra.path), path: extra.path ?? null, referrer: extra.referrer ?? null, source: extra.source ?? null, userAgent: ua, ipHash: hashIp(req), isBot: extra.isBot ?? Boolean(ua && BOT_RE.test(ua)) });
+    await db.insert(trackingEventsTable).values({ kind, emailId: extra.emailId ?? null, site: canonicalSite(extra.site, extra.path), path: extra.path ?? null, referrer: extra.referrer ?? null, source: extra.source ?? null, userAgent: ua, ipHash: hashIp(req), isBot: extra.isBot ?? isAutomatedAgent(ua) });
   } catch (err) { logger.warn({ err, kind }, "tracking insert failed"); }
 }
 
@@ -114,7 +141,7 @@ export async function trackOpenHandler(req: Request, res: Response): Promise<voi
   if (row) {
     const ua = String(req.headers["user-agent"] ?? "");
     // Les proxys d'images de Gmail/Yahoo/Outlook relaient une vraie ouverture ; les scanners de liens, non.
-    const isBot = BOT_RE.test(ua) && !MAIL_PROXY_RE.test(ua);
+    const isBot = isAutomatedAgent(ua) && !MAIL_PROXY_RE.test(ua);
     await record("open", req, { emailId: row.id, isBot });
     if (!isBot && !isPrefetch(new Date(), new Date(row.createdAt))) {
       void resolveLabel({ emailRow: { toEmail: row.toEmail } })
@@ -132,7 +159,7 @@ export async function trackClickHandler(req: Request, res: Response): Promise<vo
   res.set("cache-control", "no-store");
   if (!row || !row.trackUrl) { res.redirect(302, PUBLIC_BASE_URL); return; }
   const ua = String(req.headers["user-agent"] ?? "");
-  const isBot = Boolean(ua && BOT_RE.test(ua));
+  const isBot = isAutomatedAgent(ua);
   await record("click", req, { emailId: row.id, referrer: clip(req.headers["referer"], 300), isBot });
   if (!isBot) {
     void resolveLabel({ emailRow: { toEmail: row.toEmail } })
@@ -160,7 +187,7 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
     const e = clip(q["e"], 40);
     if (e) { const row = await findByToken(e); if (row) { emailId = row.id; emailRow = { toEmail: row.toEmail }; } }
     const ua = String(req.headers["user-agent"] ?? "");
-    const isBot = Boolean(ua && BOT_RE.test(ua));
+    const isBot = isAutomatedAgent(ua);
     const ih = hashIp(req);
     let isNewSession = true;
     if (!isBot) {
@@ -171,7 +198,10 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
       isNewSession = !recent;
     }
     await record("visit", req, { site, emailId, path, referrer: clip(q["ref"], 300), source: clip(q["src"], 40), isBot });
-    if (!isBot && isNewSession && !(await ignoredHashes()).includes(ih)) {
+    // Quatre conditions avant d'alerter : ce n'est pas un robot, c'est une nouvelle session pour ce
+    // visiteur, ce n'est pas un de nos appareils, et aucune alerte n'est déjà partie pour cette maquette
+    // dans la dernière demi-heure (voir PUSH_DEBOUNCE_MS).
+    if (!isBot && isNewSession && !(await ignoredHashes()).includes(ih) && !(await pushedRecentlyFor(site))) {
       void resolveLabel({ site, path, emailRow })
         .then((label) => sendPush({ title: "👀 Visite de la maquette", body: label, url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(site)}`, tag: "visit", kind: "visit", site, emailId }))
         .catch(() => {});
@@ -217,8 +247,9 @@ export async function emailTracking(emailIds: number[]): Promise<Map<number, Ema
   if (!emailIds.length) return map;
   const sent = await db.select({ id: sentEmailsTable.id, createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(inArray(sentEmailsTable.id, emailIds));
   const sentAt = new Map(sent.map((s) => [s.id, new Date(s.createdAt)]));
-  const rows = await db.select({ emailId: trackingEventsTable.emailId, kind: trackingEventsTable.kind, createdAt: trackingEventsTable.createdAt })
+  const all = await db.select({ emailId: trackingEventsTable.emailId, kind: trackingEventsTable.kind, createdAt: trackingEventsTable.createdAt, isBot: trackingEventsTable.isBot, userAgent: trackingEventsTable.userAgent })
     .from(trackingEventsTable).where(and(inArray(trackingEventsTable.emailId, emailIds), eq(trackingEventsTable.isBot, false), await notOwnDevice())).orderBy(trackingEventsTable.createdAt);
+  const rows = all.filter((r) => !rowIsBot(r));   // reclasse les robots déjà enregistrés comme humains
   for (const r of rows) {
     if (r.emailId == null) continue;
     const at = new Date(r.createdAt), sentTime = sentAt.get(r.emailId);
@@ -311,7 +342,7 @@ export async function prospectJourney(opts: { mockUrl: string | null; emailIds: 
   const rows = await db.select().from(trackingEventsTable)
     .where(and(inArray(trackingEventsTable.kind, ["visit", "section"]), eq(trackingEventsTable.isBot, false), siteEventsMatch(site), await notOwnDevice()))
     .orderBy(trackingEventsTable.createdAt);
-  return buildSessions(rows.filter((r) => r.ipHash && knownHashes.has(r.ipHash)));
+  return buildSessions(rows.filter((r) => !rowIsBot(r) && r.ipHash && knownHashes.has(r.ipHash)));
 }
 
 export type SiteStats = { site: string; label: string; visits: number; visitors: number; mobile: number; fromEmail: number; lastVisitAt: string | null; days: { day: string; visits: number }[] };
@@ -322,7 +353,7 @@ export async function siteStats(): Promise<SiteStats[]> {
   const bySite = new Map<string, { rows: typeof rows }>();
   // Normalisation à la lecture : les visites déjà enregistrées sous « mehdijabry.dev » via le lien proxy sont
   // réattribuées à leur maquette (voir canonicalSite).
-  for (const r of rows) { const key = canonicalSite(r.site, r.path); if (!key) continue; const s = bySite.get(key) ?? { rows: [] }; s.rows.push(r); bySite.set(key, s); }
+  for (const r of rows) { if (rowIsBot(r)) continue; const key = canonicalSite(r.site, r.path); if (!key) continue; const s = bySite.get(key) ?? { rows: [] }; s.rows.push(r); bySite.set(key, s); }
   // Nom du prospect plutôt que l'hôte technique : « Aura Lunosa » se lit, « auralunosa-demo.pages.dev » non.
   const { bySite: names } = await labelMaps();
   const out: SiteStats[] = [];
@@ -380,9 +411,10 @@ export function siteLabel(site: string, bySite: Map<string, string>): string {
 export async function recentActivity(opts: { limit?: number; site?: string | null; includeBots?: boolean } = {}): Promise<ActivityEvent[]> {
   const limit = Math.min(Math.max(opts.limit ?? 120, 1), 500);
   const conds = [opts.site ? siteEventsMatch(opts.site) : undefined, opts.includeBots ? undefined : eq(trackingEventsTable.isBot, false), await notOwnDevice()].filter(Boolean);
-  const rows = await db.select().from(trackingEventsTable)
+  const fetched = await db.select().from(trackingEventsTable)
     .where(conds.length ? and(...conds) : undefined)
     .orderBy(desc(trackingEventsTable.createdAt)).limit(limit);
+  const rows = opts.includeBots ? fetched : fetched.filter((r) => !rowIsBot(r));
 
   const { byEmail, bySite } = await labelMaps();
   const emailIds = [...new Set(rows.map((r) => r.emailId).filter((i): i is number => i != null))];
@@ -399,7 +431,7 @@ export async function recentActivity(opts: { limit?: number; site?: string | nul
       id: r.id, kind: r.kind as ActivityEvent["kind"], at: new Date(r.createdAt).toISOString(), label,
       site, path: r.path, source: r.source, referrer: r.referrer,
       origin: originLabel(r.userAgent), visitor: r.ipHash ? r.ipHash.slice(0, 6) : null,
-      viaEmail: r.emailId != null || r.source === "courriel", isBot: r.isBot,
+      viaEmail: r.emailId != null || r.source === "courriel", isBot: rowIsBot(r),
       prefetch: Boolean(r.kind === "open" && email && isPrefetch(new Date(r.createdAt), new Date(email.createdAt))),
       emailId: r.emailId, emailTo: email?.toEmail ?? null,
     };
@@ -408,7 +440,7 @@ export async function recentActivity(opts: { limit?: number; site?: string | nul
 
 export type SiteActivity = {
   site: string; label: string; prospectId: number | null; prospectName: string | null; mockUrl: string | null;
-  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number };
+  totals: { visits: number; visitors: number; sections: number; mobile: number; fromEmail: number; opens: number; clicks: number; botHits: number };
   firstVisitAt: string | null; lastVisitAt: string | null;
   days: { day: string; visits: number }[];
   sections: { id: string; visitors: number; hits: number }[];
@@ -423,9 +455,13 @@ export type SiteActivity = {
  * prospectJourney) : ici on veut aussi les visites directes, c'est le but du panneau.
  */
 export async function siteActivity(site: string): Promise<SiteActivity> {
-  const rows = await db.select().from(trackingEventsTable)
-    .where(and(eq(trackingEventsTable.isBot, false), siteEventsMatch(site), await notOwnDevice()))
+  // Pas de filtre isBot en SQL ici : on veut pouvoir DIRE combien de passages de robots ont été écartés,
+  // qu'ils aient été marqués à l'écriture ou reclassés à la lecture.
+  const raw = await db.select().from(trackingEventsTable)
+    .where(and(siteEventsMatch(site), await notOwnDevice()))
     .orderBy(trackingEventsTable.createdAt);
+  const rows = raw.filter((r) => !rowIsBot(r));
+  const botHits = raw.filter((r) => rowIsBot(r) && r.kind === "visit").length;
 
   const visits = rows.filter((r) => r.kind === "visit");
   const sections = rows.filter((r) => r.kind === "section");
@@ -465,7 +501,7 @@ export async function siteActivity(site: string): Promise<SiteActivity> {
       visits: visits.length, visitors: new Set(visits.map((v) => v.ipHash)).size, sections: sections.length,
       mobile: visits.filter((v) => /Mobile|Android|iPhone/i.test(v.userAgent ?? "")).length,
       fromEmail: visits.filter((v) => v.source === "courriel" || v.emailId != null).length,
-      opens, clicks,
+      opens, clicks, botHits,
     },
     firstVisitAt: visits[0] ? new Date(visits[0].createdAt).toISOString() : null,
     lastVisitAt: visits.length ? new Date(visits[visits.length - 1]!.createdAt).toISOString() : null,

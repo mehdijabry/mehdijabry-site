@@ -1,7 +1,23 @@
 import webpush from "web-push";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { db, pushSubscriptionsTable, pushNotificationsTable } from "@workspace/db";
 import { logger } from "./logger";
+
+/**
+ * Anti-rafale (2026-10-06). Dans la nuit du 5 au 6 octobre, quatre alertes sont parties en SEPT SECONDES
+ * pour la même maquette : chaque requête venait d'une adresse IP différente, donc chacune passait pour une
+ * « nouvelle session ». Une seule alerte par maquette et par demi-heure suffit — la page Suivi donne le
+ * détail, la notification n'est qu'un signal.
+ */
+export const PUSH_DEBOUNCE_MS = 30 * 60_000;
+export async function pushedRecentlyFor(site: string, withinMs = PUSH_DEBOUNCE_MS): Promise<boolean> {
+  try {
+    const [row] = await db.select({ id: pushNotificationsTable.id }).from(pushNotificationsTable)
+      .where(and(eq(pushNotificationsTable.site, site), gte(pushNotificationsTable.createdAt, new Date(Date.now() - withinMs))))
+      .orderBy(desc(pushNotificationsTable.id)).limit(1);
+    return Boolean(row);
+  } catch (err) { logger.warn({ err, site }, "push debounce check failed"); return false; }
+}
 
 /**
  * Notifications push sur navigateur (2026-10-05) — alerte l'iPhone de Mehdi (admin installé depuis Safari, voir
