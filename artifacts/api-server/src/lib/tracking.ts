@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
-import { and, desc, eq, gte, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable, prospectsTable } from "@workspace/db";
 import { logger } from "./logger";
 import { sendPush, pushedRecentlyFor } from "./push";
@@ -127,6 +127,23 @@ async function resolveLabel(opts: { site?: string | null; path?: string | null; 
   for (const r of rows) if (canonicalSiteFromUrl(r.mockUrl) === site) return r.name;
   return site.replace(/-demo\.pages\.dev$/, "");
 }
+/**
+ * Cet appareil a-t-il déjà été relié à l'un de nos courriels ? (2026-10-06)
+ *
+ * Le lien montré au prospect passe par /go/<jeton>, qui pose « ?e=<jeton>&src=courriel » sur la maquette :
+ * la toute première page vue porte donc l'identifiant du courriel. Mais ce marqueur disparaît dès que la
+ * personne navigue dans le site, et il n'est pas là si elle revient le lendemain en rouvrant un onglet.
+ * On garde donc la trace de son empreinte d'adresse IP : un appareil qui a déjà cliqué un de nos liens
+ * reste reconnu comme « le prospect » à ses visites suivantes.
+ */
+async function visitorKnownFromEmail(ipHash: string): Promise<boolean> {
+  try {
+    const [row] = await db.select({ id: trackingEventsTable.id }).from(trackingEventsTable)
+      .where(and(eq(trackingEventsTable.ipHash, ipHash), or(isNotNull(trackingEventsTable.emailId), eq(trackingEventsTable.source, "courriel")))).limit(1);
+    return Boolean(row);
+  } catch { return false; }
+}
+
 async function record(kind: "open" | "click" | "visit" | "section", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
   const ua = clip(req.headers["user-agent"], 300);
   try {
@@ -198,12 +215,26 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
       isNewSession = !recent;
     }
     await record("visit", req, { site, emailId, path, referrer: clip(q["ref"], 300), source: clip(q["src"], 40), isBot });
-    // Quatre conditions avant d'alerter : ce n'est pas un robot, c'est une nouvelle session pour ce
-    // visiteur, ce n'est pas un de nos appareils, et aucune alerte n'est déjà partie pour cette maquette
-    // dans la dernière demi-heure (voir PUSH_DEBOUNCE_MS).
-    if (!isBot && isNewSession && !(await ignoredHashes()).includes(ih) && !(await pushedRecentlyFor(site))) {
+    /**
+     * Qui mérite une alerte (2026-10-06, demande de Mehdi). Une maquette publique est visitée par
+     * beaucoup de monde qui n'est pas le prospect : robots d'indexation, curieux, nos propres essais.
+     * Sur 182 visites relevées, UNE SEULE venait du lien envoyé par courriel. Alerter sur tout revenait
+     * à sonner la nuit pour des passages sans intérêt.
+     * On n'alerte donc que pour une « visite de prospect » : la visite porte le marqueur du courriel,
+     * ou vient d'un appareil qui a déjà cliqué l'un de nos liens. Toutes les autres visites restent
+     * enregistrées et visibles dans le panneau Suivi — simplement, elles ne réveillent personne.
+     */
+    const fromLink = emailId != null || clip(q["src"], 40) === "courriel";
+    const returning = !fromLink && !isBot && (await visitorKnownFromEmail(ih));
+    const isProspect = fromLink || returning;
+    if (isProspect && !isBot && isNewSession && !(await ignoredHashes()).includes(ih) && !(await pushedRecentlyFor(site))) {
       void resolveLabel({ site, path, emailRow })
-        .then((label) => sendPush({ title: "👀 Visite de la maquette", body: label, url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(site)}`, tag: "visit", kind: "visit", site, emailId }))
+        .then((label) => sendPush({
+          title: "👀 Visite de la maquette",
+          body: returning ? `${label} · revenu sur la maquette` : `${label} · depuis votre courriel`,
+          url: `${PUBLIC_BASE_URL}/admin/suivi?site=${encodeURIComponent(site)}`,
+          tag: "visit", kind: "visit", site, emailId,
+        }))
         .catch(() => {});
     }
   }
@@ -304,7 +335,7 @@ function siteEventsMatch(site: string) {
 }
 
 /** Regroupe des événements en sessions : une coupure au-delà de 30 minutes d'inactivité pour un même visiteur. */
-function buildSessions(rows: EventRow[]): JourneySession[] {
+function buildSessions(rows: EventRow[], known?: Set<string>): JourneySession[] {
   const byHash = new Map<string, EventRow[]>();
   for (const r of rows) { if (!r.ipHash) continue; const list = byHash.get(r.ipHash) ?? []; list.push(r); byHash.set(r.ipHash, list); }
   const sessions: JourneySession[] = [];
@@ -314,7 +345,8 @@ function buildSessions(rows: EventRow[]): JourneySession[] {
     const flush = () => {
       if (!cur.length) return;
       sessions.push({
-        visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent), viaEmail: cur.some((e) => e.emailId != null || e.source === "courriel"),
+        visitor: h.slice(0, 6), device: originLabel(cur[0]!.userAgent),
+        viaEmail: cur.some((e) => e.emailId != null || e.source === "courriel") || Boolean(known?.has(h)),
         startedAt: new Date(cur[0]!.createdAt).toISOString(), endedAt: new Date(cur[cur.length - 1]!.createdAt).toISOString(),
         pages: cur.map((e) => ({ path: e.path ?? "/", at: new Date(e.createdAt).toISOString(), kind: e.kind === "section" ? "section" as const : "visit" as const })),
       });
@@ -384,8 +416,22 @@ export type ActivityEvent = {
   id: number; kind: "open" | "click" | "visit" | "section"; at: string; label: string;
   site: string | null; path: string | null; source: string | null; referrer: string | null;
   origin: string; visitor: string | null; viaEmail: boolean; isBot: boolean; prefetch: boolean;
+  /** Visiteur reconnu comme le prospect : l'événement porte le marqueur du courriel, ou son appareil a
+   *  déjà cliqué l'un de nos liens. C'est exactement ce qui déclenche une notification. */
+  isProspect: boolean;
   emailId: number | null; emailTo: string | null;
 };
+
+/**
+ * Empreintes d'appareils déjà reliées à l'un de nos courriels — autrement dit « les prospects ».
+ * Même règle que la notification (voir visitorKnownFromEmail) : une fois qu'un appareil a cliqué un lien
+ * de nos courriels, ses visites suivantes restent attribuées au prospect même sans le marqueur ?e=.
+ */
+async function prospectHashes(): Promise<Set<string>> {
+  const rows = await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable)
+    .where(or(isNotNull(trackingEventsTable.emailId), eq(trackingEventsTable.source, "courriel")));
+  return new Set(rows.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
+}
 
 /** Noms lisibles : adresse du courriel → prospect, hôte de maquette → prospect. Chargé une fois par requête. */
 async function labelMaps() {
@@ -417,6 +463,7 @@ export async function recentActivity(opts: { limit?: number; site?: string | nul
   const rows = opts.includeBots ? fetched : fetched.filter((r) => !rowIsBot(r));
 
   const { byEmail, bySite } = await labelMaps();
+  const known = await prospectHashes();
   const emailIds = [...new Set(rows.map((r) => r.emailId).filter((i): i is number => i != null))];
   const emails = emailIds.length
     ? await db.select({ id: sentEmailsTable.id, toEmail: sentEmailsTable.toEmail, createdAt: sentEmailsTable.createdAt }).from(sentEmailsTable).where(inArray(sentEmailsTable.id, emailIds))
@@ -431,7 +478,9 @@ export async function recentActivity(opts: { limit?: number; site?: string | nul
       id: r.id, kind: r.kind as ActivityEvent["kind"], at: new Date(r.createdAt).toISOString(), label,
       site, path: r.path, source: r.source, referrer: r.referrer,
       origin: originLabel(r.userAgent), visitor: r.ipHash ? r.ipHash.slice(0, 6) : null,
-      viaEmail: r.emailId != null || r.source === "courriel", isBot: rowIsBot(r),
+      viaEmail: r.emailId != null || r.source === "courriel",
+      isProspect: r.emailId != null || r.source === "courriel" || Boolean(r.ipHash && known.has(r.ipHash)),
+      isBot: rowIsBot(r),
       prefetch: Boolean(r.kind === "open" && email && isPrefetch(new Date(r.createdAt), new Date(email.createdAt))),
       emailId: r.emailId, emailTo: email?.toEmail ?? null,
     };
@@ -510,6 +559,6 @@ export async function siteActivity(site: string): Promise<SiteActivity> {
     pages: count(visits, (v) => v.path ?? "/").map(([path, hits]) => ({ path, hits })),
     sources: count(visits, (v) => (v.source === "courriel" || v.emailId != null) ? "Courriel de prospection" : v.referrer ? new URL(v.referrer, "https://x").hostname || "Lien externe" : "Accès direct").map(([label, hits]) => ({ label, hits })),
     devices: count(visits, (v) => originLabel(v.userAgent)).map(([label, hits]) => ({ label, hits })),
-    sessions: buildSessions(rows.filter((r) => r.kind === "visit" || r.kind === "section")),
+    sessions: buildSessions(rows.filter((r) => r.kind === "visit" || r.kind === "section"), await prospectHashes()),
   };
 }

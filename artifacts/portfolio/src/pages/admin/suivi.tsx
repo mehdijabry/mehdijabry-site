@@ -77,7 +77,7 @@ export default function AdminTracking() {
         <Panel>
           <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
             <p className="text-xs text-muted-foreground max-w-prose">
-              Tout ce qui a été envoyé sur vos appareils. Une notification balayée sur le téléphone reste ici — c'est la seule trace de ce qui a été annoncé.
+              Tout ce qui a été envoyé sur vos appareils. Une notification balayée sur le téléphone reste ici — c'est la seule trace de ce qui a été annoncé. Seules les ouvertures, les clics et les <strong className="text-foreground">visites de prospect</strong> alertent ; le reste du trafic se consulte dans l'onglet Activité.
             </p>
             {(notifs.data ?? []).length > 0 && (
               <button type="button" className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1 shrink-0"
@@ -113,7 +113,7 @@ export default function AdminTracking() {
             </label>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            Vos propres appareils sont exclus, ainsi que les robots (indexation, antivirus de courriel) — cochez la case pour les voir. Une « lecture » est une section de page atteinte en défilant : c'est ce qui distingue un visiteur qui a lu de quelqu'un qui a refermé tout de suite.
+            Vos propres appareils sont exclus, ainsi que les robots (indexation, antivirus de courriel) — cochez la case pour les voir. Une « lecture » est une section de page atteinte en défilant : c'est ce qui distingue un visiteur qui a lu de quelqu'un qui a refermé tout de suite. <strong className="text-foreground">Seules les « visites de prospect » déclenchent une notification</strong> — celles qui arrivent par le lien de votre courriel, ou d'un appareil qui l'a déjà cliqué. Les autres sont enregistrées ici sans vous alerter.
           </p>
           {feed.isError ? <ErrorNote error={feed.error} onRetry={() => feed.refetch()} /> : !feed.data ? <p className="text-sm text-muted-foreground">Chargement…</p> : shown.length === 0 ? (
             <p className="text-sm text-muted-foreground">Aucun événement{kinds.size ? " de ce type" : ""} pour l'instant.</p>
@@ -191,12 +191,12 @@ function EventRow({ e, onSite }: { e: ActivityEvent; onSite: (site: string) => v
   const K = KINDS[e.kind] ?? KINDS["test"]!;
   return (
     <li className="py-2.5 flex gap-3">
-      <K.icon className={cn("w-4 h-4 mt-0.5 shrink-0", K.tone)} />
+      <K.icon className={cn("w-4 h-4 mt-0.5 shrink-0", e.kind === "visit" && e.isProspect ? "text-primary" : K.tone)} />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-sm truncate">
             <span className="font-medium">{e.label}</span>
-            <span className="text-muted-foreground"> — {K.label.toLowerCase()}{e.kind === "section" && e.path ? ` « ${e.path} »` : ""}</span>
+            <span className="text-muted-foreground"> — {e.kind === "visit" && e.isProspect ? "visite de prospect" : K.label.toLowerCase()}{e.kind === "section" && e.path ? ` « ${e.path} »` : ""}</span>
           </p>
           <span className="text-[11px] text-muted-foreground shrink-0" title={dt(e.at)}>{ago(e.at)}</span>
         </div>

@@ -49,6 +49,8 @@ export type ActivityEvent = {
   id: number; kind: ActivityKind; at: string; label: string;
   site: string | null; path: string | null; source: string | null; referrer: string | null;
   origin: string; visitor: string | null; viaEmail: boolean; isBot: boolean; prefetch: boolean;
+  /** Visiteur reconnu comme le prospect — c'est exactement ce qui déclenche une notification. */
+  isProspect: boolean;
   emailId: number | null; emailTo: string | null;
 };
 export type SiteActivity = {
