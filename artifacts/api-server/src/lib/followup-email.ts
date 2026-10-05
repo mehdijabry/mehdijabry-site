@@ -46,6 +46,10 @@ export type FollowupEmailInput = {
   /** Second lien mis en avant, en plus du site principal — pour un dossier à deux sites sous un même propriétaire
    *  (2026-10-05). Rendu comme un second bouton, variante « classic » seulement ; absent par défaut. */
   secondCta?: { label: string; url: string } | null;
+  /** true = le prix est l'argument principal de cette relance : la phrase de prix est déplacée tout en haut,
+   *  juste après l'ouverture, au lieu d'attendre la fin du courriel. Variante « classic » seulement ; absent
+   *  par défaut (2026-10-05, offre groupée Le Chack / Paul Piché Traiteur). */
+  priceUpfront?: boolean | null;
 };
 
 export function renderFollowupEmail(p: FollowupEmailInput, issuer: IssuerSettings, opts: { logoUrl?: string | null; trackUrl?: string | null } = {}): { subject: string; html: string; text: string } {
@@ -170,11 +174,12 @@ ${adminBrutHtml ? `<p style="margin:0 0 20px">${adminBrutHtml}</p>` : ""}
   const text = [
     greeting, "",
     `Je vous ai écrit ${when} : sans que vous me demandiez rien, j'ai construit un nouveau site pour ${p.business}.${call} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`, "",
+    ...(p.priceUpfront ? [money, ""] : []),
     "Ce que le lien fait, et ne fait pas :", ...safety.map((s) => `- ${s}`), "",
     `Le site : ${p.siteUrl}`, "",
     ...(p.secondCta ? [`Et aussi : ${p.secondCta.label} — ${p.secondCta.url}`, ""] : []),
     "Ce que vous y trouverez :", ...found.map((b) => `- ${b}`), admin ? admin : "", proof ? proof : "",
-    "", money, "",
+    ...(p.priceUpfront ? [] : ["", money, ""]),
     risque, "",
     "Une seule chose à faire pour avancer : répondez « oui » à ce courriel.", "",
     "Au plaisir,", signer, `Développeur web indépendant — ${city}`, `${site} · ${issuer.emailFrom} · ${phone}`, "",
@@ -197,6 +202,7 @@ ${adminBrutHtml ? `<p style="margin:0 0 20px">${adminBrutHtml}</p>` : ""}
 <div style="max-width:600px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif">
 ${para(esc(greeting))}
 ${para(`Je vous ai écrit ${esc(when)} : sans que vous me demandiez rien, <strong>j'ai construit un nouveau site pour ${esc(p.business)}</strong>.${esc(call)} Je me doute qu'un courriel d'un inconnu avec un lien, ça ressemble à de l'hameçonnage, et qu'on le laisse de côté. Alors je vais être très clair.`)}
+${p.priceUpfront ? `<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:${ink};font-weight:700">${bold(money, moneyIntro)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px"><tr><td style="background:${paper};border-radius:10px;padding:18px 20px 10px">
   <p style="margin:0 0 10px;font-size:13px;line-height:1.4;letter-spacing:.12em;text-transform:uppercase;color:${muted}">Ce que le lien fait, et ne fait pas</p>
   <ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.55;color:${ink}">
@@ -214,7 +220,7 @@ ${para("<strong>Ce que vous y trouverez :</strong>")}
 <ul style="margin:0 0 16px;padding-left:22px;font-size:16px;line-height:1.6;color:${ink}">${found.map((b) => li(esc(b))).join("")}</ul>
 ${admin ? para(esc(admin).replace(esc(p.adminUrl!.trim()), `<a href="${esc(p.adminUrl!.trim())}" style="color:${amber};font-weight:700">${esc(p.adminUrl!.trim())}</a>`)) : ""}
 ${proof ? para(esc(proof)) : ""}
-${para(bold(money, moneyIntro))}
+${p.priceUpfront ? "" : para(bold(money, moneyIntro))}
 <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};font-weight:700">${esc(risque)}</p>
 ${para("Une seule chose à faire pour avancer : répondez « oui » à ce courriel.")}
 <div style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink}">Au plaisir,${signatureHtml}</div>
