@@ -136,3 +136,16 @@ export const prospectsTable = pgTable("prospects", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 export type ProspectRow = typeof prospectsTable.$inferSelect;
+
+/** Abonnements aux notifications push du navigateur (2026-10-05) — un par appareil installé (iPhone de Mehdi en
+ *  premier lieu). Alimentés par /api/admin/push/subscribe ; lus par lib/push.ts à chaque ouverture, clic ou
+ *  visite digne d'une alerte. */
+export const pushSubscriptionsTable = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  endpoint: text("endpoint").unique().notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+export type PushSubscriptionRow = typeof pushSubscriptionsTable.$inferSelect;

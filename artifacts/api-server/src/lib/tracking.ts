@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
 import { and, desc, eq, gte, inArray, isNull, notInArray, or, sql } from "drizzle-orm";
-import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable } from "@workspace/db";
+import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable, prospectsTable } from "@workspace/db";
 import { logger } from "./logger";
+import { sendPush } from "./push";
 
 /**
  * Suivi des courriels de prospection et des maquettes (2026-09-24).
@@ -56,6 +57,31 @@ async function findByToken(token: string) {
   const [row] = await db.select().from(sentEmailsTable).where(eq(sentEmailsTable.trackToken, token)).limit(1);
   return row ?? null;
 }
+
+/**
+ * Nom lisible pour une notification push (2026-10-05) : le prospect relié au courriel si on en a un, sinon le
+ * prospect dont la maquette correspond à l'hôte visité — gère aussi le lien raccourci /maquette-v1/<slug>
+ * (même logique que prospectJourney). Retombe sur l'adresse ou l'hôte si personne ne correspond.
+ */
+async function resolveLabel(opts: { site?: string | null; path?: string | null; emailRow?: { toEmail: string } | null }): Promise<string> {
+  if (opts.emailRow) {
+    const [p] = await db.select({ name: prospectsTable.name }).from(prospectsTable)
+      .where(sql`lower(${prospectsTable.email}) = lower(${opts.emailRow.toEmail})`).limit(1);
+    return p?.name ?? opts.emailRow.toEmail;
+  }
+  if (!opts.site) return "inconnu";
+  let slug = opts.site.replace(/-demo\.pages\.dev$/, "");
+  if (opts.site === "mehdijabry.dev" && opts.path) {
+    const m = /^\/maquette-v1\/([a-z0-9-]+)/.exec(opts.path);
+    if (m) slug = m[1]!;
+  }
+  const rows = await db.select({ name: prospectsTable.name, mockUrl: prospectsTable.mockUrl }).from(prospectsTable);
+  for (const r of rows) {
+    const h = hostOf(r.mockUrl);
+    if (h && h.replace(/-demo\.pages\.dev$/, "") === slug) return r.name;
+  }
+  return slug;
+}
 async function record(kind: "open" | "click" | "visit" | "section", req: Request, extra: { emailId?: number | null; site?: string | null; path?: string | null; referrer?: string | null; source?: string | null; isBot?: boolean }): Promise<void> {
   const ua = clip(req.headers["user-agent"], 300);
   try {
@@ -72,6 +98,11 @@ export async function trackOpenHandler(req: Request, res: Response): Promise<voi
     // Les proxys d'images de Gmail/Yahoo/Outlook relaient une vraie ouverture ; les scanners de liens, non.
     const isBot = BOT_RE.test(ua) && !MAIL_PROXY_RE.test(ua);
     await record("open", req, { emailId: row.id, isBot });
+    if (!isBot && !isPrefetch(new Date(), new Date(row.createdAt))) {
+      void resolveLabel({ emailRow: { toEmail: row.toEmail } })
+        .then((label) => sendPush({ title: "📬 Courriel ouvert", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "open" }))
+        .catch(() => {});
+    }
   }
   gif(res);
 }
@@ -82,21 +113,48 @@ export async function trackClickHandler(req: Request, res: Response): Promise<vo
   const row = await findByToken(token);
   res.set("cache-control", "no-store");
   if (!row || !row.trackUrl) { res.redirect(302, PUBLIC_BASE_URL); return; }
-  await record("click", req, { emailId: row.id, referrer: clip(req.headers["referer"], 300) });
+  const ua = String(req.headers["user-agent"] ?? "");
+  const isBot = Boolean(ua && BOT_RE.test(ua));
+  await record("click", req, { emailId: row.id, referrer: clip(req.headers["referer"], 300), isBot });
+  if (!isBot) {
+    void resolveLabel({ emailRow: { toEmail: row.toEmail } })
+      .then((label) => sendPush({ title: "🖱️ Lien cliqué", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "click" }))
+      .catch(() => {});
+  }
   const target = new URL(row.trackUrl);
   target.searchParams.set("src", "courriel"); target.searchParams.set("e", token);
   res.redirect(302, target.toString());
 }
 
-/** Balise des maquettes : GET /api/track/visit.gif?site=&path=&ref=&src=&e= */
+/** Balise des maquettes : GET /api/track/visit.gif?site=&path=&ref=&src=&e=
+ *  Une notification push ne part que pour une « nouvelle » visite (aucune visite du même visiteur sur ce site dans
+ *  les 30 dernières minutes, même fenêtre que les sessions du parcours) — sinon chaque section défilée ou chaque
+ *  rechargement de page alerterait l'iPhone de Mehdi. */
 export async function trackVisitHandler(req: Request, res: Response): Promise<void> {
   const q = req.query as Record<string, unknown>;
   const site = clip(q["site"], 120)?.toLowerCase().replace(/[^a-z0-9.-]/g, "") ?? null;
   if (site) {
-    let emailId: number | null = null;
+    let emailId: number | null = null, emailRow: { toEmail: string } | null = null;
     const e = clip(q["e"], 40);
-    if (e) { const row = await findByToken(e); emailId = row?.id ?? null; }
-    await record("visit", req, { site, emailId, path: clip(q["path"], 200), referrer: clip(q["ref"], 300), source: clip(q["src"], 40) });
+    if (e) { const row = await findByToken(e); if (row) { emailId = row.id; emailRow = { toEmail: row.toEmail }; } }
+    const ua = String(req.headers["user-agent"] ?? "");
+    const isBot = Boolean(ua && BOT_RE.test(ua));
+    const path = clip(q["path"], 200);
+    const ih = hashIp(req);
+    let isNewSession = true;
+    if (!isBot) {
+      const cutoff = new Date(Date.now() - SESSION_GAP_MS);
+      const [recent] = await db.select({ id: trackingEventsTable.id }).from(trackingEventsTable)
+        .where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.ipHash, ih), eq(trackingEventsTable.site, site), gte(trackingEventsTable.createdAt, cutoff)))
+        .limit(1);
+      isNewSession = !recent;
+    }
+    await record("visit", req, { site, emailId, path, referrer: clip(q["ref"], 300), source: clip(q["src"], 40), isBot });
+    if (!isBot && isNewSession && !(await ignoredHashes()).includes(ih)) {
+      void resolveLabel({ site, path, emailRow })
+        .then((label) => sendPush({ title: "👀 Visite de la maquette", body: label, url: `${PUBLIC_BASE_URL}/admin/prospects`, tag: "visit" }))
+        .catch(() => {});
+    }
   }
   gif(res);
 }

@@ -2,7 +2,7 @@
  * Rôle : satisfaire les critères d'installation de Chrome (application installable sur Mac, Windows, Android).
  * Aucune mise en cache : les données de l'admin doivent toujours venir du serveur. Le gestionnaire fetch est un
  * simple passe-plat ; hors ligne, une page d'attente remplace le dinosaure de Chrome. */
-const VERSION = "admin-v1";
+const VERSION = "admin-v2";
 
 self.addEventListener("install", (event) => { event.waitUntil(self.skipWaiting()); });
 self.addEventListener("activate", (event) => { event.waitUntil(self.clients.claim()); });
@@ -20,6 +20,32 @@ self.addEventListener("fetch", (event) => {
     }
     return new Response("", { status: 504 });
   }));
+});
+
+// Notifications push (2026-10-05) : ouverture de courriel, clic, visite de maquette — voir lib/push.ts côté
+// serveur et src/lib/push-notifications.ts côté client (abonnement). Le clic sur la notification ramène au
+// panneau Prospects, ou fronte un onglet déjà ouvert plutôt que d'en empiler un nouveau.
+self.addEventListener("push", (event) => {
+  let data = { title: "mehdijabry.dev", body: "" };
+  try { if (event.data) data = { ...data, ...event.data.json() }; } catch (err) { /* payload non-JSON, on garde le texte brut */ data.body = event.data ? event.data.text() : ""; }
+  event.waitUntil(self.registration.showNotification(data.title || "mehdijabry.dev", {
+    body: data.body || "",
+    icon: "/admin-icon-192.png",
+    badge: "/admin-icon-192.png",
+    tag: data.tag || "default",
+    data: { url: data.url || "/admin" },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || "/admin", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) { if (client.url.startsWith(self.location.origin) && "focus" in client) { client.navigate(target); return client.focus(); } }
+      return self.clients.openWindow(target);
+    }),
+  );
 });
 
 void VERSION;

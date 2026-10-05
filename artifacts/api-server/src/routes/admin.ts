@@ -3,12 +3,13 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod/v4";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { Resend } from "resend";
-import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable, trackingEventsTable } from "@workspace/db";
+import { db, ensureAdminSchema, adminSettingsTable, clientsTable, invoicesTable, sentEmailsTable, trackingEventsTable, pushSubscriptionsTable } from "@workspace/db";
 import { requireAdmin, checkPassword, issueAdminCookie, clearAdminCookie, isAdminConfigured, hasValidSession } from "../middlewares/admin-auth";
 import { DEFAULT_ISSUER, computeTotals, renderInvoiceHtml, money, longDate, type IssuerSettings, type InvoiceItem, type ClientSnapshot, type TaxMode } from "../lib/invoice-html";
 import { renderProposalEmail } from "../lib/proposal-email";
 import { renderFollowupEmail } from "../lib/followup-email";
 import { newTrackToken, emailTracking, siteStats, isPrefetch, rememberAdminDevice, ignoredHashes, originLabel } from "../lib/tracking";
+import { pushConfigured, vapidPublicKey, sendPush } from "../lib/push";
 import prospectsRouter from "./prospects";
 import { logger } from "../lib/logger";
 
@@ -337,6 +338,29 @@ router.delete("/tracking/sites/:site", async (req, res) => {
   if (!site) { res.status(400).json({ error: "Site manquant" }); return; }
   await db.delete(trackingEventsTable).where(and(eq(trackingEventsTable.kind, "visit"), eq(trackingEventsTable.site, site)));
   res.json({ ok: true });
+});
+// Notifications push (2026-10-05) : abonnement de l'appareil admin (iPhone de Mehdi en premier lieu), voir lib/push.ts.
+router.get("/push/public-key", (_req, res) => { res.json({ configured: pushConfigured, key: vapidPublicKey }); });
+const PushSubscriptionInput = z.object({
+  endpoint: z.string().url().max(500),
+  keys: z.object({ p256dh: z.string().min(1).max(300), auth: z.string().min(1).max(300) }),
+});
+router.post("/push/subscribe", async (req, res) => {
+  const parsed = PushSubscriptionInput.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Abonnement invalide", details: parsed.error.issues }); return; }
+  const { endpoint, keys } = parsed.data;
+  await db.insert(pushSubscriptionsTable).values({ endpoint, p256dh: keys.p256dh, auth: keys.auth, userAgent: String(req.headers["user-agent"] ?? "").slice(0, 300) })
+    .onConflictDoUpdate({ target: pushSubscriptionsTable.endpoint, set: { p256dh: keys.p256dh, auth: keys.auth } });
+  res.json({ ok: true });
+});
+router.post("/push/unsubscribe", async (req, res) => {
+  const endpoint = typeof req.body?.endpoint === "string" ? req.body.endpoint : null;
+  if (endpoint) await db.delete(pushSubscriptionsTable).where(eq(pushSubscriptionsTable.endpoint, endpoint));
+  res.json({ ok: true });
+});
+router.post("/push/test", async (_req, res) => {
+  await sendPush({ title: "🔔 Test", body: "Les notifications fonctionnent.", url: "/admin" });
+  res.json({ ok: true, configured: pushConfigured });
 });
 router.post("/emails", async (req, res) => {
   const parsed = EmailInput.safeParse(req.body);

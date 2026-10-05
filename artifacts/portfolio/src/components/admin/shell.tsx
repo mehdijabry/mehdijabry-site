@@ -1,9 +1,10 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target, MonitorDown, RefreshCw } from "lucide-react";
+import { FileText, Users, Mail, Settings, LayoutDashboard, LogOut, ExternalLink, Target, MonitorDown, RefreshCw, Bell, BellOff } from "lucide-react";
 import { api, AdminApiError } from "@/lib/admin-api";
 import { useInstallPrompt } from "@/lib/pwa-install";
+import { usePushSubscription } from "@/lib/push-notifications";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,6 +109,10 @@ export function AdminShell({ title, actions, children }: { title: string; action
   const qc = useQueryClient();
   const me = useQuery({ queryKey: ["admin", "me"], queryFn: api.me, retry: false, staleTime: 60_000 });
   const pwa = useInstallPrompt();
+  // Notifications push (2026-10-05) : visible seulement là où l'API Push existe — sur iPhone, ça veut dire une
+  // fois l'admin installé sur l'écran d'accueil et ouvert depuis là (iOS n'expose PushManager qu'en mode standalone).
+  const push = usePushSubscription();
+  const toggleNotifications = () => (push.subscribed ? push.unsubscribe() : push.subscribe());
 
   if (me.isLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Chargement…</div>;
   if (!me.data?.authenticated) return <Login configured={me.data?.configured ?? true} />;
@@ -125,6 +130,7 @@ export function AdminShell({ title, actions, children }: { title: string; action
             </div>
             <div className="lg:hidden flex items-center gap-4 text-sm text-muted-foreground">
               {pwa.canInstall && <button onClick={() => pwa.install()} className="inline-flex items-center gap-1"><MonitorDown className="w-4 h-4" /> Installer</button>}
+              {push.supported && <button onClick={toggleNotifications} disabled={push.busy} title={push.error ?? undefined} className="inline-flex items-center gap-1">{push.subscribed ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />} {push.subscribed ? "Notifs" : "Notifier"}</button>}
               <button onClick={logout} className="inline-flex items-center gap-1"><LogOut className="w-4 h-4" /> Quitter</button>
             </div>
           </div>
@@ -142,6 +148,9 @@ export function AdminShell({ title, actions, children }: { title: string; action
             <a href="/" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><ExternalLink className="w-3.5 h-3.5" /> Voir le site</a><br />
             {pwa.canInstall && (
               <><button onClick={() => pwa.install()} title="Ajouter l'espace admin au Dock, comme une application" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><MonitorDown className="w-3.5 h-3.5" /> Installer l'application</button><br /></>
+            )}
+            {push.supported && (
+              <><button onClick={toggleNotifications} disabled={push.busy} title={push.error ?? "Alerte à chaque ouverture de courriel, clic et visite de maquette"} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">{push.subscribed ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />} {push.busy ? "…" : push.subscribed ? "Désactiver les notifications" : "Activer les notifications"}</button><br /></>
             )}
             <button onClick={logout} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"><LogOut className="w-3.5 h-3.5" /> Se déconnecter</button>
           </div>
