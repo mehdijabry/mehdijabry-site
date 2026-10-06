@@ -21,8 +21,8 @@ export function Footer() {
               <a href="https://www.linkedin.com/in/mehdijabry/" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">LinkedIn</a>
               <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">GitHub</a>
               <a href="https://x.com/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">Twitter / X</a>
-              <a href="https://ds-ai-manager.com" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">ds-ai-manager.com</a>
-              <a href="https://salwaeljaouhari.art" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">salwaeljaouhari.art</a>
+              {/* ds-ai-manager.com et salwaeljaouhari.art : liens retirés le 06/10/2026, les deux sites répondent 404.
+                  À remettre quand ils seront de retour. */}
             </div>
           </div>
           

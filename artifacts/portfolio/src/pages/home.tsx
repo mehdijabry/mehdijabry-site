@@ -81,17 +81,10 @@ const TECH_STACK = [
   "shadcn/ui",
 ];
 
-const FEATURED_WORK = [
+// `hidden` : un site livré mais hors ligne pour le moment reste ici (en bas), sans lien mort sur la page.
+// Le numéro affiché est calculé sur les entrées visibles.
+const FEATURED_WORK: { title: string; href: string; meta: string; blurb: string; stack: string; hidden?: boolean }[] = [
   {
-    n: "01",
-    title: "DS AI Manager",
-    href: "https://ds-ai-manager.com",
-    meta: "Personal · 2026",
-    blurb: "AI agent for serious marketers — 13 specialised skills.",
-    stack: "Next.js / TS / Supabase / Stripe",
-  },
-  {
-    n: "02",
     title: "Brooklyn Mobile Notary",
     href: "https://proposal.mehdijabry.dev/brooklyn-notary-x7k9p/",
     meta: "Service · Brooklyn, NY · 2026",
@@ -99,7 +92,6 @@ const FEATURED_WORK = [
     stack: "Next.js / Supabase / Resend / Cloudflare",
   },
   {
-    n: "03",
     title: "Ntaco Construction",
     href: "https://proposal.mehdijabry.dev/ntaco-c9k4m/",
     meta: "Construction · Cyprus · 2026",
@@ -107,14 +99,23 @@ const FEATURED_WORK = [
     stack: "Vite / React / Supabase / Tailwind",
   },
   {
-    n: "04",
+    title: "DS AI Manager",
+    href: "https://ds-ai-manager.com",
+    meta: "Personal · 2026",
+    blurb: "AI agent for serious marketers — 13 specialised skills.",
+    stack: "Next.js / TS / Supabase / Stripe",
+    hidden: true, // site hors ligne (404) le 06/10/2026 — remettre en ligne ici quand il répond
+  },
+  {
     title: "Salwa El Jaouhari",
     href: "https://salwaeljaouhari.art",
     meta: "Art portfolio · Morocco · 2025",
     blurb: "Portfolio peinture & illustration — minimal, expressif.",
     stack: "Next.js / TS / Tailwind",
+    hidden: true, // site hors ligne (404) le 06/10/2026 — remettre en ligne ici quand il répond
   },
 ];
+const VISIBLE_WORK = FEATURED_WORK.filter((w) => !w.hidden);
 
 const PROCESS = [
   {
@@ -314,14 +315,14 @@ export default function Home() {
             </Reveal>
             <Reveal className="md:col-span-4 md:col-start-9 self-end" delay={0.15}>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Four sites I shipped solo — design, code, deploy, copy.
+                Sites I shipped solo — design, code, deploy, copy.
                 Every project below sends real emails to a real inbox today.
               </p>
             </Reveal>
           </div>
 
           <div className="space-y-px bg-border/40 border border-border/40">
-            {FEATURED_WORK.map((w, i) => (
+            {VISIBLE_WORK.map((w, i) => (
               <Reveal key={w.title} delay={i * 0.08}>
                 <a
                   href={w.href}
@@ -333,7 +334,7 @@ export default function Home() {
                 >
                   <div className="container mx-auto px-5 md:px-10 py-6 md:py-10 grid grid-cols-12 gap-x-4 gap-y-3 items-baseline">
                     <span className="col-span-2 md:col-span-1 text-mark text-muted-foreground self-start mt-2">
-                      {w.n}
+                      {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="col-span-10 md:col-span-5">
                       <h3 className="font-display text-2xl md:text-4xl lg:text-5xl tracking-[-0.035em] flex items-baseline gap-3 transition-transform duration-500 group-hover:translate-x-2">

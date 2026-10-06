@@ -3,6 +3,10 @@ import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "wouter";
 import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 
+// Les deux sites livrés (DS AI Manager, Salwa El Jaouhari) sont hors ligne depuis le 06/10/2026 : on ne montre pas
+// d'études de cas dont le lien « Visit » mène à une 404. Repasser à true quand ils répondent de nouveau.
+const SHOW_DELIVERED_CASE_STUDIES = false;
+
 export default function Work() {
   const maquettes = usePortfolioMaquettes();
   const n = maquettes.data?.length ?? 0;
@@ -15,7 +19,31 @@ export default function Work() {
             Projects I've shipped end-to-end. More on <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-4">GitHub</a>.
           </p>
 
-          <div className="flex flex-col gap-16 md:gap-32">
+          {/* Maquettes pour commerces locaux (2026-10-06) — ouvertes dans une fenêtre, sans quitter le site */}
+          <section id="local-businesses" className="scroll-mt-24">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12 md:mb-16">
+              <div className="md:col-span-7">
+                <div className="chip mb-6">Local businesses — Québec</div>
+                <h2 className="font-display text-4xl md:text-6xl tracking-tight leading-[0.95]">
+                  {n ? `${n} sites` : "Sites"} built before the first call.
+                </h2>
+              </div>
+              <div className="md:col-span-4 md:col-start-9 self-end">
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Each one is a complete, working proposal for a real shop, café, restaurant or inn — designed, written and
+                  deployed before its owner and I ever spoke. Click any of them: it opens right here, in a window, and you
+                  can browse it on desktop or phone without leaving this page.
+                </p>
+              </div>
+            </div>
+            <MaquettesGallery />
+          </section>
+
+          {/* Études de cas livrées — masquées le 06/10/2026 : ds-ai-manager.com et salwaeljaouhari.art
+              répondent 404 pour le moment. Remettre SHOW_DELIVERED_CASE_STUDIES à true quand les deux sites
+              seront de retour ; elles s'affichent alors sous la galerie, pas au-dessus. */}
+          {SHOW_DELIVERED_CASE_STUDIES && (
+          <div className="flex flex-col gap-16 md:gap-32 mt-24 md:mt-40">
             {/* Project 1 */}
             <div className="group border border-border bg-card p-6 md:p-12 transition-all duration-300 hover:border-primary/50 relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-primary/10 text-primary px-4 py-2 font-mono text-xs hidden md:block">
@@ -119,26 +147,7 @@ export default function Work() {
             </div>
 
           </div>
-
-          {/* Maquettes pour commerces locaux (2026-10-06) — ouvertes dans une fenêtre, sans quitter le site */}
-          <section id="local-businesses" className="mt-24 md:mt-40 scroll-mt-24">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12 md:mb-16">
-              <div className="md:col-span-7">
-                <div className="chip mb-6">Local businesses — Québec</div>
-                <h2 className="font-display text-4xl md:text-6xl tracking-tight leading-[0.95]">
-                  {n ? `${n} sites` : "Sites"} built before the first call.
-                </h2>
-              </div>
-              <div className="md:col-span-4 md:col-start-9 self-end">
-                <p className="text-base text-muted-foreground leading-relaxed">
-                  Each one is a complete, working proposal for a real shop, café, restaurant or inn — designed, written and
-                  deployed before its owner and I ever spoke. Click any of them: it opens right here, in a window, and you
-                  can browse it on desktop or phone without leaving this page.
-                </p>
-              </div>
-            </div>
-            <MaquettesGallery />
-          </section>
+          )}
         </FadeIn>
       </div>
     </Layout>
