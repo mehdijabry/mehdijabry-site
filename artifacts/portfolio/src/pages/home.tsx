@@ -18,7 +18,7 @@ import { useCopy, useLang } from "@/lib/i18n";
 /* ─────────────────────── DATA ─────────────────────── */
 
 const TIERS = [
-  { key: "spark", name: "Spark", priceCAD: 390, priceUSD: 290, recommended: false },
+  { key: "spark", name: "Spark", priceCAD: 375, priceUSD: 290, recommended: false },
   { key: "vitrine", name: "Vitrine", priceCAD: 790, priceUSD: 590, recommended: true },
   { key: "vitrineplus", name: "Vitrine+", priceCAD: 1290, priceUSD: 950, recommended: false },
 ] as const;
@@ -292,7 +292,7 @@ export default function Home() {
           {/* meta row */}
           <Reveal delay={1.6}>
             <div className="mt-10 md:mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border/40 pt-6">
-              <Meta label={t.metaFrom} value="390 $ CA" sub={t.metaFromSub} />
+              <Meta label={t.metaFrom} value="375 $ CA" sub={t.metaFromSub} />
               <Meta label={t.metaStatus} value={<LiveTime />} sub={t.metaStatusSub} />
               <Meta label={t.metaStack} value="Next · Supabase" sub={t.metaStackSub} />
               <Meta label={t.metaWhere} value="Trois-Rivières → ∞" sub={t.metaWhereSub} />

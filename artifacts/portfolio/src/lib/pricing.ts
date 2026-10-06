@@ -3,7 +3,7 @@ export const PROJECT_TYPES = {
     label: 'Spark — Landing page',
     subtitle: 'Single page, shipped in 24-48h',
     baseUSD: 290,
-    baseCAD: 390,
+    baseCAD: 375,
     deliveryStandard: '24-48 hours',
     deliveryExpress: '12-24 hours',
     bestFor: 'Indie hackers, Product Hunt launches, MVPs, short campaigns',

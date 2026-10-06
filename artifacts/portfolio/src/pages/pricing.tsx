@@ -29,7 +29,7 @@ const COPY: Record<"fr" | "en", {
     comparison: "Comparaison",
     columns: ["", "Mehdi Jabry", "Agence traditionnelle", "Abonnement (DesignJoy)", "Indépendant Webflow"],
     rows: [
-      ["Prix de départ", "À partir de 390 $ CA", "5 000 $ et plus", "~5 000 $/mois", "500 à 2 000 $"],
+      ["Prix de départ", "À partir de 375 $ CA", "5 000 $ et plus", "~5 000 $/mois", "500 à 2 000 $"],
       ["Délai", "24 h à 7 jours", "4 à 12 semaines", "Tâche par tâche", "1 à 3 semaines"],
       ["Code sur mesure", "Oui — Next.js/React", "Parfois (souvent WordPress)", "Webflow / Framer", "Non — Webflow seulement"],
       ["Propriété du code", "100 % à vous", "Habituellement à vous", "Lié à la plateforme", "Lié à Webflow"],
@@ -95,7 +95,7 @@ const COPY: Record<"fr" | "en", {
     comparison: "Comparison",
     columns: ["", "Mehdi Jabry", "Traditional agency", "Subscription (DesignJoy)", "Webflow freelancer"],
     rows: [
-      ["Starting price", "From $390 CAD", "$5,000+", "~$5k/month", "$500–$2k"],
+      ["Starting price", "From $375 CAD", "$5,000+", "~$5k/month", "$500–$2k"],
       ["Speed", "24h to 7 days", "4–12 weeks", "Task by task", "1–3 weeks"],
       ["Custom code", "Yes — Next.js/React", "Sometimes (often WP)", "Webflow / Framer", "No — Webflow only"],
       ["Code ownership", "100% yours", "Usually yours", "Tied to platform", "Tied to Webflow"],
