@@ -620,7 +620,7 @@ export default function Home() {
               <CtaButton to="/start" variant="primary" hoverLabel="Build it now" data-testid="button-cta-quote">
                 Configure your quote
               </CtaButton>
-              <CtaButton href="mailto:hi@mehdijabry.dev" variant="ghost" hoverLabel="Say hi" data-testid="button-cta-call">
+              <CtaButton href="mailto:contact@mehdijabry.dev" variant="ghost" hoverLabel="Say hi" data-testid="button-cta-call">
                 Email directly
               </CtaButton>
             </div>

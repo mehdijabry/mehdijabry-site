@@ -218,9 +218,8 @@ export default function About() {
                 { label: "LinkedIn", href: "https://www.linkedin.com/in/mehdijabry/", external: true },
                 { label: "GitHub", href: "https://github.com/mehdijabry/mehdijabry", external: true },
                 { label: "Twitter / X", href: "https://x.com/mehdijabry", external: true },
-                { label: "Email", href: "mailto:hi@mehdijabry.dev", external: false },
-                { label: "Other project: ds-ai-manager.com", href: "https://ds-ai-manager.com", external: true },
-                { label: "Other project: salwaeljaouhari.art", href: "https://salwaeljaouhari.art", external: true },
+                { label: "Email", href: "mailto:contact@mehdijabry.dev", external: false },
+                // ds-ai-manager.com et salwaeljaouhari.art retirés le 06/10/2026 : les deux répondent 404.
               ].map(({ label, href, external }) => (
                 <a
                   key={label}

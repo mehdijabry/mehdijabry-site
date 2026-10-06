@@ -16,7 +16,7 @@ export default function Legal() {
                 <p>Mohamed Mehdi Jabry</p>
                 <p>Travailleur autonome</p>
                 <p>Montréal, QC</p>
-                <p><a href="mailto:hi@mehdijabry.dev" className="hover:text-primary transition-colors">hi@mehdijabry.dev</a></p>
+                <p><a href="mailto:contact@mehdijabry.dev" className="hover:text-primary transition-colors">contact@mehdijabry.dev</a></p>
               </div>
             </section>
 

@@ -43,6 +43,7 @@ export function Nav() {
           <Link href="/work" className="nav-link">Work</Link>
           <Link href="/pricing" className="nav-link">Pricing</Link>
           <Link href="/about" className="nav-link">About</Link>
+          <Link href="/contact" className="nav-link">Contact</Link>
           <div className="flex items-center gap-4 ml-4 pl-4 border-l border-border/50">
             <button onClick={toggleTheme} className="text-muted-foreground hover:text-foreground transition-colors">
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -71,6 +72,7 @@ export function Nav() {
                 <DialogClose asChild><Link href="/work">Work</Link></DialogClose>
                 <DialogClose asChild><Link href="/pricing">Pricing</Link></DialogClose>
                 <DialogClose asChild><Link href="/about">About</Link></DialogClose>
+                <DialogClose asChild><Link href="/contact">Contact</Link></DialogClose>
                 <DialogClose asChild>
                   <Link href="/start" className="mt-6 text-primary font-mono text-sm uppercase tracking-[0.2em] font-medium not-italic">
                     Try a quote →

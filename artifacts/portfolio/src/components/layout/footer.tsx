@@ -11,6 +11,7 @@ export function Footer() {
               <Link href="/work" className="text-sm hover:text-primary transition-colors">Work</Link>
               <Link href="/pricing" className="text-sm hover:text-primary transition-colors">Pricing</Link>
               <Link href="/about" className="text-sm hover:text-primary transition-colors">About</Link>
+              <Link href="/contact" className="text-sm hover:text-primary transition-colors">Contact</Link>
               <Link href="/legal" className="text-sm hover:text-primary transition-colors">Legal & Privacy</Link>
             </div>
           </div>
@@ -29,7 +30,9 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <h4 className="font-sans text-xs font-semibold uppercase tracking-widest text-muted-foreground">Contact</h4>
             <div className="flex flex-col gap-3">
-              <a href="mailto:hi@mehdijabry.dev" className="text-sm hover:text-primary transition-colors">hi@mehdijabry.dev</a>
+              {/* Adresse des réglages de production (/api/admin/settings) — celle à laquelle les prospects répondent. */}
+              <a href="mailto:contact@mehdijabry.dev" className="text-sm hover:text-primary transition-colors">contact@mehdijabry.dev</a>
+              <a href="tel:+14385257119" className="text-sm hover:text-primary transition-colors">438 525-7119</a>
               <a href="https://calendly.com/mehdijabry/discovery" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-primary transition-colors">Book a 15-min call</a>
               <span className="text-sm text-muted-foreground mt-2">Montréal, QC<br/>Canada</span>
             </div>

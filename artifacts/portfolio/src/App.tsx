@@ -9,6 +9,7 @@ import Work from "@/pages/work";
 import Pricing from "@/pages/pricing";
 import Start from "@/pages/start";
 import About from "@/pages/about";
+import Contact from "@/pages/contact";
 import Thanks from "@/pages/thanks";
 import Legal from "@/pages/legal";
 import AdminDashboard from "@/pages/admin/index";
@@ -40,6 +41,8 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/start" component={Start} />
       <Route path="/about" component={About} />
+      {/* Page d'atterrissage de la fiche Google : le courriel en haut (voir pages/contact.tsx) */}
+      <Route path="/contact" component={Contact} />
       <Route path="/thanks" component={Thanks} />
       <Route path="/legal" component={Legal} />
       {/* Espace admin (2026-09-23) : facturation + courriels, protégé par ADMIN_PASSWORD côté serveur */}

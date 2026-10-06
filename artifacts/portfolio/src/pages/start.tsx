@@ -91,7 +91,7 @@ export default function Start() {
         onError: () => {
           toast({
             title: "Error submitting quote",
-            description: "Please try again or email hi@mehdijabry.dev directly.",
+            description: "Please try again or email contact@mehdijabry.dev directly.",
             variant: "destructive",
           });
         },
