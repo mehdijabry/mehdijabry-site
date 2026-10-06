@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
-import { and, desc, eq, gte, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, ne, notInArray, or, sql } from "drizzle-orm";
 import { db, sentEmailsTable, trackingEventsTable, trackingIgnoredTable, prospectsTable } from "@workspace/db";
 import { logger } from "./logger";
 import { sendPush, pushedRecentlyFor } from "./push";
@@ -13,6 +13,16 @@ import { sendPush, pushedRecentlyFor } from "./push";
  * L'IP n'est jamais stockée : seulement un hachage salé, pour distinguer « 3 visites » de « 3 visiteurs ».
  */
 export const PUBLIC_BASE_URL = (process.env["PUBLIC_BASE_URL"] ?? "https://mehdijabry.dev").replace(/\/+$/, "");
+/**
+ * Marqueur posé par la galerie « Réalisations » du site public (2026-10-06) : la maquette y est ouverte dans
+ * une fenêtre de mehdijabry.dev par n'importe quel visiteur du portfolio — ce n'est pas le prospect. Une
+ * visite ainsi marquée est enregistrée et visible dans le panneau Suivi, mais elle ne déclenche aucune
+ * alerte et ne fait pas de l'appareil un « prospect connu » pour ses visites suivantes.
+ */
+export const PORTFOLIO_SRC = "portfolio";
+/** Les événements qui relient un appareil à l'un de nos envois : un courriel, ou un lien partagé à la main
+ *  (messenger, sms, instagram…) — tout marqueur `src` sauf celui du portfolio. */
+const fromOurLink = () => or(isNotNull(trackingEventsTable.emailId), and(isNotNull(trackingEventsTable.source), ne(trackingEventsTable.source, PORTFOLIO_SRC)));
 const GIF = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
 const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|fetch|scan|monitor|facebookexternalhit|slackbot|whatsapp|twitterbot|linkedinbot|telegrambot|discordbot|curl|wget|python-requests|go-http-client|safelinks|proofpoint|mimecast|barracuda|outlook-ios|yahoocachesystem/i;
 const MAIL_PROXY_RE = /googleimageproxy|ggpht\.com|yahoomailproxy|outlook/i;
@@ -142,13 +152,14 @@ function canal(src: string | null, emailId: number | null): string {
   if (src === "messenger") return "depuis Messenger";
   if (src === "instagram") return "depuis Instagram";
   if (src === "sms") return "depuis votre SMS";
+  if (src === PORTFOLIO_SRC) return "depuis le portfolio du site";
   return src ? `depuis le lien « ${src} »` : "depuis votre lien";
 }
 
 async function visitorKnownFromEmail(ipHash: string): Promise<boolean> {
   try {
     const [row] = await db.select({ id: trackingEventsTable.id }).from(trackingEventsTable)
-      .where(and(eq(trackingEventsTable.ipHash, ipHash), or(isNotNull(trackingEventsTable.emailId), isNotNull(trackingEventsTable.source)))).limit(1);
+      .where(and(eq(trackingEventsTable.ipHash, ipHash), fromOurLink())).limit(1);
     return Boolean(row);
   } catch { return false; }
 }
@@ -237,7 +248,9 @@ export async function trackVisitHandler(req: Request, res: Response): Promise<vo
     // d'une proposition, « messenger », « sms », « instagram »… pour un envoi à la main. Un visiteur
     // ordinaire arrive sans marqueur. C'est donc ce marqueur — quel qu'il soit — qui distingue
     // « le prospect a ouvert le lien qu'on lui a donné » de « quelqu'un est passé sur la maquette ».
-    const fromLink = emailId != null || Boolean(clip(q["src"], 40));
+    // Seule exception : « portfolio », posé par la galerie du site public — un visiteur du site, pas le prospect.
+    const src = clip(q["src"], 40);
+    const fromLink = emailId != null || Boolean(src && src !== PORTFOLIO_SRC);
     const returning = !fromLink && !isBot && (await visitorKnownFromEmail(ih));
     const isProspect = fromLink || returning;
     if (isProspect && !isBot && isNewSession && !(await ignoredHashes()).includes(ih) && !(await pushedRecentlyFor(site))) {
@@ -442,7 +455,7 @@ export type ActivityEvent = {
  */
 async function prospectHashes(): Promise<Set<string>> {
   const rows = await db.select({ ipHash: trackingEventsTable.ipHash }).from(trackingEventsTable)
-    .where(or(isNotNull(trackingEventsTable.emailId), isNotNull(trackingEventsTable.source)));
+    .where(fromOurLink());
   return new Set(rows.map((r) => r.ipHash).filter((h): h is string => Boolean(h)));
 }
 
@@ -570,7 +583,7 @@ export async function siteActivity(site: string): Promise<SiteActivity> {
     days: [...days].map(([day, v]) => ({ day, visits: v })),
     sections: count(sections, (s) => s.path).map(([id, hits]) => ({ id, hits, visitors: sectionVisitors.get(id)?.size ?? 0 })),
     pages: count(visits, (v) => v.path ?? "/").map(([path, hits]) => ({ path, hits })),
-    sources: count(visits, (v) => (v.source === "courriel" || v.emailId != null) ? "Courriel de prospection" : v.referrer ? new URL(v.referrer, "https://x").hostname || "Lien externe" : "Accès direct").map(([label, hits]) => ({ label, hits })),
+    sources: count(visits, (v) => (v.source === "courriel" || v.emailId != null) ? "Courriel de prospection" : v.source === PORTFOLIO_SRC ? "Portfolio mehdijabry.dev" : v.referrer ? new URL(v.referrer, "https://x").hostname || "Lien externe" : "Accès direct").map(([label, hits]) => ({ label, hits })),
     devices: count(visits, (v) => originLabel(v.userAgent)).map(([label, hits]) => ({ label, hits })),
     sessions: buildSessions(rows.filter((r) => r.kind === "visit" || r.kind === "section"), await prospectHashes()),
   };

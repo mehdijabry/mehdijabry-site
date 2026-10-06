@@ -6,21 +6,38 @@ import { logger } from "./logger";
  * État des maquettes (2026-10-06) — ce que l'admin peut changer sur une maquette sans toucher au code.
  *
  * Le catalogue (quelle maquette existe, où elle est hébergée) reste dans demo-redirect.ts : ajouter une
- * maquette, c'est ajouter une ligne à DEMOS et déployer, comme avant. Ce module ne porte que l'ÉTAT :
- * une maquette « suspendue » n'est plus servie par mehdijabry.dev/maquette-v1/<slug> — le seul lien
- * qu'un prospect ait jamais reçu — et affiche à la place une page « retirée ». Le projet Cloudflare
- * Pages, lui, n'est pas touché : rien n'est détruit, et remettre en ligne est instantané.
+ * maquette, c'est ajouter une ligne à DEMOS et déployer, comme avant. Ce module ne porte que l'ÉTAT,
+ * deux interrupteurs par maquette :
+ *  - « suspendue » : plus servie par mehdijabry.dev/maquette-v1/<slug> — le seul lien qu'un prospect ait
+ *    jamais reçu — qui affiche à la place une page « retirée » (410). Le projet Cloudflare Pages, lui,
+ *    n'est pas touché : rien n'est détruit, et remettre en ligne est instantané ;
+ *  - « portfolio » : visible ou non dans la galerie « Réalisations » du site public (routes/portfolio.ts).
+ *    Visible par défaut ; une maquette suspendue en sort d'office.
  *
  * L'état vit dans admin_settings sous la clé « maquettes » (un objet { slug → état }), pour ne pas
- * ajouter une table à synchroniser dans ensureAdminSchema(). Il est lu à chaque requête proxifiée, donc
- * mis en cache 30 secondes ; une écriture depuis l'admin vide le cache aussitôt.
+ * ajouter une table à synchroniser dans ensureAdminSchema(). Seul ce qui s'écarte de l'état par défaut
+ * est stocké. Il est lu à chaque requête proxifiée, donc mis en cache 30 secondes ; une écriture depuis
+ * l'admin vide le cache aussitôt.
  */
-export type MaquetteState = { suspendedAt: string | null; reason: string | null };
+export type MaquetteState = { suspendedAt: string | null; reason: string | null; portfolio: boolean };
 export type MaquetteStates = Record<string, MaquetteState>;
+export type MaquettePatch = { suspended?: boolean; reason?: string | null; portfolio?: boolean };
+type StoredState = { suspendedAt?: string | null; reason?: string | null; portfolio?: boolean };
+type StoredStates = Record<string, StoredState>;
 
 const KEY = "maquettes";
 const TTL_MS = 30_000;
 let cache: { at: number; states: MaquetteStates } | null = null;
+
+const normalize = (raw: StoredState | undefined): MaquetteState => ({
+  suspendedAt: raw?.suspendedAt ?? null, reason: raw?.reason ?? null, portfolio: raw?.portfolio !== false,
+});
+export const DEFAULT_MAQUETTE_STATE: MaquetteState = normalize(undefined);
+
+async function readStored(): Promise<StoredStates> {
+  const rows = await db.select().from(adminSettingsTable).where(eq(adminSettingsTable.key, KEY)).limit(1);
+  return { ...((rows[0]?.value ?? {}) as StoredStates) };
+}
 
 /** Lit l'état de toutes les maquettes. Si la base ne répond pas, renvoie l'état vide : une maquette ne
  *  disparaît jamais à cause d'une panne — ne pas servir le site d'un prospect serait pire qu'ignorer une
@@ -28,8 +45,7 @@ let cache: { at: number; states: MaquetteStates } | null = null;
 export async function loadMaquetteStates(): Promise<MaquetteStates> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.states;
   try {
-    const rows = await db.select().from(adminSettingsTable).where(eq(adminSettingsTable.key, KEY)).limit(1);
-    const states = (rows[0]?.value ?? {}) as MaquetteStates;
+    const states = Object.fromEntries(Object.entries(await readStored()).map(([slug, s]) => [slug, normalize(s)]));
     cache = { at: Date.now(), states };
     return states;
   } catch (err) {
@@ -38,21 +54,26 @@ export async function loadMaquetteStates(): Promise<MaquetteStates> {
   }
 }
 
-export async function isMaquetteSuspended(slug: string): Promise<boolean> {
-  const states = await loadMaquetteStates();
-  return Boolean(states[slug]?.suspendedAt);
+export function maquetteState(states: MaquetteStates, slug: string): MaquetteState {
+  return states[slug] ?? DEFAULT_MAQUETTE_STATE;
 }
 
-/** Suspend ou remet en ligne une maquette. `reason` n'est gardée que pour une suspension. */
-export async function setMaquetteState(slug: string, suspended: boolean, reason: string | null): Promise<MaquetteState> {
-  const rows = await db.select().from(adminSettingsTable).where(eq(adminSettingsTable.key, KEY)).limit(1);
-  const states = { ...((rows[0]?.value ?? {}) as MaquetteStates) };
-  const next: MaquetteState = suspended
-    ? { suspendedAt: states[slug]?.suspendedAt ?? new Date().toISOString(), reason: reason?.trim() || null }
-    : { suspendedAt: null, reason: null };
-  if (next.suspendedAt) states[slug] = next; else delete states[slug];
-  await db.insert(adminSettingsTable).values({ key: KEY, value: states })
-    .onConflictDoUpdate({ target: adminSettingsTable.key, set: { value: states, updatedAt: new Date() } });
+export async function isMaquetteSuspended(slug: string): Promise<boolean> {
+  return Boolean(maquetteState(await loadMaquetteStates(), slug).suspendedAt);
+}
+
+/** Applique un changement partiel : suspension (avec sa raison) et/ou visibilité dans le portfolio.
+ *  `reason` n'est gardée que pour une suspension ; une remise en ligne l'efface. */
+export async function setMaquetteState(slug: string, patch: MaquettePatch): Promise<MaquetteState> {
+  const stored = await readStored();
+  const next = { ...normalize(stored[slug]) };
+  if (patch.suspended === true) { next.suspendedAt = next.suspendedAt ?? new Date().toISOString(); next.reason = patch.reason?.trim() || null; }
+  else if (patch.suspended === false) { next.suspendedAt = null; next.reason = null; }
+  if (patch.portfolio !== undefined) next.portfolio = patch.portfolio;
+  if (!next.suspendedAt && next.portfolio) delete stored[slug];
+  else stored[slug] = { suspendedAt: next.suspendedAt, reason: next.reason, ...(next.portfolio ? {} : { portfolio: false }) };
+  await db.insert(adminSettingsTable).values({ key: KEY, value: stored })
+    .onConflictDoUpdate({ target: adminSettingsTable.key, set: { value: stored, updatedAt: new Date() } });
   cache = null;
   return next;
 }

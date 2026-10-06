@@ -1,8 +1,11 @@
 import { Layout } from "@/components/layout/layout";
 import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "wouter";
+import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 
 export default function Work() {
+  const maquettes = usePortfolioMaquettes();
+  const n = maquettes.data?.length ?? 0;
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 md:py-24">
@@ -116,6 +119,26 @@ export default function Work() {
             </div>
 
           </div>
+
+          {/* Maquettes pour commerces locaux (2026-10-06) — ouvertes dans une fenêtre, sans quitter le site */}
+          <section id="local-businesses" className="mt-24 md:mt-40 scroll-mt-24">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12 md:mb-16">
+              <div className="md:col-span-7">
+                <div className="chip mb-6">Local businesses — Québec</div>
+                <h2 className="font-display text-4xl md:text-6xl tracking-tight leading-[0.95]">
+                  {n ? `${n} sites` : "Sites"} built before the first call.
+                </h2>
+              </div>
+              <div className="md:col-span-4 md:col-start-9 self-end">
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Each one is a complete, working proposal for a real shop, café, restaurant or inn — designed, written and
+                  deployed before its owner and I ever spoke. Click any of them: it opens right here, in a window, and you
+                  can browse it on desktop or phone without leaving this page.
+                </p>
+              </div>
+            </div>
+            <MaquettesGallery />
+          </section>
         </FadeIn>
       </div>
     </Layout>

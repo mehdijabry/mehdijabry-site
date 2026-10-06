@@ -108,8 +108,8 @@ export type Prospect = Omit<ProspectInput, "googleReviews" | "price"> & {
 
 /** Maquettes (2026-10-06) — le catalogue du proxy /maquette-v1, avec l'état de chacune. */
 export type Maquette = {
-  slug: string; title: string; target: string; proxyUrl: string; adminProxyUrl: string;
-  suspended: boolean; suspendedAt: string | null; reason: string | null;
+  slug: string; title: string; meta: string; target: string; proxyUrl: string; adminProxyUrl: string;
+  suspended: boolean; suspendedAt: string | null; reason: string | null; portfolio: boolean;
   prospect: { id: number; name: string; status: ProspectStatus } | null;
   visits: number; visitors: number; lastVisitAt: string | null;
 };
@@ -171,7 +171,7 @@ export const api = {
   clearPushHistory: () => adminFetch<{ ok: true }>("/push/history", { method: "DELETE" }),
   prospectJourney: (id: number) => adminFetch<JourneySession[]>(`/prospects/${id}/journey`),
   maquettes: () => adminFetch<Maquette[]>("/maquettes"),
-  setMaquetteState: (slug: string, body: { suspended: boolean; reason?: string | null }) => adminFetch<{ slug: string; suspended: boolean; suspendedAt: string | null; reason: string | null }>(`/maquettes/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
+  setMaquetteState: (slug: string, body: { suspended?: boolean; reason?: string | null; portfolio?: boolean }) => adminFetch<{ slug: string; suspended: boolean; suspendedAt: string | null; reason: string | null; portfolio: boolean }>(`/maquettes/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
   prospects: () => adminFetch<Prospect[]>("/prospects"),
   createProspect: (p: ProspectInput) => adminFetch<Prospect>("/prospects", { method: "POST", body: JSON.stringify(p) }),
   updateProspect: (id: number, p: ProspectInput) => adminFetch<Prospect>(`/prospects/${id}`, { method: "PUT", body: JSON.stringify(p) }),

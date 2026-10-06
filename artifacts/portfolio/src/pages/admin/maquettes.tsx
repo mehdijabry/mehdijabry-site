@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, PauseCircle, PlayCircle, KeyRound } from "lucide-react";
+import { ExternalLink, PauseCircle, PlayCircle, KeyRound, Eye, EyeOff } from "lucide-react";
 import { AdminShell, ErrorNote, Panel } from "@/components/admin/shell";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,10 @@ import { cn } from "@/lib/utils";
  * le lien envoyé au prospect cesse de servir le site — il affiche une page « maquette retirée » (410),
  * y compris aux robots d'aperçu de lien. Remettre en ligne est immédiat. Le cas d'usage : un commerce
  * qui ferme, un refus net, un dossier classé, ou une maquette qu'on ne veut plus voir circuler.
+ *
+ * Second interrupteur, « portfolio » : chaque maquette en ligne apparaît dans la galerie « Réalisations »
+ * du site public (mehdijabry.dev/work et l'accueil), où un visiteur l'ouvre dans une fenêtre sans quitter
+ * le site. La retirer du portfolio ne touche pas au lien envoyé au prospect.
  */
 
 const PROSPECT_CLASS: Record<ProspectStatus, string> = {
@@ -27,7 +31,7 @@ const PROSPECT_CLASS: Record<ProspectStatus, string> = {
   "gagné": "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   perdu: "bg-destructive/10 text-destructive",
 };
-type Filter = "toutes" | "en ligne" | "suspendues";
+type Filter = "toutes" | "en ligne" | "suspendues" | "hors portfolio";
 
 export default function AdminMaquettes() {
   const qc = useQueryClient();
@@ -36,10 +40,14 @@ export default function AdminMaquettes() {
   const [filter, setFilter] = useState<Filter>("toutes");
 
   const setState = useMutation({
-    mutationFn: ({ slug, suspended, reason }: { slug: string; suspended: boolean; reason?: string | null }) => api.setMaquetteState(slug, { suspended, reason }),
-    onSuccess: (r) => {
+    mutationFn: ({ slug, ...patch }: { slug: string; suspended?: boolean; reason?: string | null; portfolio?: boolean }) => api.setMaquetteState(slug, patch),
+    onSuccess: (r, vars) => {
       qc.invalidateQueries({ queryKey: ["admin", "maquettes"] });
-      toast({ title: r.suspended ? "Maquette suspendue" : "Maquette remise en ligne", description: r.suspended ? "Le lien envoyé au prospect affiche maintenant « maquette retirée »." : "Le lien sert de nouveau le site." });
+      if (vars.portfolio !== undefined) {
+        toast({ title: r.portfolio ? "Affichée dans le portfolio" : "Retirée du portfolio", description: r.portfolio ? "La maquette apparaît dans la galerie « Réalisations » du site public." : "Elle n'apparaît plus sur le site public ; le lien envoyé au prospect fonctionne toujours." });
+      } else {
+        toast({ title: r.suspended ? "Maquette suspendue" : "Maquette remise en ligne", description: r.suspended ? "Le lien envoyé au prospect affiche maintenant « maquette retirée »." : "Le lien sert de nouveau le site." });
+      }
     },
     onError: (e) => toast({ title: "Changement impossible", description: String((e as Error).message), variant: "destructive" }),
   });
@@ -54,16 +62,17 @@ export default function AdminMaquettes() {
   }
 
   const all = list.data ?? [];
-  const rows = all.filter((m) => filter === "toutes" || (filter === "suspendues") === m.suspended);
+  const rows = all.filter((m) => filter === "toutes" || (filter === "hors portfolio" ? !m.portfolio : (filter === "suspendues") === m.suspended));
   const nSusp = all.filter((m) => m.suspended).length;
+  const nPortfolio = all.filter((m) => m.portfolio && !m.suspended).length;
 
   return (
     <AdminShell title="Maquettes">
       <div className="flex flex-wrap items-center gap-2 mb-4 text-sm">
-        {(["toutes", "en ligne", "suspendues"] as const).map((v) => (
+        {(["toutes", "en ligne", "suspendues", "hors portfolio"] as const).map((v) => (
           <button key={v} onClick={() => setFilter(v)} className={cn("rounded-full px-3 py-1 border capitalize", filter === v ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground hover:text-foreground")}>{v}</button>
         ))}
-        <span className="ml-auto text-muted-foreground">{all.length ? `${all.length} maquettes · ${all.length - nSusp} en ligne · ${nSusp} suspendue${nSusp > 1 ? "s" : ""}` : ""}</span>
+        <span className="ml-auto text-muted-foreground">{all.length ? `${all.length} maquettes · ${all.length - nSusp} en ligne · ${nSusp} suspendue${nSusp > 1 ? "s" : ""} · ${nPortfolio} dans le portfolio` : ""}</span>
       </div>
 
       {list.isLoading ? <p className="text-sm text-muted-foreground">Chargement…</p> : list.isError ? <ErrorNote error={list.error} onRetry={() => list.refetch()} /> : rows.length === 0 ? (
@@ -79,6 +88,7 @@ export default function AdminMaquettes() {
                     {m.suspended
                       ? <span className="rounded-full bg-destructive/10 text-destructive px-2.5 py-0.5 text-xs font-medium">Suspendue{m.suspendedAt ? ` depuis le ${shortDate(m.suspendedAt)}` : ""}</span>
                       : <span className="rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-2.5 py-0.5 text-xs font-medium">En ligne</span>}
+                    {!m.portfolio && <span className="rounded-full bg-muted text-muted-foreground px-2.5 py-0.5 text-xs font-medium">Hors portfolio</span>}
                     {m.prospect && (
                       <Link href="/admin/prospects" className="inline-flex items-center gap-1.5 text-xs hover:underline">
                         <span className="text-muted-foreground">{m.prospect.name}</span>
@@ -87,7 +97,7 @@ export default function AdminMaquettes() {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    <span className="font-mono text-xs">{m.proxyUrl.replace(/^https?:\/\//, "")}</span>
+                    {m.meta}{" · "}<span className="font-mono text-xs">{m.proxyUrl.replace(/^https?:\/\//, "")}</span>
                     {" · "}{m.visits} visite{m.visits > 1 ? "s" : ""} et {m.visitors} visiteur{m.visitors > 1 ? "s" : ""} en 30 jours
                     {m.lastVisitAt ? ` · dernière le ${shortDate(m.lastVisitAt)}` : ""}
                   </p>
@@ -97,6 +107,9 @@ export default function AdminMaquettes() {
                 <div className="flex flex-wrap gap-2">
                   <a href={m.proxyUrl} target="_blank" rel="noopener"><Button size="sm" variant="outline"><ExternalLink className="w-3.5 h-3.5 mr-1.5" />Voir</Button></a>
                   <a href={m.adminProxyUrl} target="_blank" rel="noopener"><Button size="sm" variant="outline"><KeyRound className="w-3.5 h-3.5 mr-1.5" />Espace démo</Button></a>
+                  {m.portfolio
+                    ? <Button size="sm" variant="outline" onClick={() => setState.mutate({ slug: m.slug, portfolio: false })} disabled={setState.isPending} title="Ne plus l'afficher dans la galerie « Réalisations » du site public"><EyeOff className="w-3.5 h-3.5 mr-1.5" />Retirer du portfolio</Button>
+                    : <Button size="sm" variant="outline" onClick={() => setState.mutate({ slug: m.slug, portfolio: true })} disabled={setState.isPending} title="L'afficher dans la galerie « Réalisations » du site public"><Eye className="w-3.5 h-3.5 mr-1.5" />Afficher dans le portfolio</Button>}
                   {m.suspended
                     ? <Button size="sm" onClick={() => resume(m)} disabled={setState.isPending}><PlayCircle className="w-3.5 h-3.5 mr-1.5" />Remettre en ligne</Button>
                     : <Button size="sm" variant="ghost" className="text-destructive" onClick={() => suspend(m)} disabled={setState.isPending}><PauseCircle className="w-3.5 h-3.5 mr-1.5" />Suspendre</Button>}
@@ -106,7 +119,7 @@ export default function AdminMaquettes() {
           ))}
         </div>
       )}
-      <p className="text-xs text-muted-foreground mt-4">Suspendre ne supprime rien : le projet Cloudflare Pages et son contenu restent en place, et l'adresse directe <span className="font-mono">*.pages.dev</span> continue de répondre. Seul le lien mehdijabry.dev — celui que reçoivent les prospects — affiche « maquette retirée ».</p>
+      <p className="text-xs text-muted-foreground mt-4">Suspendre ne supprime rien : le projet Cloudflare Pages et son contenu restent en place, et l'adresse directe <span className="font-mono">*.pages.dev</span> continue de répondre. Seul le lien mehdijabry.dev — celui que reçoivent les prospects — affiche « maquette retirée ». Les maquettes en ligne apparaissent dans la galerie <a href="/work" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-foreground">Réalisations du site public</a>, sauf celles retirées du portfolio ; une maquette suspendue en sort d'office.</p>
     </AdminShell>
   );
 }

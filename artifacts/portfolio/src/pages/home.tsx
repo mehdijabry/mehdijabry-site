@@ -12,6 +12,7 @@ import { CtaButton } from "@/components/effects/cta-button";
 import { Spotlight } from "@/components/effects/spotlight";
 import { Ticker } from "@/components/effects/ticker";
 import { FloatingMark } from "@/components/effects/floating-mark";
+import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 
 /* ─────────────────────── DATA ─────────────────────── */
 
@@ -142,6 +143,8 @@ const PROCESS = [
 /* ────────────────────── COMPONENT ────────────────────── */
 
 export default function Home() {
+  const maquettes = usePortfolioMaquettes();
+  const nMaquettes = maquettes.data?.length ?? 0;
   const [currency, setCurrency] = useState<keyof typeof CURRENCIES>("CAD");
 
   function displayPrice(priceCAD: number, priceUSD: number): number {
@@ -349,6 +352,32 @@ export default function Home() {
                 </a>
               </Reveal>
             ))}
+          </div>
+
+          {/* Maquettes pour commerces locaux (2026-10-06) — un clic ouvre le site dans une fenêtre, sans quitter la page */}
+          <div id="local-businesses" className="mt-16 md:mt-24 scroll-mt-24">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 md:mb-12 items-end">
+              <Reveal className="md:col-span-7">
+                <div className="chip mb-5">Local businesses — Québec</div>
+                <h3 className="font-display text-3xl md:text-5xl tracking-[-0.03em] leading-[0.95]">
+                  {nMaquettes ? `${nMaquettes} sites` : "Sites"} built before the first call.
+                </h3>
+              </Reveal>
+              <Reveal className="md:col-span-4 md:col-start-9" delay={0.1}>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Complete, working proposals for real shops, cafés, restaurants and inns. Click one — it opens right
+                  here, in a window, on desktop or phone.
+                </p>
+              </Reveal>
+            </div>
+            <MaquettesGallery limit={8} />
+            {nMaquettes > 8 && (
+              <div className="mt-6 flex justify-end">
+                <a href="/work#local-businesses" className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-all-maquettes">
+                  See all {nMaquettes} →
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </section>
