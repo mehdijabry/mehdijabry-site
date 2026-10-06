@@ -42,6 +42,7 @@ const DEMOS: Record<string, { target: string; title: string }> = {
   nordouest: { target: "https://nordouest-demo.pages.dev", title: "Le Nord-Ouest" },
   steakliquide: { target: "https://steakliquide-demo.pages.dev", title: "Bar le Steak Liquide" },
   zele: { target: "https://zele-demo.pages.dev", title: "Restaurant Zélé" },
+  rosebarista: { target: "https://rosebarista-demo.pages.dev", title: "Le Rose-Barista" },
 };
 
 // Les robots d'aperçu de lien (Gmail, iMessage, WhatsApp, Slack…) font une requête GET et lisent le HTML
