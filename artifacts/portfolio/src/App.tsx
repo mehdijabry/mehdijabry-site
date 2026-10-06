@@ -17,6 +17,7 @@ import AdminInvoiceEditor from "@/pages/admin/facture";
 import AdminClients from "@/pages/admin/clients";
 import AdminProspects from "@/pages/admin/prospects";
 import AdminTracking from "@/pages/admin/suivi";
+import AdminMaquettes from "@/pages/admin/maquettes";
 import AdminEmails from "@/pages/admin/courriels";
 import AdminSettings from "@/pages/admin/parametres";
 
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/admin/factures/:id" component={AdminInvoiceEditor} />
       <Route path="/admin/prospects" component={AdminProspects} />
       <Route path="/admin/suivi" component={AdminTracking} />
+      <Route path="/admin/maquettes" component={AdminMaquettes} />
       <Route path="/admin/clients" component={AdminClients} />
       <Route path="/admin/courriels" component={AdminEmails} />
       <Route path="/admin/parametres" component={AdminSettings} />

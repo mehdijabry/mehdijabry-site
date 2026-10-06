@@ -106,6 +106,14 @@ export type Prospect = Omit<ProspectInput, "googleReviews" | "price"> & {
   activity: { emails: number; lastEmailAt: string | null; lastEmailId: number | null; lastEmailSubject: string | null; opens: number; clicks: number; lastActivityAt: string | null; visits: number; visitors: number; lastVisitAt: string | null };
 };
 
+/** Maquettes (2026-10-06) — le catalogue du proxy /maquette-v1, avec l'état de chacune. */
+export type Maquette = {
+  slug: string; title: string; target: string; proxyUrl: string; adminProxyUrl: string;
+  suspended: boolean; suspendedAt: string | null; reason: string | null;
+  prospect: { id: number; name: string; status: ProspectStatus } | null;
+  visits: number; visitors: number; lastVisitAt: string | null;
+};
+
 export type Dashboard = { year: number; invoices: number; billed: number; paid: number; outstanding: number; clients: number; emails: number; smallSupplierThreshold: number };
 
 export class AdminApiError extends Error {
@@ -162,6 +170,8 @@ export const api = {
   pushHistory: (limit = 100) => adminFetch<PushNotification[]>(`/push/history?limit=${limit}`),
   clearPushHistory: () => adminFetch<{ ok: true }>("/push/history", { method: "DELETE" }),
   prospectJourney: (id: number) => adminFetch<JourneySession[]>(`/prospects/${id}/journey`),
+  maquettes: () => adminFetch<Maquette[]>("/maquettes"),
+  setMaquetteState: (slug: string, body: { suspended: boolean; reason?: string | null }) => adminFetch<{ slug: string; suspended: boolean; suspendedAt: string | null; reason: string | null }>(`/maquettes/${encodeURIComponent(slug)}`, { method: "PUT", body: JSON.stringify(body) }),
   prospects: () => adminFetch<Prospect[]>("/prospects"),
   createProspect: (p: ProspectInput) => adminFetch<Prospect>("/prospects", { method: "POST", body: JSON.stringify(p) }),
   updateProspect: (id: number, p: ProspectInput) => adminFetch<Prospect>(`/prospects/${id}`, { method: "PUT", body: JSON.stringify(p) }),

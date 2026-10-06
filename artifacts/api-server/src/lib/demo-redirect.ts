@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { isMaquetteSuspended, suspendedHtml } from "./maquettes";
 
 /**
  * « /maquette-v1/:slug » (2026-10-02) — un lien de maquette montré au prospect doit pointer vers mehdijabry.dev,
@@ -6,8 +7,11 @@ import type { Request, Response } from "express";
  * d'hébergement gratuit comme un signal de méfiance pour un destinataire qui ne nous connaît pas encore.
  * Cette route fait la redirection ; elle est enregistrée avant le SPA catch-all dans app.ts.
  * Chaque maquette ajoutée doit être ajoutée ici (le nom à gauche est celui utilisé dans siteUrl/mockUrl).
+ * L'ordre d'insertion est chronologique : la page /admin/maquettes s'en sert pour lister la plus récente en premier.
+ * Une maquette peut être SUSPENDUE depuis cet admin (lib/maquettes.ts) : elle reste ici, mais le lien ne la sert plus.
  */
-const DEMOS: Record<string, { target: string; title: string }> = {
+export type DemoEntry = { target: string; title: string };
+export const DEMOS: Record<string, DemoEntry> = {
   lebette: { target: "https://lebette-demo.pages.dev", title: "Le Bette" },
   orelys: { target: "https://orelys-demo.pages.dev", title: "Orélys" },
   delormier: { target: "https://delormier-demo.pages.dev", title: "Maison Parc Delormier" },
@@ -106,9 +110,15 @@ async function proxy(req: Request, res: Response, entry: { target: string; title
   }
 }
 
-function respond(req: Request, res: Response, entry: { target: string; title: string } | undefined, suffix: string): void {
+async function respond(req: Request, res: Response, slug: string, entry: DemoEntry | undefined, suffix: string): Promise<void> {
   if (!entry) {
     res.redirect(302, "/");
+    return;
+  }
+  // Maquette suspendue depuis l'admin : la même page « retirée » pour tout le monde, robots d'aperçu compris —
+  // un lien partagé la veille ne doit plus montrer le site, ni son image, ni son titre.
+  if (await isMaquetteSuspended(slug)) {
+    res.status(410).set("cache-control", "no-store").type("html").send(suspendedHtml(entry.title));
     return;
   }
   const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
@@ -125,16 +135,16 @@ function respond(req: Request, res: Response, entry: { target: string; title: st
     }));
     return;
   }
-  void proxy(req, res, entry, suffix);
+  await proxy(req, res, entry, suffix);
 }
 
-export function voirHandler(req: Request, res: Response): void {
+export function voirHandler(req: Request, res: Response): Promise<void> {
   const slug = String(req.params["slug"] ?? "").toLowerCase().trim();
-  respond(req, res, DEMOS[slug], "");
+  return respond(req, res, slug, DEMOS[slug], "");
 }
 
 /** « /maquette-v1/:slug/admin » — même raisonnement, pour le lien vers l'espace d'administration de démonstration. */
-export function voirAdminHandler(req: Request, res: Response): void {
+export function voirAdminHandler(req: Request, res: Response): Promise<void> {
   const slug = String(req.params["slug"] ?? "").toLowerCase().trim();
-  respond(req, res, DEMOS[slug], "/admin/");
+  return respond(req, res, slug, DEMOS[slug], "/admin/");
 }

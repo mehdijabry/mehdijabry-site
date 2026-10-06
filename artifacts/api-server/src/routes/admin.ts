@@ -11,6 +11,7 @@ import { renderFollowupEmail } from "../lib/followup-email";
 import { newTrackToken, emailTracking, siteStats, siteActivity, recentActivity, isPrefetch, rememberAdminDevice, ignoredHashes, originLabel } from "../lib/tracking";
 import { pushConfigured, vapidPublicKey, sendPush } from "../lib/push";
 import prospectsRouter from "./prospects";
+import maquettesRouter from "./maquettes";
 import { logger } from "../lib/logger";
 
 /**
@@ -41,6 +42,7 @@ router.use((req, _res, next) => { rememberAdminDevice(req); next(); });
 // back creates them — no redeploy needed. A failure here reaches the JSON error handler in app.ts.
 router.use((_req, _res, next) => { ensureAdminSchema().then(() => next(), next); });
 router.use("/prospects", prospectsRouter);
+router.use("/maquettes", maquettesRouter);   // catalogue des maquettes + suspension (2026-10-06)
 
 // ───── Settings (issuer) ─────
 const IssuerSchema = z.object({
