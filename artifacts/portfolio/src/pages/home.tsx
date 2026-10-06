@@ -92,13 +92,6 @@ const FEATURED_WORK: { title: string; href: string; meta: string; blurb: string;
     stack: "Next.js / Supabase / Resend / Cloudflare",
   },
   {
-    title: "Ntaco Construction",
-    href: "https://proposal.mehdijabry.dev/ntaco-c9k4m/",
-    meta: "Construction · Cyprus · 2026",
-    blurb: "Industrial-premium portfolio with project CMS + lead pipeline.",
-    stack: "Vite / React / Supabase / Tailwind",
-  },
-  {
     title: "DS AI Manager",
     href: "https://ds-ai-manager.com",
     meta: "Personal · 2026",
@@ -113,6 +106,14 @@ const FEATURED_WORK: { title: string; href: string; meta: string; blurb: string;
     blurb: "Portfolio peinture & illustration — minimal, expressif.",
     stack: "Next.js / TS / Tailwind",
     hidden: true, // site hors ligne (404) le 06/10/2026 — remettre en ligne ici quand il répond
+  },
+  {
+    title: "Ntaco Construction",
+    href: "https://proposal.mehdijabry.dev/ntaco-c9k4m/",
+    meta: "Construction · Cyprus · 2026",
+    blurb: "Industrial-premium portfolio with project CMS + lead pipeline.",
+    stack: "Vite / React / Supabase / Tailwind",
+    hidden: true, // proposal.mehdijabry.dev répond 503 le 06/10/2026 — remettre en ligne ici quand il répond
   },
 ];
 const VISIBLE_WORK = FEATURED_WORK.filter((w) => !w.hidden);
@@ -315,8 +316,8 @@ export default function Home() {
             </Reveal>
             <Reveal className="md:col-span-4 md:col-start-9 self-end" delay={0.15}>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Sites I shipped solo — design, code, deploy, copy.
-                Every project below sends real emails to a real inbox today.
+                A site I shipped solo — design, code, deploy, copy.
+                It sends real emails to a real inbox today.
               </p>
             </Reveal>
           </div>
