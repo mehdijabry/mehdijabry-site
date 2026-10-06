@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Reveal } from "@/components/effects/reveal";
 import { MaquetteViewer } from "@/components/maquette-viewer";
+import { useCopy } from "@/lib/i18n";
 
 /**
  * Galerie « Réalisations » (2026-10-06) — les maquettes construites pour des commerces locaux, lues sur
@@ -10,6 +11,11 @@ import { MaquetteViewer } from "@/components/maquette-viewer";
  * visiteur ne quitte jamais mehdijabry.dev. La miniature est une capture statique /maquettes/<slug>.jpg
  * (scripts/capture-maquettes.sh) ; sans capture, on affiche le nom du commerce sur un fond neutre.
  */
+const COPY = {
+  fr: { error: "La galerie n'a pas pu être chargée — réessayez dans un instant.", empty: "Aucune maquette publiée pour le moment.", open: "Ouvrir ici ↗", aria: (t: string) => `Ouvrir la maquette ${t}`, alt: (t: string) => `${t} — page d'accueil` },
+  en: { error: "The gallery could not be loaded — please try again in a moment.", empty: "No mockup published yet.", open: "Open here ↗", aria: (t: string) => `Open the ${t} mockup`, alt: (t: string) => `${t} — home page` },
+};
+
 export type PortfolioMaquette = { slug: string; title: string; meta: string; url: string; proxyUrl: string; thumb: string };
 
 async function fetchPortfolioMaquettes(): Promise<PortfolioMaquette[]> {
@@ -23,6 +29,7 @@ export function usePortfolioMaquettes() {
 }
 
 function Thumb({ m }: { m: PortfolioMaquette }) {
+  const t = useCopy(COPY);
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
@@ -34,7 +41,7 @@ function Thumb({ m }: { m: PortfolioMaquette }) {
   return (
     <img
       src={m.thumb}
-      alt={`${m.title} — page d'accueil`}
+      alt={t.alt(m.title)}
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
@@ -44,6 +51,7 @@ function Thumb({ m }: { m: PortfolioMaquette }) {
 }
 
 export function MaquettesGallery({ limit }: { limit?: number }) {
+  const t = useCopy(COPY);
   const q = usePortfolioMaquettes();
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const all = q.data ?? [];
@@ -61,8 +69,8 @@ export function MaquettesGallery({ limit }: { limit?: number }) {
       </div>
     );
   }
-  if (q.isError) return <p className="text-sm text-muted-foreground">The gallery could not be loaded — please try again in a moment.</p>;
-  if (all.length === 0) return <p className="text-sm text-muted-foreground">No mockup published yet.</p>;
+  if (q.isError) return <p className="text-sm text-muted-foreground">{t.error}</p>;
+  if (all.length === 0) return <p className="text-sm text-muted-foreground">{t.empty}</p>;
 
   return (
     <>
@@ -73,14 +81,14 @@ export function MaquettesGallery({ limit }: { limit?: number }) {
               type="button"
               onClick={() => setOpenSlug(m.slug)}
               className="group block w-full text-left bg-background hover:bg-muted/40 transition-colors duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
-              aria-label={`Open the ${m.title} mockup`}
+              aria-label={t.aria(m.title)}
               data-testid={`button-maquette-${m.slug}`}
               data-magnetic
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-muted/30">
                 <Thumb m={m} />
                 <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300 bg-background/30 backdrop-blur-[2px]">
-                  <span className="chip bg-background/90 text-foreground">Open here ↗</span>
+                  <span className="chip bg-background/90 text-foreground">{t.open}</span>
                 </span>
               </div>
               <div className="p-4 md:p-5">

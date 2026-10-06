@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout/layout";
 import { FadeIn } from "@/components/ui/fade-in";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   PROJECT_TYPES, TIMELINES, ADDONS, CURRENCIES,
   ProjectType, Timeline, AddonKey, Currency,
@@ -16,22 +16,63 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSubmitQuote } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useCopy, useLang } from "@/lib/i18n";
+import { ADDON_COPY, PROJECT_COPY, TIMELINE_COPY } from "@/lib/pricing-copy";
 
-const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Valid email is required"),
-  company: z.string().optional(),
-  existingUrl: z.string().optional(),
-  projectBrief: z.string().min(10, "Please describe your project (min 10 characters)").max(500, "Maximum 500 characters"),
-  deadline: z.string().optional(),
-  source: z.string().optional(),
-});
-
-const PROJECT_DESCRIPTIONS: Record<ProjectType, string> = {
-  spark: "For indie hackers, Product Hunt launches, MVPs.",
-  vitrine: "For TPE, coaches, consultants, freelancers.",
-  vitrineplus: "Includes newsletter signup, booking, bilingual.",
+const COPY = {
+  fr: {
+    title: "Configurez votre devis", lede: "Choisissez vos options ci-dessous. Le prix se met à jour en direct.",
+    step1: "Étape 1 — Type de projet", step2: "Étape 2 — Délai", step3: "Étape 3 — Options", step4: "Étape 4 — Vos coordonnées",
+    recommended: "Recommandé", from: "À partir de", included: "Inclus",
+    descriptions: {
+      spark: "Pour les créateurs indépendants, les lancements, les produits minimum viables.",
+      vitrine: "Pour les TPE, coachs, consultants et travailleurs autonomes.",
+      vitrineplus: "Infolettre, prise de rendez-vous et site bilingue inclus.",
+    } as Record<ProjectType, string>,
+    disabled: {
+      extraPage: "Spark tient sur une page — passez à Vitrine",
+      bilingual: "Déjà inclus dans Vitrine+",
+    } as Record<string, string>,
+    name: "Nom *", email: "Courriel *", company: "Entreprise (facultatif)", url: "Site actuel (facultatif)",
+    brief: "Votre projet *", briefPlaceholder: "Dites-moi vos objectifs, les sites qui vous plaisent, vos contraintes de délai…",
+    deadline: "Échéance (facultatif)", source: "Comment m'avez-vous connu ?", selectPlaceholder: "Choisir…",
+    sources: { linkedin: "LinkedIn", twitter: "Twitter / X", referral: "Recommandation", google: "Google", "cold-email": "Courriel de prospection", other: "Autre" } as Record<string, string>,
+    review: "Récapitulatif :", option: "option", options: "options", total: "Total :",
+    submitting: "Envoi en cours…", submit: "Envoyer la demande de devis →",
+    errorTitle: "Envoi impossible", errorBody: "Réessayez, ou écrivez-moi directement à contact@mehdijabry.dev.",
+    panel: "Estimation", tier: "Formule", base: "Prix de base", addonsLabel: "Options", express: "Express (+30 %)",
+    totalLabel: "Total", recurring: "/mois en abonnement", delivery: "Livraison",
+    noPayment: "Aucun paiement n'est demandé pour obtenir un devis.",
+    errors: { name: "Le nom est requis", email: "Un courriel valide est requis", briefMin: "Décrivez votre projet (10 caractères minimum)", briefMax: "500 caractères maximum" },
+  },
+  en: {
+    title: "Configure your quote", lede: "Select your options below. The price updates in real time.",
+    step1: "Step 1 — Project type", step2: "Step 2 — Timeline", step3: "Step 3 — Add-ons", step4: "Step 4 — Contact info",
+    recommended: "Recommended", from: "From", included: "Included",
+    descriptions: {
+      spark: "For indie hackers, Product Hunt launches, MVPs.",
+      vitrine: "For small businesses, coaches, consultants, freelancers.",
+      vitrineplus: "Includes newsletter signup, booking, bilingual.",
+    } as Record<ProjectType, string>,
+    disabled: {
+      extraPage: "Spark is single-page — upgrade to Vitrine",
+      bilingual: "Already included in Vitrine+",
+    } as Record<string, string>,
+    name: "Name *", email: "Email *", company: "Company (optional)", url: "Existing URL (optional)",
+    brief: "Project brief *", briefPlaceholder: "Tell me about your goals, reference sites, timeline constraints…",
+    deadline: "Deadline (optional)", source: "How did you hear about me?", selectPlaceholder: "Select…",
+    sources: { linkedin: "LinkedIn", twitter: "Twitter / X", referral: "Referral", google: "Google", "cold-email": "Cold email", other: "Other" } as Record<string, string>,
+    review: "Review:", option: "add-on", options: "add-ons", total: "Total:",
+    submitting: "Submitting…", submit: "Submit quote request →",
+    errorTitle: "Error submitting quote", errorBody: "Please try again or email contact@mehdijabry.dev directly.",
+    panel: "Quote estimate", tier: "Tier", base: "Base price", addonsLabel: "Add-ons", express: "Express (+30%)",
+    totalLabel: "Total", recurring: "/mo recurring", delivery: "Delivery",
+    noPayment: "No payment required to request a quote.",
+    errors: { name: "Name is required", email: "Valid email is required", briefMin: "Please describe your project (min 10 characters)", briefMax: "Maximum 500 characters" },
+  },
 };
+
+type FormValues = { name: string; email: string; company?: string; existingUrl?: string; projectBrief: string; deadline?: string; source?: string };
 
 function isAddonDisabled(key: AddonKey, projectType: ProjectType): boolean {
   if (key === "extraPage" && projectType === "spark") return true;
@@ -39,13 +80,23 @@ function isAddonDisabled(key: AddonKey, projectType: ProjectType): boolean {
   return false;
 }
 
-function addonDisabledReason(key: AddonKey, projectType: ProjectType): string {
-  if (key === "extraPage" && projectType === "spark") return "Spark is single-page — upgrade to Vitrine";
-  if (key === "bilingual" && projectType === "vitrineplus") return "Already included in Vitrine+";
-  return "";
-}
-
 export default function Start() {
+  const { lang } = useLang();
+  const t = useCopy(COPY);
+  const projectCopy = PROJECT_COPY[lang], timelineCopy = TIMELINE_COPY[lang], addonCopy = ADDON_COPY[lang];
+  const nf = (n: number) => n.toLocaleString(lang === "fr" ? "fr-CA" : "en-CA");
+
+  // Le schéma porte les messages d'erreur : il se reconstruit quand la langue change.
+  const formSchema = useMemo(() => z.object({
+    name: z.string().min(1, t.errors.name),
+    email: z.string().email(t.errors.email),
+    company: z.string().optional(),
+    existingUrl: z.string().optional(),
+    projectBrief: z.string().min(10, t.errors.briefMin).max(500, t.errors.briefMax),
+    deadline: z.string().optional(),
+    source: z.string().optional(),
+  }), [t]);
+
   const [projectType, setProjectType] = useState<ProjectType>("vitrine");
   const [timeline, setTimeline] = useState<Timeline>("standard");
   const [addons, setAddons] = useState<AddonKey[]>([]);
@@ -55,7 +106,7 @@ export default function Start() {
 
   const submitQuoteMutation = useSubmitQuote();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -73,7 +124,7 @@ export default function Start() {
   const total = display.total;
   const recurring = display.recurring;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: FormValues) {
     submitQuoteMutation.mutate(
       {
         data: {
@@ -90,8 +141,8 @@ export default function Start() {
         },
         onError: () => {
           toast({
-            title: "Error submitting quote",
-            description: "Please try again or email contact@mehdijabry.dev directly.",
+            title: t.errorTitle,
+            description: t.errorBody,
             variant: "destructive",
           });
         },
@@ -118,14 +169,14 @@ export default function Start() {
         {/* Form Area */}
         <div className="lg:w-[70%]">
           <FadeIn>
-            <h1 className="font-display text-4xl mb-2">Configure your quote</h1>
-            <p className="text-muted-foreground mb-12">Select your options below. The price updates in real-time.</p>
+            <h1 className="font-display text-4xl mb-2">{t.title}</h1>
+            <p className="text-muted-foreground mb-12">{t.lede}</p>
 
             <div className="space-y-16">
 
               {/* Step 1 — Project Type */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">STEP 1 — PROJECT TYPE</h2>
+                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step1}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {(Object.entries(PROJECT_TYPES) as [ProjectType, typeof PROJECT_TYPES[ProjectType]][]).map(([k, v]) => (
                     <button
@@ -136,14 +187,14 @@ export default function Start() {
                       className={`relative text-left p-6 border transition-all ${projectType === k ? "border-primary bg-primary/5" : "border-border bg-card hover:border-muted-foreground"}`}
                     >
                       {k === "vitrine" && (
-                        <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[9px] font-mono px-2 py-0.5 uppercase">Recommended</span>
+                        <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[9px] font-mono px-2 py-0.5 uppercase">{t.recommended}</span>
                       )}
-                      <div className="font-medium text-sm mb-1">{v.label}</div>
-                      <div className="text-xs text-muted-foreground mb-3">{PROJECT_DESCRIPTIONS[k]}</div>
+                      <div className="font-medium text-sm mb-1">{projectCopy[k].label}</div>
+                      <div className="text-xs text-muted-foreground mb-3">{t.descriptions[k]}</div>
                       <div className="font-mono text-sm text-primary">
-                        From ${getBasePrice(k, currency).toLocaleString()} {currency}
+                        {t.from} ${nf(getBasePrice(k, currency))} {currency}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">{v.deliveryStandard}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{projectCopy[k].deliveryStandard}</div>
                     </button>
                   ))}
                 </div>
@@ -151,7 +202,7 @@ export default function Start() {
 
               {/* Step 2 — Timeline */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">STEP 2 — TIMELINE</h2>
+                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step2}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(Object.entries(TIMELINES) as [Timeline, typeof TIMELINES[Timeline]][]).map(([k, v]) => (
                     <button
@@ -161,9 +212,9 @@ export default function Start() {
                       data-testid={`button-timeline-${k}`}
                       className={`text-left p-6 border transition-all ${timeline === k ? "border-primary bg-primary/5" : "border-border bg-card hover:border-muted-foreground"}`}
                     >
-                      <div className="font-medium">{v.label}</div>
+                      <div className="font-medium">{timelineCopy[k]}</div>
                       <div className="text-sm text-muted-foreground mt-1">
-                        {v.multiplier === 1.0 ? "Included" : `+${Math.round((v.multiplier - 1) * 100)}%`}
+                        {v.multiplier === 1.0 ? t.included : `+${Math.round((v.multiplier - 1) * 100)} %`}
                       </div>
                     </button>
                   ))}
@@ -172,11 +223,11 @@ export default function Start() {
 
               {/* Step 3 — Add-ons */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">STEP 3 — ADD-ONS</h2>
+                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step3}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(Object.entries(ADDONS) as [AddonKey, typeof ADDONS[AddonKey]][]).map(([k, v]) => {
                     const disabled = isAddonDisabled(k, projectType);
-                    const reason = addonDisabledReason(k, projectType);
+                    const reason = disabled ? (t.disabled[k] ?? "") : "";
                     const selected = addons.includes(k);
                     return (
                       <button
@@ -194,9 +245,9 @@ export default function Start() {
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm">{v.label}</span>
+                          <span className="text-sm">{addonCopy[k]}</span>
                           <span className="text-sm font-mono shrink-0">
-                            +${getAddonPrice(k, currency)}{"recurring" in v ? "/mo" : ""}
+                            +${getAddonPrice(k, currency)}{"recurring" in v ? (lang === "fr" ? "/mois" : "/mo") : ""}
                           </span>
                         </div>
                         {disabled && reason && (
@@ -210,34 +261,34 @@ export default function Start() {
 
               {/* Step 4 — Contact Info */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">STEP 4 — CONTACT INFO</h2>
+                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step4}</h2>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card border border-border p-8">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField control={form.control} name="name" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name *</FormLabel>
+                          <FormLabel>{t.name}</FormLabel>
                           <FormControl><Input data-testid="input-name" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="email" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email *</FormLabel>
+                          <FormLabel>{t.email}</FormLabel>
                           <FormControl><Input data-testid="input-email" type="email" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="company" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company (optional)</FormLabel>
+                          <FormLabel>{t.company}</FormLabel>
                           <FormControl><Input data-testid="input-company" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="existingUrl" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Existing URL (optional)</FormLabel>
+                          <FormLabel>{t.url}</FormLabel>
                           <FormControl><Input data-testid="input-url" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -246,12 +297,12 @@ export default function Start() {
 
                     <FormField control={form.control} name="projectBrief" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Project Brief *</FormLabel>
+                        <FormLabel>{t.brief}</FormLabel>
                         <FormControl>
                           <Textarea
                             data-testid="input-brief"
                             className="h-32"
-                            placeholder="Tell me about your goals, reference sites, timeline constraints..."
+                            placeholder={t.briefPlaceholder}
                             {...field}
                           />
                         </FormControl>
@@ -262,27 +313,24 @@ export default function Start() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <FormField control={form.control} name="deadline" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Deadline (optional)</FormLabel>
+                          <FormLabel>{t.deadline}</FormLabel>
                           <FormControl><Input data-testid="input-deadline" type="date" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="source" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>How did you hear about me?</FormLabel>
+                          <FormLabel>{t.source}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-source">
-                                <SelectValue placeholder="Select..." />
+                                <SelectValue placeholder={t.selectPlaceholder} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="linkedin">LinkedIn</SelectItem>
-                              <SelectItem value="twitter">Twitter / X</SelectItem>
-                              <SelectItem value="referral">Referral</SelectItem>
-                              <SelectItem value="google">Google</SelectItem>
-                              <SelectItem value="cold-email">Cold email</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
+                              {Object.entries(t.sources).map(([v, label]) => (
+                                <SelectItem key={v} value={v}>{label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -292,11 +340,11 @@ export default function Start() {
 
                     <div className="pt-6 border-t border-border mt-8">
                       <div className="mb-6 p-4 bg-muted/30 border border-border text-sm text-muted-foreground">
-                        <strong className="text-foreground">Review:</strong> {PROJECT_TYPES[projectType].label} · {TIMELINES[timeline].label}
-                        {addons.length > 0 && ` · ${addons.length} add-on${addons.length > 1 ? "s" : ""}`}
+                        <strong className="text-foreground">{t.review}</strong> {projectCopy[projectType].label} · {timelineCopy[timeline]}
+                        {addons.length > 0 && ` · ${addons.length} ${addons.length > 1 ? t.options : t.option}`}
                         <span className="ml-4 font-mono text-primary font-medium">
-                          Total: ${total.toLocaleString()} {currency}
-                          {recurring > 0 && ` + $${recurring}/mo`}
+                          {t.total} ${nf(total)} {currency}
+                          {recurring > 0 && ` + $${recurring}${lang === "fr" ? "/mois" : "/mo"}`}
                         </span>
                       </div>
                       <button
@@ -305,7 +353,7 @@ export default function Start() {
                         data-testid="button-submit"
                         className="inline-flex h-14 w-full sm:w-auto items-center justify-center whitespace-nowrap px-10 text-lg font-serif transition-colors bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                       >
-                        {submitQuoteMutation.isPending ? "Submitting..." : "Submit Quote Request →"}
+                        {submitQuoteMutation.isPending ? t.submitting : t.submit}
                       </button>
                     </div>
                   </form>
@@ -320,7 +368,7 @@ export default function Start() {
         <div className="lg:w-[30%] relative">
           <div className="sticky top-24 border border-primary/20 bg-card p-6 shadow-xl" data-testid="panel-price">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-sans text-xs uppercase tracking-widest text-muted-foreground">QUOTE ESTIMATE</h3>
+              <h3 className="font-sans text-xs uppercase tracking-widest text-muted-foreground">{t.panel}</h3>
               <div className="flex bg-background border border-border p-1">
                 {(["CAD", "USD", "EUR", "GBP"] as const).map(c => (
                   <button
@@ -337,48 +385,48 @@ export default function Start() {
 
             <div className="space-y-3 text-sm mb-6">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Tier</span>
-                <span className="font-medium text-xs text-right">{PROJECT_TYPES[projectType].label.split(" — ")[0]}</span>
+                <span className="text-muted-foreground">{t.tier}</span>
+                <span className="font-medium text-xs text-right">{projectCopy[projectType].label.split(" — ")[0]}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Base price</span>
-                <span>${display.base.toLocaleString()}</span>
+                <span className="text-muted-foreground">{t.base}</span>
+                <span>${nf(display.base)}</span>
               </div>
               {addons.length > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Add-ons ({addons.length})</span>
-                  <span>+${display.addons.toLocaleString()}</span>
+                  <span className="text-muted-foreground">{t.addonsLabel} ({addons.length})</span>
+                  <span>+${nf(display.addons)}</span>
                 </div>
               )}
               {timeline !== "standard" && (
                 <div className="flex justify-between text-primary">
-                  <span>Express (+30%)</span>
-                  <span>+${(display.total - display.base - display.addons).toLocaleString()}</span>
+                  <span>{t.express}</span>
+                  <span>+${nf(display.total - display.base - display.addons)}</span>
                 </div>
               )}
             </div>
 
             <div className="pt-4 border-t border-border">
               <div className="flex justify-between items-end">
-                <span className="font-medium">Total</span>
+                <span className="font-medium">{t.totalLabel}</span>
                 <span className="font-serif text-3xl" data-testid="text-total">
-                  ${total.toLocaleString()} <span className="text-sm font-sans text-muted-foreground">{currency}</span>
+                  ${nf(total)} <span className="text-sm font-sans text-muted-foreground">{currency}</span>
                 </span>
               </div>
               {recurring > 0 && (
-                <p className="text-right text-xs text-muted-foreground mt-1">+ ${recurring}/mo recurring</p>
+                <p className="text-right text-xs text-muted-foreground mt-1">+ ${recurring}{t.recurring}</p>
               )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
               <div className="flex justify-between">
-                <span>Delivery</span>
-                <span>{timeline === "standard" ? PROJECT_TYPES[projectType].deliveryStandard : PROJECT_TYPES[projectType].deliveryExpress}</span>
+                <span>{t.delivery}</span>
+                <span>{timeline === "standard" ? projectCopy[projectType].deliveryStandard : projectCopy[projectType].deliveryExpress}</span>
               </div>
             </div>
 
             <p className="mt-6 text-xs text-muted-foreground text-center">
-              No payment required to request a quote.
+              {t.noPayment}
             </p>
           </div>
         </div>

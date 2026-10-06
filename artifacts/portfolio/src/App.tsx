@@ -25,6 +25,7 @@ import AdminSettings from "@/pages/admin/parametres";
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Aurora } from "@/components/effects/aurora";
+import { LanguageProvider } from "@/lib/i18n";
 
 // No automatic retry and networkMode "always": a failed request must surface as an error right away. With
 // retries, react-query parks the query in a "paused" state while the tab is hidden or believed offline, and a
@@ -63,6 +64,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
       <TooltipProvider>
         <SmoothScrollProvider>
           <Aurora fixed intensity={0.45} />
@@ -75,6 +77,7 @@ function App() {
           <Toaster />
         </SmoothScrollProvider>
       </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

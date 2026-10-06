@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Layout } from "@/components/layout/layout";
 import { Reveal } from "@/components/effects/reveal";
 import { CtaButton } from "@/components/effects/cta-button";
 import { cn } from "@/lib/utils";
+import { useCopy } from "@/lib/i18n";
 
 /**
  * /contact (2026-10-06) — la page d'atterrissage du bouton « Site Web » de la fiche Google.
@@ -12,8 +12,8 @@ import { cn } from "@/lib/utils";
  * PREMIÈRE chose à l'écran — pas un formulaire, pas un pied de page — et le téléphone juste dessous.
  *
  * Deux publics s'y croisent : les commerces d'ici, qui arrivent de la fiche Google en français, et les
- * clients anglophones du reste du site. La page choisit sa langue d'après celle du navigateur, et un
- * sélecteur permet d'en changer — plutôt que d'imposer l'anglais à un commerçant de Trois-Rivières.
+ * clients anglophones. La langue est celle du site entier (lib/i18n.tsx) — choisie d'après le navigateur,
+ * changeable depuis l'en-tête.
  *
  * Les coordonnées sont celles des réglages de production (GET /api/admin/settings, relevées le
  * 06/10/2026) : contact@mehdijabry.dev et 438 525-7119. Aucune adresse postale : l'entreprise n'a pas
@@ -22,8 +22,6 @@ import { cn } from "@/lib/utils";
 const EMAIL = "contact@mehdijabry.dev";
 const PHONE_DISPLAY = "438 525-7119";
 const PHONE_HREF = "+14385257119";
-
-type Lang = "fr" | "en";
 
 const COPY = {
   fr: {
@@ -48,7 +46,6 @@ const COPY = {
     seeWorkHover: "37 sites",
     quote: "Configurer un devis",
     quoteHover: "En 2 minutes",
-    switch: "English",
   },
   en: {
     eyebrow: "Contact · Trois-Rivières, QC",
@@ -72,19 +69,11 @@ const COPY = {
     seeWorkHover: "37 sites",
     quote: "Configure a quote",
     quoteHover: "2 minutes",
-    switch: "Français",
   },
-} as const;
-
-/** Français par défaut pour un navigateur francophone — celui d'un commerçant venu de la fiche Google. */
-function initialLang(): Lang {
-  if (typeof navigator === "undefined") return "fr";
-  return /^fr\b/i.test(navigator.language ?? "") ? "fr" : "en";
-}
+};
 
 export default function Contact() {
-  const [lang, setLang] = useState<Lang>(initialLang);
-  const t = COPY[lang];
+  const t = useCopy(COPY);
 
   return (
     <Layout>
@@ -93,14 +82,6 @@ export default function Contact() {
           <Reveal>
             <div className="flex flex-wrap items-center gap-4 mb-10">
               <span className="chip">{t.eyebrow}</span>
-              <button
-                type="button"
-                onClick={() => setLang(lang === "fr" ? "en" : "fr")}
-                className="chip hover:text-foreground hover:border-border transition-colors"
-                data-testid="button-contact-lang"
-              >
-                {t.switch}
-              </button>
             </div>
             <h1 className="text-display text-[clamp(40px,6vw,88px)] leading-[0.95] tracking-[-0.04em]">
               {t.title}
