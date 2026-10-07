@@ -58,6 +58,7 @@ export const DEMOS: Record<string, DemoEntry> = {
   angkor: { target: "https://angkor-demo.pages.dev", title: "Restaurant Cité d’Angkor", meta: "Cuisine cambodgienne · Shawinigan" },
   grillepain: { target: "https://grillepain-demo.pages.dev", title: "Le Grille-Pain du coin", meta: "Boulangerie artisanale · Shawinigan-Sud" },
   tingz: { target: "https://tingz-demo.pages.dev", title: "Tingz Café", meta: "Café-bistro sans gluten · Tingwick" },
+  parfaitement: { target: "https://parfaitement-demo.pages.dev", title: "Parfaitement Gâteaux", meta: "Pâtisserie festive · Louiseville" },
 };
 
 // Les robots d'aperçu de lien (Gmail, iMessage, WhatsApp, Slack…) font une requête GET et lisent le HTML
