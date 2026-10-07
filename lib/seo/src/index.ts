@@ -271,24 +271,35 @@ function siteWeb() {
   };
 }
 
-/** Les trois formules, aux prix réellement affichés sur /pricing. */
+/**
+ * Les trois formules, aux prix réellement affichés sur /pricing.
+ *
+ * Deux pièges relevés par validator.schema.org le 7 octobre 2026, et ils sont généraux :
+ * `position` n'existe pas sur une `Offer` (c'est une propriété de `ListItem` — l'ordre du tableau
+ * suffit), et `deliveryLeadTime` attend une `QuantitativeValue`, pas une phrase. « 24 à 48 h »
+ * devient donc 1 à 2 jours, en code d'unité normalisé.
+ */
 function catalogue() {
-  const offres: Array<[string, string, number, string]> = [
-    ["SPARK", "Page unique", 375, "24 à 48 h"],
-    ["VITRINE", "Site vitrine", 790, "3 à 5 jours"],
-    ["VITRINE+", "Site vitrine enrichi", 1290, "5 à 7 jours"],
+  const offres: Array<[string, string, number, number, number]> = [
+    ["SPARK", "Page unique", 375, 1, 2],
+    ["VITRINE", "Site vitrine", 790, 3, 5],
+    ["VITRINE+", "Site vitrine enrichi", 1290, 5, 7],
   ];
   return {
     "@type": "OfferCatalog",
     name: "Formules de site web",
-    itemListElement: offres.map(([nom, sous, prix, delai], i) => ({
+    itemListElement: offres.map(([nom, sous, prix, jourMin, jourMax]) => ({
       "@type": "Offer",
-      position: i + 1,
       name: `${nom} — ${sous}`,
       price: String(prix),
       priceCurrency: "CAD",
       availability: "https://schema.org/InStock",
-      deliveryLeadTime: delai,
+      deliveryLeadTime: {
+        "@type": "QuantitativeValue",
+        minValue: jourMin,
+        maxValue: jourMax,
+        unitCode: "DAY",
+      },
       itemOffered: {
         "@type": "Service",
         name: sous,
