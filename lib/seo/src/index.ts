@@ -27,6 +27,17 @@ export const SITE = {
   courriel: "contact@mehdijabry.dev",
   /** Affiché dans le pied de page et sur la page Contact. Jamais retapé de mémoire. */
   telephone: "+1-438-525-7119",
+  /**
+   * L'adresse, lue dans `GET /api/admin/settings` le 7 octobre 2026 — jamais retapée de mémoire,
+   * comme le numéro de téléphone.
+   *
+   * LE NUMÉRO D'APPARTEMENT EST VOLONTAIREMENT ABSENT. Les réglages portent « Appartement 7 » ;
+   * il ne sort ni dans un pied de page de courriel de prospection, ni ici. Rue, code postal et
+   * ville suffisent à Google pour ancrer le commerce, et c'est tout ce qu'un visiteur a besoin
+   * de savoir d'un studio qui se déplace chez ses clients.
+   */
+  rue: "3051, rue du Père-Bressani",
+  codePostal: "G8Z 1T5",
   ville: "Trois-Rivières",
   region: "QC",
   pays: "CA",
@@ -225,9 +236,10 @@ export type MaquettePourSeo = { slug: string; title: string; meta: string; proxy
 /**
  * Le studio lui-même, décrit une seule fois et référencé partout ailleurs par son identifiant.
  *
- * Pas d'adresse de rue : l'entreprise n'en publie aucune, et en inventer une pour satisfaire
- * Google serait exactement le genre de faux détail qui se retourne contre un commerce local.
- * La ville, la région et les municipalités desservies suffisent à ancrer le studio dans la Mauricie.
+ * L'adresse est celle des réglages de facturation, sans le numéro d'appartement (voir SITE.rue).
+ * Elle ouvre le résultat enrichi « commerce local » : sans `streetAddress` ni `postalCode`, Google
+ * accepte la fiche mais la signale incomplète. Ce qu'elle ne doit JAMAIS contenir, c'est une
+ * adresse approchée — un faux détail de localisation se retourne contre un commerce local.
  */
 function studio() {
   return {
@@ -243,6 +255,8 @@ function studio() {
       "Studio web indépendant établi à Trois-Rivières : sites vitrines et pages de lancement pour les commerces de la Mauricie et du Centre-du-Québec.",
     address: {
       "@type": "PostalAddress",
+      streetAddress: SITE.rue,
+      postalCode: SITE.codePostal,
       addressLocality: SITE.ville,
       addressRegion: SITE.region,
       addressCountry: SITE.pays,

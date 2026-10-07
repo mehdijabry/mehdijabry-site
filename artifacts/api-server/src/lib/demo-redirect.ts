@@ -127,6 +127,14 @@ async function respond(req: Request, res: Response, slug: string, entry: DemoEnt
     res.redirect(302, "/");
     return;
   }
+  // Hors index, dans toutes les branches qui suivent — carte d'aperçu pour les robots sociaux comprise.
+  //
+  // Ces adresses servent une démonstration qui porte le nom, les photos, le menu et les horaires d'un
+  // vrai commerce qui n'est pas encore client. Indexée, elle peut sortir dans Google à la place du
+  // commerce, avec des horaires figés au jour de la construction. L'en-tête ne gêne en rien l'aperçu
+  // de lien sur Facebook ou Messenger : leurs robots lisent les balises Open Graph, pas celle-ci.
+  res.set("x-robots-tag", "noindex");
+
   // Maquette suspendue depuis l'admin : la même page « retirée » pour tout le monde, robots d'aperçu compris —
   // un lien partagé la veille ne doit plus montrer le site, ni son image, ni son titre.
   if (await isMaquetteSuspended(slug)) {
