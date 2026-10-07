@@ -49,8 +49,11 @@ export function Logo({
 export function Monogramme({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 120 120" className={cn("block", className)} fill="none" aria-hidden="true">
-      {/* la plaque : encre sur papier, papier sur encre */}
-      <rect width="120" height="120" rx="2" className="fill-foreground" />
+      {/* La plaque : encre sur papier, papier sur encre. Le rayon est celui du logo d'origine
+          (32 sur 160, soit un cinquième du côté — ici 24 sur 120). Il avait été carré pour coller
+          au `--radius: 0` du reste du site : c'était une erreur. Le système s'aligne sur la marque,
+          jamais l'inverse. */}
+      <rect width="120" height="120" rx="24" className="fill-foreground" />
       {/* le M, d'un seul trait brisé */}
       <path
         d="M26 84V40l18 19 17-19v44"
