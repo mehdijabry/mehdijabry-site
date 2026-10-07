@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet">
+<style>
+  /* Les couleurs sont celles de src/index.css, thème papier : --background 45 20% 97%,
+     --foreground 225 8% 9%, --vif 36 42% 43%, --muted-foreground 220 7% 38%, --trait-fort 45 12% 78%. */
+  :root{ --papier:hsl(45 20% 97%); --encre:hsl(225 8% 9%); --vif:hsl(36 42% 43%);
+         --gris:hsl(220 7% 38%); --trait:hsl(45 12% 86%); }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:1200px;height:630px;background:var(--papier);color:var(--encre);
+       font-family:"Instrument Sans",system-ui,sans-serif;overflow:hidden;position:relative}
+  /* La grille dessinée du site, en fond. C'est elle qui signe l'image autant que le monogramme. */
+  .grille{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,1fr)}
+  .grille i{border-left:1px solid var(--trait)}
+  .grille i:first-child{border-left:0}
+  .cadre{position:relative;height:100%;padding:62px 72px;display:flex;flex-direction:column;justify-content:space-between}
+  /* La cote : le trait de mesure qui sert de titre de section partout sur le site. */
+  .cote{display:flex;align-items:center;gap:18px;font-family:"JetBrains Mono",monospace;
+        font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--gris)}
+  .cote b{flex:1;height:1px;background:var(--trait);display:block}
+  .haut{display:flex;align-items:center;gap:22px}
+  .plaque{width:84px;height:84px;flex:none}
+  .nom{line-height:1.05}
+  .nom .n{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:25px;
+          letter-spacing:-.03em;font-variation-settings:"opsz" 24,"wdth" 96}
+  .nom .s{margin-top:7px;font-family:"JetBrains Mono",monospace;font-size:11.5px;
+          letter-spacing:.2em;text-transform:uppercase;color:var(--gris)}
+  h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:82px;line-height:.98;
+     letter-spacing:-.035em;font-variation-settings:"opsz" 80,"wdth" 94;max-width:17ch}
+  /* La moitié qui compte est posée sur une plaque d'encre, comme sur l'accueil. */
+  h1 em{font-style:normal;background:var(--encre);color:var(--papier);
+        padding:.04em .16em .1em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .bas{display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+  .faits{font-family:"JetBrains Mono",monospace;font-size:17px;letter-spacing:.02em;color:var(--gris)}
+  .faits strong{color:var(--encre);font-weight:600}
+  .adresse{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:27px;
+           letter-spacing:-.02em;font-variation-settings:"opsz" 26,"wdth" 96}
+</style></head><body>
+  <div class="grille"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="cadre">
+    <div class="haut">
+      <svg class="plaque" viewBox="0 0 120 120" fill="none">
+        <rect width="120" height="120" rx="24" fill="hsl(225 8% 9%)"/>
+        <path d="M26 84V40l18 19 17-19v44" stroke="hsl(45 20% 97%)" stroke-width="9" stroke-linecap="square" stroke-linejoin="bevel"/>
+        <path d="M70 40h25v29c0 9.4-7.6 17-17 17H70" stroke="hsl(36 42% 53%)" stroke-width="9" stroke-linecap="square" stroke-linejoin="round"/>
+        <rect x="74" y="64" width="9" height="9" fill="hsl(45 20% 97%)"/>
+      </svg>
+      <div class="nom">
+        <div class="n">Mehdi Jabry</div>
+        <div class="s">Studio web · Trois-Rivières</div>
+      </div>
+    </div>
+
+    <h1>Le vôtre est peut-être <em>déjà construit.</em></h1>
+
+    <div>
+      <div class="cote" style="margin-bottom:26px"><span>Sites web pour les commerces d'ici</span><b></b></div>
+      <div class="bas">
+        <div class="adresse">mehdijabry.dev</div>
+        <div class="faits">à partir de <strong>375 $</strong> · en ligne en <strong>48 h</strong></div>
+      </div>
+    </div>
+  </div>
+</body></html>

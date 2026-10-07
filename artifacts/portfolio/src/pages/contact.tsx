@@ -3,6 +3,7 @@ import { Reveal } from "@/components/effects/reveal";
 import { CtaButton } from "@/components/effects/cta-button";
 import { cn } from "@/lib/utils";
 import { useCopy } from "@/lib/i18n";
+import { usePortfolioMaquettes } from "@/components/maquettes-gallery";
 
 /**
  * /contact (2026-10-06) — la page d'atterrissage du bouton « Site Web » de la fiche Google.
@@ -43,7 +44,7 @@ const COPY = {
     area:
       "Partout à Trois-Rivières — centre-ville, Cap-de-la-Madeleine, Trois-Rivières-Ouest, Pointe-du-Lac, Saint-Louis-de-France, Sainte-Marthe-du-Cap — et jusqu'à Shawinigan, Louiseville, Drummondville et Sorel-Tracy. Je passe vous montrer le travail à votre comptoir.",
     seeWork: "Voir les réalisations",
-    seeWorkHover: "37 sites",
+    seeWorkHover: (n: number) => (n > 0 ? `${n} sites` : "Les maquettes"),
     quote: "Configurer un devis",
     quoteHover: "En 2 minutes",
   },
@@ -66,7 +67,7 @@ const COPY = {
     area:
       "Anywhere in Trois-Rivières — downtown, Cap-de-la-Madeleine, Trois-Rivières-Ouest, Pointe-du-Lac, Saint-Louis-de-France, Sainte-Marthe-du-Cap — and out to Shawinigan, Louiseville, Drummondville and Sorel-Tracy. I come to your counter to show you the work.",
     seeWork: "See the work",
-    seeWorkHover: "37 sites",
+    seeWorkHover: (n: number) => (n > 0 ? `${n} sites` : "The mockups"),
     quote: "Configure a quote",
     quoteHover: "2 minutes",
   },
@@ -74,6 +75,11 @@ const COPY = {
 
 export default function Contact() {
   const t = useCopy(COPY);
+  // Le bouton annonçait « 37 sites » en dur. Le chiffre est compté sur la même source que la galerie
+  // et le bandeau de l'accueil : s'il ne répond pas, le bouton dit « Les maquettes » plutôt qu'un
+  // nombre périmé. Aucun chiffre affiché sur ce site n'est écrit à la main.
+  const { data: maquettes } = usePortfolioMaquettes();
+  const nombreDeMaquettes = maquettes?.length ?? 0;
 
   return (
     <Layout>
@@ -145,7 +151,7 @@ export default function Contact() {
 
           <Reveal delay={0.1}>
             <div className="mt-16 md:mt-24 pt-10 border-t border-border/40 flex flex-col sm:flex-row gap-4">
-              <CtaButton to="/work" variant="ghost" hoverLabel={t.seeWorkHover} data-testid="link-contact-work">
+              <CtaButton to="/work" variant="ghost" hoverLabel={t.seeWorkHover(nombreDeMaquettes)} data-testid="link-contact-work">
                 {t.seeWork}
               </CtaButton>
               <CtaButton to="/start" variant="primary" hoverLabel={t.quoteHover} data-testid="link-contact-quote">
