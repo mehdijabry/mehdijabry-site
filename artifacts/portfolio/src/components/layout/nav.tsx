@@ -28,6 +28,44 @@ export function Nav() {
     document.documentElement.classList.toggle("dark", !!sombre);
   }, []);
 
+  /**
+   * La barre se retire quand on descend, revient dès qu'on remonte.
+   *
+   * Elle restait collée en haut en permanence, ce qui mange une bande de l'écran pendant toute la
+   * lecture — sur un téléphone, c'est un bon dixième de la hauteur utile, en face d'une page qui
+   * est surtout faite de grandes images. Elle garde sa position collante, mais se translate hors
+   * du cadre dès que le visiteur descend franchement, et redescend au premier geste vers le haut.
+   *
+   * Trois garde-fous : au sommet elle est toujours visible ; un seuil de 8 px évite qu'elle
+   * clignote sur les micro-soubresauts du défilement fluide ; et elle ne se cache jamais avant
+   * 140 px, sinon elle disparaîtrait avant même que l'accroche ait défilé.
+   */
+  const [barreVisible, setBarreVisible] = useState(true);
+
+  useEffect(() => {
+    let dernierY = window.scrollY;
+    let enAttente = false;
+
+    const juger = () => {
+      enAttente = false;
+      const y = window.scrollY;
+      const delta = y - dernierY;
+      if (Math.abs(delta) < 8) return;
+      if (y < 140) setBarreVisible(true);
+      else setBarreVisible(delta < 0);
+      dernierY = y;
+    };
+
+    const auDefilement = () => {
+      if (enAttente) return;
+      enAttente = true;
+      window.requestAnimationFrame(juger);
+    };
+
+    window.addEventListener("scroll", auDefilement, { passive: true });
+    return () => window.removeEventListener("scroll", auDefilement);
+  }, []);
+
   const toggleTheme = () => {
     const sombre = !isDark;
     setIsDark(sombre);
@@ -50,7 +88,11 @@ export function Nav() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none ${
+        barreVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center group" aria-label="Mehdi Jabry — mehdijabry.dev">
           <Logo className="h-9 md:h-10 transition-opacity group-hover:opacity-80" />
