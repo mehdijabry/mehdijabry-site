@@ -1,6 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+/* ════════════════════════════════════════════════════════════════════════════
+   mehdijabry.dev — direction artistique « l'établi » (6 octobre 2026)
+
+   LA THÈSE. Ce qui distingue ce studio n'est pas un style, c'est une méthode :
+   le site du commerce est construit AVANT le premier contact. La page ne dit
+   donc pas « voici mon travail », elle dit « le vôtre est déjà sur l'établi ».
+   Tout en découle.
+
+   LE FOND EST CLAIR, ET C'EST LE CHOIX STRUCTURANT. Tous les portfolios de
+   développeur sont sombres ; celui-ci est en papier. Deux raisons, aucune
+   décorative : les 39 miniatures de maquettes sont le produit, et elles se
+   noyaient dans le brun — sur du papier elles chantent ; et un fond clair
+   pardonne beaucoup moins les approximations de typographie et d'espacement,
+   donc le tenir est en soi la démonstration.
+
+   LA RÈGLE QUI PORTE L'INFORMATION : **le doré ne décore jamais.** Il est
+   réservé à ce qui est VRAI AU MOMENT OÙ VOUS LISEZ — le nombre de maquettes
+   en ligne, l'heure à Trois-Rivières, l'état de disponibilité. Tout le reste
+   est à l'encre. Une couleur = une catégorie de vérité, pas un accent.
+
+   LE TRAIT EST LA GRILLE. Les filets ne séparent pas, ils dessinent les douze
+   colonnes. Les titres de section sont posés dessus comme des cotes sur un
+   plan, avec leur étiquette en chasse fixe.
+
+   TYPOGRAPHIE À TROIS RÔLES. Bricolage Grotesque pour l'affichage : une
+   grotesque variable, un peu bâtie, qui tient aux très grandes tailles sans
+   devenir lisse. Instrument Sans pour la lecture. JetBrains Mono pour les
+   DONNÉES — jamais comme ornement : elle ne porte que des chiffres, des
+   adresses, des horodatages.
+
+   LE CURSEUR est conservé : la croix de visée du traceur, et le cadre de
+   sélection à quatre poignées sur tout ce qui est cliquable. On navigue le
+   site comme on en construit un.
+   ════════════════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..600;1,400..600&display=swap');
-@import url('https://fonts.bunny.net/css?family=geist:400,500,600,700,800,900|geist-mono:400,500&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -59,6 +93,12 @@
   --color-sidebar-accent-border: var(--sidebar-accent-border);
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  /* « vif » = la couleur du vivant. Voir la note en tête de fichier : elle ne
+     marque que ce qui est vrai à l'instant où la page est lue. */
+  --color-vif: hsl(var(--vif));
+  --color-vif-clair: hsl(var(--vif-clair));
+  --color-trait-fort: hsl(var(--trait-fort));
+
   --font-display: var(--app-font-display);
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
@@ -70,73 +110,86 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* ── LE PAPIER (thème par défaut) ──────────────────────────────────────────
+   encre #15161A · papier #F7F6F2 · craie #FFFFFF · graphite #5B6069
+   trait #E2E0D9 · doré #9B7840 (le doré du monogramme, assombri pour tenir
+   4,5:1 sur papier — il ne sert qu'aux données vivantes)
+   ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: 60 10% 98%;
-  --foreground: 0 0% 4%;
-  
-  --border: 45 15% 88%;
-  --input: 45 15% 88%;
-  --ring: 34 41% 52%;
+  --background: 45 20% 97%;
+  --foreground: 225 8% 9%;
+
+  --border: 45 14% 87%;
+  --input: 45 14% 87%;
+  --ring: 225 8% 9%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 4%;
-  --card-border: 45 15% 88%;
+  --card-foreground: 225 8% 9%;
+  --card-border: 45 14% 87%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 4%;
-  --popover-border: 45 15% 88%;
+  --popover-foreground: 225 8% 9%;
+  --popover-border: 45 14% 87%;
 
-  --primary: 34 41% 52%;
-  --primary-foreground: 60 10% 98%;
+  /* L'action principale est à l'ENCRE, pas dorée : le doré est réservé au vivant. */
+  --primary: 225 8% 9%;
+  --primary-foreground: 45 20% 97%;
 
-  --secondary: 60 5% 90%;
-  --secondary-foreground: 0 0% 4%;
+  --secondary: 45 16% 93%;
+  --secondary-foreground: 225 8% 9%;
 
-  --muted: 60 5% 95%;
-  --muted-foreground: 60 2% 41%;
+  --muted: 45 16% 94%;
+  --muted-foreground: 220 7% 38%;
 
-  --accent: 34 41% 52%;
-  --accent-foreground: 60 10% 98%;
+  --accent: 45 16% 93%;
+  --accent-foreground: 225 8% 9%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 60 10% 98%;
+  --destructive: 4 72% 47%;
+  --destructive-foreground: 45 20% 97%;
 
-  --sidebar: 60 10% 98%;
-  --sidebar-foreground: 0 0% 4%;
-  --sidebar-border: 45 15% 88%;
-  --sidebar-primary: 34 41% 52%;
-  --sidebar-primary-foreground: 60 10% 98%;
-  --sidebar-accent: 60 5% 90%;
-  --sidebar-accent-foreground: 0 0% 4%;
-  --sidebar-ring: 34 41% 52%;
+  --sidebar: 45 20% 97%;
+  --sidebar-foreground: 225 8% 9%;
+  --sidebar-border: 45 14% 87%;
+  --sidebar-primary: 225 8% 9%;
+  --sidebar-primary-foreground: 45 20% 97%;
+  --sidebar-accent: 45 16% 93%;
+  --sidebar-accent-foreground: 225 8% 9%;
+  --sidebar-ring: 225 8% 9%;
 
-  --chart-1: 34 41% 52%;
-  --chart-2: 60 2% 41%;
-  --chart-3: 0 0% 4%;
-  --chart-4: 45 15% 88%;
-  --chart-5: 60 10% 98%;
+  --chart-1: 36 42% 43%;
+  --chart-2: 220 7% 38%;
+  --chart-3: 225 8% 9%;
+  --chart-4: 45 14% 87%;
+  --chart-5: 45 20% 97%;
 
-  --app-font-display: 'Geist', system-ui, -apple-system, sans-serif;
-  --app-font-sans: 'Geist', system-ui, -apple-system, sans-serif;
-  --app-font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
-  --app-font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, monospace;
+  /* ── Jetons propres à cette direction ──────────────────────────────────── */
+  /* LE DORÉ NE DÉCORE JAMAIS. Il ne marque que ce qui est vrai à l'instant où
+     la page est lue : un compteur fetché, une heure, un état de disponibilité. */
+  --vif: 36 42% 43%;              /* #9B7840 — doré d'encre, lisible sur papier */
+  --vif-clair: 40 58% 88%;        /* fond de pastille « en direct » */
+  --trait-fort: 45 12% 78%;       /* le trait de la grille, quand il doit se voir */
+  --ombre-portee: 225 10% 9%;
+
+  --app-font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --app-font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --app-font-serif: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --app-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
   --radius: 0rem;
 
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(21,22,26, .12);
+  --badge-outline: rgba(21,22,26, .07);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
-  
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0px 4px 0px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 2px 4px -1px hsl(0 0% 0% / 0.05);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 4px 6px -1px hsl(0 0% 0% / 0.05);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05), 0px 8px 10px -1px hsl(0 0% 0% / 0.05);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.05);
+  --elevate-1: rgba(21,22,26, .035);
+  --elevate-2: rgba(21,22,26, .075);
+
+  --shadow-2xs: 0px 1px 0px 0px hsl(225 10% 9% / 0.05);
+  --shadow-xs: 0px 2px 0px 0px hsl(225 10% 9% / 0.05);
+  --shadow-sm: 0px 1px 2px 0px hsl(225 10% 9% / 0.06);
+  --shadow: 0px 1px 2px 0px hsl(225 10% 9% / 0.06), 0px 1px 3px -1px hsl(225 10% 9% / 0.08);
+  --shadow-md: 0px 2px 4px -1px hsl(225 10% 9% / 0.07), 0px 4px 10px -3px hsl(225 10% 9% / 0.10);
+  --shadow-lg: 0px 4px 8px -2px hsl(225 10% 9% / 0.08), 0px 14px 28px -10px hsl(225 10% 9% / 0.14);
+  --shadow-xl: 0px 8px 16px -4px hsl(225 10% 9% / 0.08), 0px 28px 56px -20px hsl(225 10% 9% / 0.18);
+  --shadow-2xl: 0px 40px 80px -28px hsl(225 10% 9% / 0.24);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -149,70 +202,77 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* ── LE BLEU DE PLAN (thème sombre) ────────────────────────────────────────
+   Pas un brun de café : un bleu d'encre de plan d'architecte. Le même système,
+   la même règle du doré, retourné proprement.
+   fond #0D0F14 · surface #151922 · texte #ECEAE3 · trait #262C37 · doré #CFA961
+   ─────────────────────────────────────────────────────────────────────────── */
 .dark {
-  /* ── Palette: Bordeaux & Bone ─────────────────────────────
-     bg #14080A · fg #E8DDC8 · primary #C9A961 (champagne)
-     secondary #8B1E2E (burgundy) · accent #5B2A2F (dark wine)
-  ─────────────────────────────────────────────────────────── */
-  --background: 354 43% 6%;
-  --foreground: 38 42% 85%;
+  --background: 222 21% 7%;
+  --foreground: 45 18% 91%;
 
-  --border: 354 18% 16%;
-  --input: 354 18% 16%;
-  --ring: 42 51% 59%;
+  --border: 220 19% 18%;
+  --input: 220 19% 18%;
+  --ring: 40 48% 73%;
 
-  --card: 354 32% 9%;
-  --card-foreground: 38 42% 85%;
-  --card-border: 354 18% 16%;
+  --card: 221 20% 11%;
+  --card-foreground: 45 18% 91%;
+  --card-border: 220 19% 18%;
 
-  --popover: 354 32% 9%;
-  --popover-foreground: 38 42% 85%;
-  --popover-border: 354 18% 16%;
+  --popover: 221 20% 11%;
+  --popover-foreground: 45 18% 91%;
+  --popover-border: 220 19% 18%;
 
-  --primary: 42 51% 59%;
-  --primary-foreground: 354 43% 6%;
+  /* Sur fond sombre l'action principale redevient claire : c'est le papier qui agit. */
+  --primary: 45 18% 91%;
+  --primary-foreground: 222 21% 7%;
 
-  --secondary: 354 65% 33%;
-  --secondary-foreground: 38 42% 85%;
+  --secondary: 221 18% 15%;
+  --secondary-foreground: 45 18% 91%;
 
-  --muted: 354 25% 11%;
-  --muted-foreground: 38 22% 62%;
+  --muted: 221 18% 14%;
+  --muted-foreground: 220 10% 64%;
 
-  --accent: 356 38% 26%;
-  --accent-foreground: 38 42% 85%;
+  --accent: 221 18% 15%;
+  --accent-foreground: 45 18% 91%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 60 3% 96%;
+  --destructive: 4 70% 58%;
+  --destructive-foreground: 45 18% 91%;
 
-  --sidebar: 354 43% 6%;
-  --sidebar-foreground: 38 42% 85%;
-  --sidebar-border: 354 18% 16%;
-  --sidebar-primary: 42 51% 59%;
-  --sidebar-primary-foreground: 354 43% 6%;
-  --sidebar-accent: 354 25% 11%;
-  --sidebar-accent-foreground: 38 42% 85%;
-  --sidebar-ring: 42 51% 59%;
+  --sidebar: 222 21% 7%;
+  --sidebar-foreground: 45 18% 91%;
+  --sidebar-border: 220 19% 18%;
+  --sidebar-primary: 45 18% 91%;
+  --sidebar-primary-foreground: 222 21% 7%;
+  --sidebar-accent: 221 18% 15%;
+  --sidebar-accent-foreground: 45 18% 91%;
+  --sidebar-ring: 40 48% 73%;
 
-  --chart-1: 42 51% 59%;
-  --chart-2: 354 65% 33%;
-  --chart-3: 356 38% 26%;
-  --chart-4: 38 42% 85%;
-  --chart-5: 38 22% 62%;
+  --chart-1: 40 48% 73%;
+  --chart-2: 220 10% 64%;
+  --chart-3: 45 18% 91%;
+  --chart-4: 220 19% 18%;
+  --chart-5: 222 21% 7%;
 
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --vif: 40 48% 73%;              /* #CFA961 — le doré du monogramme, sur fond sombre */
+  --vif-clair: 40 30% 18%;
+  --trait-fort: 220 16% 28%;
+  --ombre-portee: 222 30% 3%;
+
+  --button-outline: rgba(236,234,227, .12);
+  --badge-outline: rgba(236,234,227, .06);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(236,234,227, .045);
+  --elevate-2: rgba(236,234,227, .09);
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-xs: 0px 4px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.5), 0px 1px 2px -1px hsl(0 0% 0% / 0.5);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.5), 0px 1px 2px -1px hsl(0 0% 0% / 0.5);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.5), 0px 2px 4px -1px hsl(0 0% 0% / 0.5);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.5), 0px 4px 6px -1px hsl(0 0% 0% / 0.5);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.5), 0px 8px 10px -1px hsl(0 0% 0% / 0.5);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
+  --shadow-2xs: 0px 1px 0px 0px hsl(222 30% 3% / 0.6);
+  --shadow-xs: 0px 2px 0px 0px hsl(222 30% 3% / 0.6);
+  --shadow-sm: 0px 1px 2px 0px hsl(222 30% 3% / 0.6);
+  --shadow: 0px 1px 2px 0px hsl(222 30% 3% / 0.6), 0px 1px 3px -1px hsl(222 30% 3% / 0.7);
+  --shadow-md: 0px 2px 4px -1px hsl(222 30% 3% / 0.6), 0px 4px 10px -3px hsl(222 30% 3% / 0.7);
+  --shadow-lg: 0px 4px 8px -2px hsl(222 30% 3% / 0.6), 0px 14px 28px -10px hsl(222 30% 3% / 0.8);
+  --shadow-xl: 0px 8px 16px -4px hsl(222 30% 3% / 0.6), 0px 28px 56px -20px hsl(222 30% 3% / 0.85);
+  --shadow-2xl: 0px 40px 80px -28px hsl(222 30% 3% / 0.9);
 }
 
 @layer base {
@@ -314,13 +374,122 @@
     letter-spacing: -0.01em;
   }
 
-  /* Massive editorial display — used on hero & section headlines */
+  /* ── Affichage ───────────────────────────────────────────────────────────
+     Bricolage Grotesque est variable : aux grandes tailles on ouvre l'axe
+     optique (opsz) et on resserre la chasse, sinon le titre devient mou. */
   .text-display {
     font-family: var(--font-display);
     font-weight: 700;
-    letter-spacing: -0.05em;
-    line-height: 0.86;
+    font-variation-settings: 'opsz' 72, 'wdth' 94;
+    letter-spacing: -0.038em;
+    line-height: 0.9;
+    text-wrap: balance;
   }
+  .text-display-xl {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: 'opsz' 96, 'wdth' 90;
+    letter-spacing: -0.045em;
+    line-height: 0.86;
+    text-wrap: balance;
+  }
+
+  /* ── LE VIVANT ───────────────────────────────────────────────────────────
+     La seule chose qui porte le doré. Un point qui respire, puis la donnée en
+     chasse fixe. Si ça ne vient pas d'un fetch ou de l'horloge, ça n'a rien à
+     faire ici. */
+  .vivant {
+    @apply inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em];
+    color: hsl(var(--vif));
+  }
+  .vivant::before {
+    content: "";
+    width: 6px; height: 6px; flex: none;
+    background: hsl(var(--vif));
+    border-radius: 999px;
+    animation: pouls 2.4s ease-in-out infinite;
+  }
+  @keyframes pouls {
+    0%, 100% { opacity: 1;   box-shadow: 0 0 0 0 hsl(var(--vif) / .45) }
+    50%      { opacity: .55; box-shadow: 0 0 0 5px hsl(var(--vif) / 0) }
+  }
+
+  /* ── LA COTE DE PLAN ─────────────────────────────────────────────────────
+     Le titre de section n'est pas posé au-dessus d'un filet : il est posé
+     DESSUS, comme une cote sur un dessin technique. L'étiquette mange le
+     trait, et le numéro à droite ferme la ligne. */
+  .cote {
+    @apply flex items-center gap-4 w-full;
+  }
+  .cote__trait {
+    @apply h-px flex-1;
+    background: hsl(var(--trait-fort));
+  }
+  .cote__label {
+    @apply font-mono text-[10px] uppercase tracking-[0.22em] whitespace-nowrap;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ── LA GRILLE, DESSINÉE ─────────────────────────────────────────────────
+     Douze colonnes réellement tracées en fond de section. Ce n'est pas une
+     texture : c'est la grille sur laquelle le contenu est posé, rendue
+     visible. Elle s'efface sous 768 px, où il n'y a plus douze colonnes. */
+  .grille {
+    position: relative;
+    isolation: isolate;
+  }
+  .grille::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      to right,
+      hsl(var(--border)) 0 1px,
+      transparent 1px calc(100% / 12)
+    );
+    background-size: 100% 100%;
+    opacity: .5;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  }
+  @media (max-width: 767px) { .grille::before { display: none } }
+
+  /* ── LA SÉQUENCE D'OUVERTURE ─────────────────────────────────────────────
+     La page se construit : les traits se tirent d'abord, de gauche à droite,
+     puis le contenu se pose dans les cases. Un seul moment orchestré, au
+     chargement, et plus rien ensuite — le reste de la page est calme. */
+  @keyframes trait-se-tire { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+  @keyframes bloc-se-pose  { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+
+  .ouverture [data-trait] {
+    transform-origin: left center;
+    animation: trait-se-tire .7s cubic-bezier(.22,1,.36,1) both;
+  }
+  .ouverture [data-bloc] {
+    animation: bloc-se-pose .62s cubic-bezier(.22,1,.36,1) both;
+  }
+  .ouverture [data-delai="1"] { animation-delay: .06s }
+  .ouverture [data-delai="2"] { animation-delay: .14s }
+  .ouverture [data-delai="3"] { animation-delay: .24s }
+  .ouverture [data-delai="4"] { animation-delay: .34s }
+  .ouverture [data-delai="5"] { animation-delay: .46s }
+  .ouverture [data-delai="6"] { animation-delay: .58s }
+
+  /* ── Le lien de texte ────────────────────────────────────────────────────
+     Souligné à l'encre, qui se retire vers la droite au survol. Rien de doré :
+     un lien n'est pas une donnée vivante. */
+  .lien {
+    @apply relative inline-block;
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 1px;
+    transition: background-size .32s cubic-bezier(.22,1,.36,1);
+  }
+  .lien:hover { background-size: 0% 1px; background-position: 100% 100% }
 
   /* Stacked/condensed brand mark */
   .text-mark {
@@ -358,12 +527,12 @@
    visitor browses the site the way we build one. Drawn by the OS via `cursor: url()` (zero JS, zero
    lag). A contrasting halo under every stroke keeps it legible on photos, aurora and both themes.
    Colours are hard-coded because cursor data-URIs cannot read CSS variables — one set per theme:
-   light = ink #231C15 / amber #9E7440, dark = bone #E8DDC8 / primary #CCAC61. */
+   clair = encre #15161A / doré #9B7840, sombre = papier #ECEAE3 / doré #CFA961. */
 @media (hover: hover) and (pointer: fine) {
   html,
   body {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23231C15' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%239E7440' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 10 10,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%2315161A' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 10 10,
       crosshair;
   }
   a,
@@ -373,13 +542,13 @@
   summary,
   label[for] {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23231C15' stroke-width='1'/><g fill='%239E7440' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%239E7440' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 16 16,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%2315161A' stroke-width='1'/><g fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 16 16,
       pointer;
   }
   html.dark,
   html.dark body {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23E8DDC8' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%23CCAC61' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 10 10,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ECEAE3' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 10 10,
       crosshair;
   }
   html.dark a,
@@ -389,7 +558,7 @@
   html.dark summary,
   html.dark label[for] {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23E8DDC8' stroke-width='1'/><g fill='%23CCAC61' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%23CCAC61' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 16 16,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ECEAE3' stroke-width='1'/><g fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 16 16,
       pointer;
   }
   input,

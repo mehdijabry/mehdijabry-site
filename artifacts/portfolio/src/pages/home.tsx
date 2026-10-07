@@ -4,16 +4,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useState } from "react";
 import { CURRENCIES, convertCurrency } from "@/lib/pricing";
 
-import { ScrambleText } from "@/components/effects/scramble-text";
 import { TiltCard } from "@/components/effects/tilt-card";
 import { Reveal, RevealWords } from "@/components/effects/reveal";
-import { LiveTime } from "@/components/effects/live-time";
 import { CtaButton } from "@/components/effects/cta-button";
-import { Spotlight } from "@/components/effects/spotlight";
 import { Ticker } from "@/components/effects/ticker";
-import { FloatingMark } from "@/components/effects/floating-mark";
 import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 import { useCopy, useLang } from "@/lib/i18n";
+import { BandeauVivant } from "@/components/effects/bandeau-vivant";
 
 /* ─────────────────────── DATA ─────────────────────── */
 
@@ -73,7 +70,6 @@ const FEATURED_WORK: { key: string; title: string; href: string; stack: string; 
 ];
 const VISIBLE_WORK = FEATURED_WORK.filter((w) => !w.hidden);
 
-const PROCESS = ["01", "02", "03"] as const;
 
 
 /* ─────────────────────── COPY (FR / EN) ─────────────────────── */
@@ -82,9 +78,11 @@ const COPY = {
   fr: {
     booking: "Carnet ouvert · 3e trimestre 2026",
     studio: "Studio web indépendant",
-    h1a: "Des sites prêts pour la production, ",
-    h1b: "livrés en 72 heures.",
-    lede: "Du code sur mesure, aucun gabarit, aucun abonnement chez moi. Les sources sont à vous dès le premier jour. Conçu seul, au Québec, pour ceux qui tiennent au travail bien fait.",
+    h1a: "Le vôtre est peut-être ",
+    h1b: "déjà construit.",
+    lede: "Plutôt qu'un devis, je livre une maquette. Des sites complets pour des commerces d'ici, construits avant le premier appel. Ouvrez-en un : il s'affiche ici même, sans quitter la page.",
+    coteGauche: "(01) — Studio web indépendant",
+    coteDroite: "Trois-Rivières, Québec",
     ctaStart: "Démarrer un projet", ctaStartHover: "On en parle",
     ctaWork: "Voir les réalisations", ctaWorkHover: "Montrez-moi",
     metaFrom: "À partir de", metaFromSub: "La première formule part en 24 à 48 h",
@@ -149,9 +147,11 @@ const COPY = {
   en: {
     booking: "Booking · Q3 2026",
     studio: "Independent Web Studio",
-    h1a: "Production-ready websites, ",
-    h1b: "shipped in 72 hours.",
-    lede: "Custom code, no templates, no monthly fee from me. Source yours from day one. Built solo, in Québec, for founders who care about craft.",
+    h1a: "Yours may already be ",
+    h1b: "built.",
+    lede: "Instead of a quote, I deliver a mockup. Complete websites for local businesses, built before the first call. Open one — it loads right here, without leaving the page.",
+    coteGauche: "(01) — Independent web studio",
+    coteDroite: "Trois-Rivières, Quebec",
     ctaStart: "Start a project", ctaStartHover: "Let's talk",
     ctaWork: "See selected work", ctaWorkHover: "Show me",
     metaFrom: "From", metaFromSub: "Tier 1 ships in 24–48h",
@@ -232,136 +232,172 @@ export default function Home() {
   return (
     <Layout>
       {/* ════════════════════════════════════════════════════════════
-          HERO — full-bleed aurora, cursor spotlight, oversized type
+          L'ACCROCHE — « le vôtre est peut-être déjà construit »
+
+          Le titre ne promet rien, il annonce un fait vérifiable deux écrans
+          plus bas. « déjà construit » est posé sur un aplat d'encre : c'est le
+          seul élément plein de la page, et le plein veut dire bâti.
+
+          Pas d'effet de brouillage sur le titre : il affichait du charabia
+          pendant presque une seconde, et sur le site d'un artisan du web la
+          première impression ne peut pas être un texte cassé.
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative isolate overflow-hidden flex items-center pt-24 pb-16 md:pt-28 md:pb-20">
-        <Spotlight size={520} />
-        <FloatingMark />
+      <section className="relative isolate overflow-hidden pt-16 pb-14 md:pt-24 md:pb-20">
+        <div className="relative z-10 container mx-auto px-4 ouverture">
 
-        <div className="relative z-10 container mx-auto px-4">
-          {/* eyebrow row */}
-          <Reveal>
-            <div className="flex items-center justify-between gap-4 mb-8 md:mb-12">
-              <div className="chip">
-                <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
-                <span>{t.booking}</span>
-              </div>
-              <div className="hidden md:flex items-center gap-3 text-mark text-muted-foreground">
-                <span>(01)</span>
-                <span>—</span>
-                <span>{t.studio}</span>
-              </div>
-            </div>
-          </Reveal>
+          {/* la cote de plan : l'étiquette mange le trait, comme sur un dessin technique */}
+          <div className="cote mb-8 md:mb-10">
+            <span className="cote__label" data-bloc data-delai="1">{t.coteGauche}</span>
+            <span className="cote__trait" data-trait data-delai="1" />
+            <span className="cote__label hidden sm:inline" data-bloc data-delai="1">{t.coteDroite}</span>
+          </div>
 
-          {/* headline — half the previous size, fits above the fold */}
-          <h1 className="text-display text-[clamp(40px,6.5vw,96px)] max-w-[1100px] leading-[0.95]">
-            <ScrambleText key={`a-${lang}`} text={t.h1a} duration={700} delay={120} as="span" />
-            <span className="text-primary">
-              <ScrambleText key={`b-${lang}`} text={t.h1b} duration={900} delay={620} as="span" />
+          {/* la seule zone dorée de la page : trois données réellement allées chercher */}
+          <div data-bloc data-delai="2">
+            <BandeauVivant className="mb-7 md:mb-9" />
+          </div>
+
+          <h1
+            className="text-display-xl text-[clamp(44px,8vw,122px)] max-w-[16ch]"
+            data-bloc
+            data-delai="3"
+          >
+            {t.h1a}
+            <span className="inline-block bg-foreground text-background px-[0.14em] pb-[0.06em] -mx-[0.03em]">
+              {t.h1b}
             </span>
           </h1>
 
-          {/* sub-row — editorial lede with word-by-word reveal.
-              Flex layout so the paragraph absorbs the available width and
-              the CTA pills keep their natural size (no shrink, no clipping
-              of label text). Stacks vertically below lg. */}
-          <div className="mt-8 md:mt-10 flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-10">
-            <p className="lg:flex-1 max-w-xl">
-              <RevealWords
-                key={lang}
-                text={t.lede}
-                className="font-serif text-xl md:text-2xl leading-snug text-foreground/90 tracking-[-0.005em]"
-                delay={1.4}
-              />
+          <div className="mt-8 md:mt-11 grid gap-7 lg:grid-cols-12 lg:items-end lg:gap-10">
+            <p
+              className="lg:col-span-7 xl:col-span-6 max-w-[58ch] text-[17px] md:text-[19px] leading-[1.6] text-muted-foreground"
+              data-bloc
+              data-delai="4"
+            >
+              {t.lede}
             </p>
-
-            <Reveal
-              delay={1.7}
-              className="flex flex-col sm:flex-row sm:items-center gap-3 lg:shrink-0"
+            <div
+              className="lg:col-span-5 xl:col-span-6 flex flex-col sm:flex-row sm:items-center gap-3 lg:justify-end"
+              data-bloc
+              data-delai="5"
             >
               <CtaButton to="/start" variant="primary" hoverLabel={t.ctaStartHover} data-testid="link-hero-cta">
                 {t.ctaStart}
               </CtaButton>
-              <CtaButton href="#work" variant="ghost" hoverLabel={t.ctaWorkHover} data-testid="link-hero-work">
+              <CtaButton href="#local-businesses" variant="ghost" hoverLabel={t.ctaWorkHover} data-testid="link-hero-work">
                 {t.ctaWork}
               </CtaButton>
-            </Reveal>
+            </div>
           </div>
 
-          {/* meta row */}
-          <Reveal delay={1.6}>
-            <div className="mt-10 md:mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-border/40 pt-6">
-              <Meta label={t.metaFrom} value="375 $ CA" sub={t.metaFromSub} />
-              <Meta label={t.metaStatus} value={<LiveTime />} sub={t.metaStatusSub} />
-              <Meta label={t.metaStack} value="Next · Supabase" sub={t.metaStackSub} />
-              <Meta label={t.metaWhere} value="Trois-Rivières → ∞" sub={t.metaWhereSub} />
-            </div>
-          </Reveal>
+          <div className="cote mt-12 md:mt-16" data-bloc data-delai="6">
+            <span className="cote__trait" data-trait data-delai="6" />
+          </div>
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════
-          TICKER DIVIDER — oversized brand banner
+          LE MUR — remonté juste sous l'accroche (6 octobre 2026)
+
+          C'est la preuve, elle ne peut pas attendre trois écrans. Le titre dit
+          « peut-être déjà construit » ; la ligne suivante doit montrer le mur
+          de ceux qui le sont. Ces miniatures sont le produit : sur l'ancien
+          fond brun elles se noyaient, c'est l'autre raison du passage au clair.
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative border-y border-border/40 bg-background/50  py-6 md:py-8 overflow-hidden">
-        <Ticker duration={42}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <span
-              key={i}
-              className="font-display font-bold text-[clamp(28px,4vw,56px)] leading-none tracking-[-0.04em] flex items-center gap-8 text-foreground/70"
-            >
-              <span>{t.tickerStudio}</span>
-              <span className="text-primary text-[0.7em]">✦</span>
-              <span className="text-primary">{t.tickerSince}</span>
-              <span className="text-primary text-[0.7em]">✦</span>
+      <section id="local-businesses" className="relative scroll-mt-24 pb-16 md:pb-28">
+        <div className="container mx-auto px-4">
+          <div className="cote mb-8 md:mb-10">
+            <span className="cote__label">{t.localChip}</span>
+            <span className="cote__trait" />
+            <span className="cote__label hidden sm:inline tabular-nums">
+              {nMaquettes ? `${String(nMaquettes).padStart(2, "0")} / ${String(nMaquettes).padStart(2, "0")}` : ""}
             </span>
-          ))}
-        </Ticker>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-12 md:items-end mb-8 md:mb-12">
+            <Reveal className="md:col-span-7">
+              <h2 className="text-display text-[clamp(30px,4vw,60px)]">
+                {t.localTitle(nMaquettes)}
+              </h2>
+            </Reveal>
+            <Reveal className="md:col-span-5" delay={0.1}>
+              <p className="text-[15px] md:text-base leading-relaxed text-muted-foreground max-w-[46ch] md:ml-auto">
+                {t.localLede}
+              </p>
+            </Reveal>
+          </div>
+
+          <MaquettesGallery limit={8} />
+
+          {nMaquettes > 8 && (
+            <div className="mt-6 flex justify-end">
+              <a href="/work#local-businesses" className="lien font-mono text-[11px] uppercase tracking-[0.18em]" data-testid="link-all-maquettes">
+                {t.seeAll(nMaquettes)}
+              </a>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════
-          PROCESS — three numbered cards, layered ink + rule lines
+          LA MÉTHODE — une frise de temps, plus des cartons numérotés
+
+          Le 01 / 02 / 03 est parti. Il n'encodait rien : trois nombres posés
+          sur trois cartes parce que c'est ce que font toutes les pages de ce
+          genre. Ce qui est vrai ici, c'est le TEMPS — jour 0, jours 1-2,
+          jour 3 — et il était relégué en petit dans un coin. Il devient donc
+          la structure : une frise, dont chaque étape est une graduation.
       ════════════════════════════════════════════════════════════ */}
-      <section className="relative py-16 md:py-28 lg:py-40 overflow-hidden">
+      <section className="relative py-16 md:py-28 lg:py-36">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-20">
-            <Reveal className="md:col-span-4">
-              <div className="chip mb-6">{t.processChip}</div>
-              <h2 className="text-display text-[clamp(40px,4.5vw,72px)] leading-[0.95]">
-                {t.processTitleA}<span className="text-primary not-italic">{t.processTitleB}</span>
+          <div className="cote mb-10 md:mb-14">
+            <span className="cote__label">{t.processChip}</span>
+            <span className="cote__trait" />
+          </div>
+
+          <div className="grid gap-10 md:grid-cols-12 mb-14 md:mb-20">
+            <Reveal className="md:col-span-5">
+              <h2 className="text-display text-[clamp(34px,4.4vw,68px)]">
+                {t.processTitleA}{t.processTitleB}
               </h2>
             </Reveal>
-            <Reveal className="md:col-span-7 md:col-start-6" delay={0.15}>
-              <p className="text-lg md:text-xl leading-relaxed text-muted-foreground">
+            <Reveal className="md:col-span-6 md:col-start-7" delay={0.12}>
+              <p className="text-[16px] md:text-[18px] leading-[1.65] text-muted-foreground max-w-[52ch]">
                 {t.processLede}
               </p>
             </Reveal>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/40 border border-border/40">
-            {PROCESS.map((n, i) => (
-              <Reveal key={n} delay={i * 0.12}>
-                <div className="relative bg-background p-6 md:p-10 md:h-full flex flex-col gap-4 md:gap-6 group hover:bg-muted/40 transition-colors duration-500">
-                  <div className="flex items-start justify-between">
-                    <span className="text-display text-5xl md:text-7xl text-primary leading-none">
-                      {n}
+          {/* La frise. Le trait horizontal porte les graduations ; chaque étape
+              est ancrée dessus par son repère, comme sur une règle. */}
+          <ol className="relative grid gap-10 md:grid-cols-3 md:gap-0">
+            <span
+              aria-hidden
+              className="hidden md:block absolute left-0 right-0 top-[7px] h-px bg-trait-fort"
+            />
+            {t.process.map((etape, i) => (
+              <Reveal key={etape.day} delay={i * 0.1}>
+                <li className="relative md:pr-10">
+                  <div className="flex items-center gap-3 md:block">
+                    {/* le repère sur la règle */}
+                    <span
+                      aria-hidden
+                      className="block h-[15px] w-px bg-foreground shrink-0 md:mb-5"
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground md:block">
+                      {etape.day}
                     </span>
-                    <span className="text-mark text-muted-foreground">{t.process[i]!.day}</span>
                   </div>
-                  <div className="md:mt-auto md:pt-12">
-                    <h3 className="font-display text-2xl md:text-4xl mb-2 md:mb-3">
-                      {t.process[i]!.title}
-                    </h3>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed md:max-w-xs">
-                      {t.process[i]!.body}
-                    </p>
-                  </div>
-                  <div className="absolute top-0 left-0 h-px w-0 bg-primary group-hover:w-full transition-all duration-700" />
-                </div>
+                  <h3 className="font-display text-2xl md:text-[28px] tracking-[-0.03em] mt-3 md:mt-4 mb-2.5">
+                    {etape.title}
+                  </h3>
+                  <p className="text-[14.5px] leading-[1.65] text-muted-foreground max-w-[38ch]">
+                    {etape.body}
+                  </p>
+                </li>
               </Reveal>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
@@ -372,9 +408,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16 md:mb-24">
             <Reveal className="md:col-span-7">
-              <div className="chip mb-6">{t.workChip}</div>
+              <div className="cote mb-6"><span className="cote__label">{t.workChip}</span><span className="cote__trait" /></div>
               <h2 className="text-display text-[clamp(40px,5vw,84px)] leading-[0.95]">
-                {t.workTitleA}<span className="text-primary not-italic">{t.workTitleB}</span>
+                {t.workTitleA}<span className="font-extrabold">{t.workTitleB}</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-4 md:col-start-9 self-end" delay={0.15}>
@@ -418,30 +454,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Maquettes pour commerces locaux (2026-10-06) — un clic ouvre le site dans une fenêtre, sans quitter la page */}
-          <div id="local-businesses" className="mt-16 md:mt-24 scroll-mt-24">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 md:mb-12 items-end">
-              <Reveal className="md:col-span-7">
-                <div className="chip mb-5">{t.localChip}</div>
-                <h3 className="font-display text-3xl md:text-5xl tracking-[-0.03em] leading-[0.95]">
-                  {t.localTitle(nMaquettes)}
-                </h3>
-              </Reveal>
-              <Reveal className="md:col-span-4 md:col-start-9" delay={0.1}>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  {t.localLede}
-                </p>
-              </Reveal>
-            </div>
-            <MaquettesGallery limit={8} />
-            {nMaquettes > 8 && (
-              <div className="mt-6 flex justify-end">
-                <a href="/work#local-businesses" className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors" data-testid="link-all-maquettes">
-                  {t.seeAll(nMaquettes)}
-                </a>
-              </div>
-            )}
-          </div>
         </div>
       </section>
 
@@ -469,9 +481,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16 md:mb-24 items-end">
             <Reveal className="md:col-span-7">
-              <div className="chip mb-6">{t.pricingChip}</div>
+              <div className="cote mb-6"><span className="cote__label">{t.pricingChip}</span><span className="cote__trait" /></div>
               <h2 className="text-display text-[clamp(40px,5vw,84px)] leading-[0.95]">
-                {t.pricingTitleA}<span className="text-primary not-italic">{t.pricingTitleB}</span>
+                {t.pricingTitleA}<span className="font-extrabold">{t.pricingTitleB}</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-5 flex md:justify-end" delay={0.15}>
@@ -553,7 +565,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
             <Reveal className="md:col-span-3">
-              <div className="chip mb-6">{t.aboutChip}</div>
+              <div className="cote mb-6"><span className="cote__label">{t.aboutChip}</span><span className="cote__trait" /></div>
               <p className="text-mark text-muted-foreground">
                 {t.aboutMark[0]}
                 <br />
@@ -585,9 +597,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
             <Reveal className="md:col-span-4">
-              <div className="chip mb-6">{t.faqChip}</div>
+              <div className="cote mb-6"><span className="cote__label">{t.faqChip}</span><span className="cote__trait" /></div>
               <h2 className="text-display text-[clamp(40px,4.5vw,72px)] leading-[0.95]">
-                {t.faqTitleA}<span className="text-primary not-italic">{t.faqTitleB}</span>
+                {t.faqTitleA}<span className="font-extrabold">{t.faqTitleB}</span>
               </h2>
             </Reveal>
             <Reveal className="md:col-span-8" delay={0.15}>
@@ -616,17 +628,15 @@ export default function Home() {
           FINAL CTA — full bleed with secondary aurora
       ════════════════════════════════════════════════════════════ */}
       <section id="contact" className="relative py-20 md:py-32 lg:py-48 border-t border-border/40 overflow-hidden">
-        <Spotlight size={720} />
-        <FloatingMark text={t.floatingMark} />
         <div className="relative z-10 container mx-auto px-4 text-center max-w-4xl">
           <Reveal>
-            <div className="chip mx-auto mb-10 inline-flex">
+            <div className="chip mx-auto mb-10 inline-flex border-foreground/25">
               {t.contactChip}
             </div>
           </Reveal>
           <Reveal delay={0.1}>
             <h2 className="text-display text-[clamp(48px,7vw,110px)] leading-[0.95] tracking-[-0.045em]">
-              {t.contactTitleA}<span className="text-primary not-italic">{t.contactTitleB}</span>
+              {t.contactTitleA}<span className="font-extrabold">{t.contactTitleB}</span>
             </h2>
           </Reveal>
           <Reveal delay={0.3}>
@@ -644,13 +654,10 @@ export default function Home() {
               </CtaButton>
             </div>
           </Reveal>
+          {/* Même bandeau qu'en haut de page : les mêmes données, la même règle du doré.
+              L'ancien bloc affichait une pastille verte et une horloge en double, hors palette. */}
           <Reveal delay={0.6}>
-            <div className="mt-16 flex items-center justify-center gap-4 text-mark text-muted-foreground">
-              <span className="inline-block size-1.5 rounded-full bg-primary animate-pulse" />
-              <LiveTime />
-              <span className="opacity-50">·</span>
-              <span>{t.availability}</span>
-            </div>
+            <BandeauVivant className="mt-16 justify-center" />
           </Reveal>
         </div>
       </section>

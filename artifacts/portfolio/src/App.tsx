@@ -24,7 +24,7 @@ import AdminSettings from "@/pages/admin/parametres";
 
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
-import { Aurora } from "@/components/effects/aurora";
+import { Trame } from "@/components/effects/trame";
 import { LanguageProvider } from "@/lib/i18n";
 
 // No automatic retry and networkMode "always": a failed request must surface as an error right away. With
@@ -67,7 +67,7 @@ function App() {
       <LanguageProvider>
       <TooltipProvider>
         <SmoothScrollProvider>
-          <Aurora fixed intensity={0.45} />
+          <Trame />
           <ScrollProgress />
           <div className="relative z-10">
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>

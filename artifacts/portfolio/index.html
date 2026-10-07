@@ -20,7 +20,7 @@
     <meta name="twitter:image" content="/og.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo-mark.png" id="apple-icon" />
-    <meta name="theme-color" content="#14080A" id="theme-color" />
+    <meta name="theme-color" content="#F7F6F2" id="theme-color" />
     <!-- Espace admin installable (PWA). Chrome et Safari lisent le manifest et les balises apple-* dès l'analyse de
          la page, avant React : on les pose ici, de façon synchrone, et seulement sous /admin pour que le site public
          ne soit pas proposé à l'installation. Fichiers : public/admin-manifest.json, admin-sw.js, admin-icon-*.png. -->
@@ -35,15 +35,25 @@
         add("meta", { name: "apple-mobile-web-app-title", content: "MJ Admin" });
         add("link", { rel: "apple-touch-icon", sizes: "180x180", href: "/admin-icon-180.png" });
         var ai = document.getElementById("apple-icon"); if (ai) ai.setAttribute("href", "/admin-icon-180.png");
-        var th = document.getElementById("theme-color"); if (th) th.setAttribute("content", "#FAFAF8");
+        var th = document.getElementById("theme-color"); if (th) th.setAttribute("content", "#F7F6F2");
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..600;1,400..600&display=swap" rel="stylesheet">
-    <link href="https://fonts.bunny.net/css?family=geist:400,500,600,700,800,900|geist-mono:400,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:ital,wght@0,400..600;1,400..600&display=swap" rel="stylesheet">
+    <!-- Le thème est posé AVANT la première peinture : sans ça, un visiteur en sombre voit
+         un éclair de papier blanc à chaque chargement. Le papier reste le défaut. -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem("theme");
+          var sombre = s === "dark" || (s !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (sombre) document.documentElement.classList.add("dark");
+          var m = document.getElementById("theme-color");
+          if (m) m.setAttribute("content", sombre ? "#0D0F14" : "#F7F6F2");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

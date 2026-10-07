@@ -14,29 +14,27 @@ const COPY = {
 export function Nav() {
   const { lang, toggle } = useLang();
   const t = COPY[lang];
-  const [isDark, setIsDark] = useState(true); // Dark is default
+  // Le papier est le thème par défaut depuis le 6 octobre 2026. Ce n'est pas un goût : les
+  // miniatures de maquettes sont le produit du studio, et elles se noyaient sur fond sombre.
+  // Un choix déjà enregistré par le visiteur l'emporte toujours ; sinon on suit son système.
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check localStorage or system preference, default to dark
     const stored = localStorage.getItem("theme");
-    if (stored === "light") {
-      setIsDark(false);
-      document.documentElement.classList.remove("dark");
-    } else {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
-    }
+    const sombre =
+      stored === "dark" ||
+      (stored !== "light" && window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+    setIsDark(!!sombre);
+    document.documentElement.classList.toggle("dark", !!sombre);
   }, []);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
+    const sombre = !isDark;
+    setIsDark(sombre);
+    document.documentElement.classList.toggle("dark", sombre);
+    localStorage.setItem("theme", sombre ? "dark" : "light");
+    // La barre d'état du navigateur mobile suit le thème, sinon elle reste de l'autre couleur.
+    document.getElementById("theme-color")?.setAttribute("content", sombre ? "#0D0F14" : "#F7F6F2");
   };
 
   /** Sélecteur de langue : le libellé annonce la langue vers laquelle on bascule, pas la langue courante. */
