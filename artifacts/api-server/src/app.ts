@@ -80,9 +80,14 @@ if (hasPortfolioBuild) {
   // Le plan du site est fabriqué à partir de la même liste de pages que les en-têtes : impossible
   // d'y annoncer une adresse qui n'existe pas, ou d'en oublier une en ajoutant une page.
   app.get("/sitemap.xml", (_req: Request, res: Response) => {
+    // `text/xml` et pas `application/xml` : c'est la forme que la documentation de Google cite en
+    // premier. Et surtout AUCUN cache : tant que ce chemin n'existait pas, il renvoyait la page
+    // HTML de l'application — une copie de cette réponse restée dans un cache de périphérie
+    // expliquerait exactement ce que Google rapporte, à savoir une récupération réussie suivie
+    // d'une lecture impossible.
     res
-      .type("application/xml")
-      .set("cache-control", "public, max-age=3600")
+      .type("text/xml")
+      .set("cache-control", "no-store, max-age=0")
       .send(sitemap(portfolioIndexHtml));
   });
 

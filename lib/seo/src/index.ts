@@ -448,19 +448,24 @@ export function enTete(
   return lignes.join(`\n${i}`);
 }
 
-/** Le plan du site, au format que Google attend. `dateModifiee` est la date du dernier déploiement. */
+/**
+ * Le plan du site, réduit au strict nécessaire. `dateModifiee` est la date du dernier déploiement.
+ *
+ * NI `changefreq` NI `priority` — et c'est délibéré. Google a déclaré publiquement qu'il ignore
+ * ces deux balises ; les écrire n'apportait rien et ajoutait deux occasions de faire échouer son
+ * analyseur. Le 7 octobre 2026, ce plan a été lu par Google et refusé avec « Impossible de lire
+ * le sitemap », alors que le fichier était parfaitement valide — pas de BOM, ordre des balises
+ * conforme, et le test de résultats enrichis montrait que Googlebot recevait bien le XML. Réduire
+ * à `loc` + `lastmod` est la forme que Google documente et la moins susceptible d'être rejetée.
+ *
+ * `priorite` et `frequence` restent dans les fiches : elles disent quelles pages comptent, ce qui
+ * sert à l'ordre du plan et à décider quoi soumettre à l'indexation en premier.
+ */
 export function planDuSite(dateModifiee: string): string {
   const entrees = cheminsDuPlan()
-    .map(({ chemin, priorite, frequence }) => {
+    .map(({ chemin }) => {
       const url = `${SITE.origine}${chemin === "/" ? "/" : chemin}`;
-      return [
-        "  <url>",
-        `    <loc>${url}</loc>`,
-        `    <lastmod>${dateModifiee}</lastmod>`,
-        `    <changefreq>${frequence}</changefreq>`,
-        `    <priority>${priorite.toFixed(1)}</priority>`,
-        "  </url>",
-      ].join("\n");
+      return ["  <url>", `    <loc>${url}</loc>`, `    <lastmod>${dateModifiee}</lastmod>`, "  </url>"].join("\n");
     })
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entrees}\n</urlset>\n`;
