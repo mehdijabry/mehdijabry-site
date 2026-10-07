@@ -11,6 +11,7 @@ import { Ticker } from "@/components/effects/ticker";
 import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 import { useCopy, useLang } from "@/lib/i18n";
 import { BandeauVivant } from "@/components/effects/bandeau-vivant";
+import { Halo } from "@/components/effects/halo";
 
 /* ─────────────────────── DATA ─────────────────────── */
 
@@ -243,6 +244,7 @@ export default function Home() {
           première impression ne peut pas être un texte cassé.
       ════════════════════════════════════════════════════════════ */}
       <section className="relative isolate overflow-hidden pt-16 pb-14 md:pt-24 md:pb-20">
+        <Halo />
         <div className="relative z-10 container mx-auto px-4 ouverture">
 
           {/* la cote de plan : l'étiquette mange le trait, comme sur un dessin technique */}

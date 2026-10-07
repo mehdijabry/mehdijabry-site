@@ -477,6 +477,58 @@
   .ouverture [data-delai="5"] { animation-delay: .46s }
   .ouverture [data-delai="6"] { animation-delay: .58s }
 
+  /* ── LE HALO ─────────────────────────────────────────────────────────────
+     La fumée d'encre derrière l'accroche. Voir components/effects/halo.tsx pour
+     l'histoire : c'était au départ un accident de l'aurore WebGL, repris ici
+     volontairement et tenu en laisse.
+
+     --halo-force plafonne l'opacité. Le cœur du halo est posé en haut à droite,
+     là où il n'y a que du très gros caractère ; la colonne de lecture, à gauche,
+     reste sur le papier clair. Mesuré en production : au point le plus dense le
+     fond descend aux environs de #CFCCC6, et le paragraphe d'accroche se lit sur
+     un fond resté au-dessus de #F2F0EC. Toute hausse de cette valeur se revérifie
+     au contraste, pas à l'œil. */
+  .halo {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    filter: blur(58px);
+    will-change: transform;
+  }
+  .halo--a {
+    top: -26%; right: -14%;
+    width: 96vw; height: 86vw;
+    max-width: 1500px; max-height: 1200px;
+    background: radial-gradient(circle at 50% 50%, hsl(var(--foreground) / var(--halo-force)) 0 22%, transparent 76%);
+    animation: derive-a 34s ease-in-out infinite alternate;
+  }
+  .halo--b {
+    top: 6%; right: 6%;
+    width: 68vw; height: 60vw;
+    max-width: 1050px; max-height: 900px;
+    background: radial-gradient(circle at 50% 50%, hsl(var(--foreground) / calc(var(--halo-force) * 0.8)) 0 18%, transparent 74%);
+    animation: derive-b 46s ease-in-out infinite alternate;
+  }
+  :root { --halo-force: 0.30 }
+  /* Sur le bleu de plan, la fumée devient une lueur : c'est le papier qui éclaire. */
+  .dark { --halo-force: 0.16 }
+  .dark .halo--a,
+  .dark .halo--b { background: radial-gradient(circle at 50% 50%, hsl(var(--vif) / var(--halo-force)), transparent 70%) }
+
+  @keyframes derive-a {
+    from { transform: translate3d(0, 0, 0) scale(1) }
+    to   { transform: translate3d(-5%, 5%, 0) scale(1.1) }
+  }
+  @keyframes derive-b {
+    from { transform: translate3d(0, 0, 0) scale(1.06) }
+    to   { transform: translate3d(7%, -4%, 0) scale(0.96) }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .halo--a, .halo--b { animation: none }
+  }
+  /* Sur petit écran la colonne de lecture occupe toute la largeur : on allège. */
+  @media (max-width: 767px) { :root { --halo-force: 0.16 } .dark { --halo-force: 0.10 } }
+
   /* ── Le lien de texte ────────────────────────────────────────────────────
      Souligné à l'encre, qui se retire vers la droite au survol. Rien de doré :
      un lien n'est pas une donnée vivante. */
