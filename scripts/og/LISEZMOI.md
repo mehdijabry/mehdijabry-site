@@ -34,3 +34,16 @@ n'ont pas fini de charger et l'image part avec la police système — le défaut
 - Les seuls chiffres sont **375 $** (le prix SPARK de `artifacts/portfolio/src/lib/pricing.ts`) et
   **48 h** (la promesse déjà écrite sur l'accueil et sur la page Contact). Ne jamais y mettre un
   nombre de réalisations : il vieillit, et une image partagée ne se corrige pas.
+
+---
+
+# Le logo carré (`public/logo-carre.png`)
+
+1024 × 1024, rendu depuis `logo-carre.html` par la même méthode. Sert de **photo de profil de la
+fiche Google Business** : Google demande au moins 250 × 250 et recadre en cercle, d'où la marge de
+14 % autour de la plaque.
+
+**Google n'accepte pas qu'un fichier soit injecté dans son dialogue d'ajout de photos** — il écoute
+son propre sélecteur. L'image doit être glissée à la main dans
+`business.google.com → Photos → Ajouter`. Même chose pour `og.png`, qui fait une bonne photo de
+couverture (1200 × 630, proche du 16:9 attendu).
