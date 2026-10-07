@@ -10,6 +10,7 @@ import pinoHttp from "pino-http";
 import { publicInvoiceHandler } from "./routes/admin";
 import { trackOpenHandler, trackClickHandler, trackVisitHandler, trackSectionHandler } from "./lib/tracking";
 import { voirHandler, voirAdminHandler } from "./lib/demo-redirect";
+import { pagePour, introuvable, sitemap, chargerGabarit } from "./lib/seo-html";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
@@ -75,6 +76,16 @@ const hasPortfolioBuild = existsSync(portfolioIndexHtml);
 
 if (hasPortfolioBuild) {
   logger.info({ portfolioDistPath }, "Serving portfolio static build");
+
+  // Le plan du site est fabriqué à partir de la même liste de pages que les en-têtes : impossible
+  // d'y annoncer une adresse qui n'existe pas, ou d'en oublier une en ajoutant une page.
+  app.get("/sitemap.xml", (_req: Request, res: Response) => {
+    res
+      .type("application/xml")
+      .set("cache-control", "public, max-age=3600")
+      .send(sitemap(portfolioIndexHtml));
+  });
+
   app.use(
     express.static(portfolioDistPath, {
       index: false, // we handle index.html in the catch-all below
@@ -96,11 +107,31 @@ app.use("/api", router);
 // Any non-/api route that wasn't matched by static files falls back to
 // index.html so client-side routing (wouter) works correctly.
 if (hasPortfolioBuild) {
+  // Le gabarit est lu une fois au démarrage : une erreur de fichier se voit tout de suite dans les
+  // journaux de Render, pas à la première visite.
+  chargerGabarit(portfolioIndexHtml);
+
+  // Une adresse et une seule par page. « /work/ » et « /work » servaient deux fois le même contenu ;
+  // Google appelle ça du contenu dupliqué et dépense son budget d'exploration à le constater.
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method !== "GET" || req.path === "/" || !req.path.endsWith("/")) return next();
+    if (req.path.startsWith("/api")) return next();
+    const requete = req.originalUrl.slice(req.path.length);
+    res.redirect(301, req.path.replace(/\/+$/, "") + requete);
+  });
+
   app.get(/.*/, (req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api")) {
       return next();
     }
-    res.sendFile(portfolioIndexHtml);
+    // Une adresse inconnue doit répondre 404. Jusqu'ici elle renvoyait la page avec un 200 : pour
+    // Google, autant de pages valides que de fautes de frappe dans un lien entrant.
+    const statut = introuvable(req.path) ? 404 : 200;
+    pagePour(portfolioIndexHtml, req.path)
+      .then((html) => {
+        res.status(statut).type("html").set("cache-control", "no-cache").send(html);
+      })
+      .catch(next);
   });
 }
 

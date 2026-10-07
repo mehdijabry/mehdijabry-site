@@ -3,21 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Mehdi Jabry · Studio web indépendant à Trois-Rivières</title>
-    <meta name="description" content="Sites web sur mesure pour les commerces de Trois-Rivières et de la Mauricie. En ligne en 48 heures, avec un espace d'administration pour tout modifier vous-même." />
-    <meta name="robots" content="index, follow" />
+    <!-- Propriété Google Search Console (compte mehdijabry.dev@gmail.com, 7 octobre 2026).
+         Posée HORS du bloc « seo » ci-dessous : ce bloc est réécrit par le serveur à chaque
+         requête, et la preuve doit survivre à cette réécriture. Elle est doublée par le fichier
+         public/googleead5094fcd15181b.html — si l'une saute, l'autre tient la propriété.
+         NE PAS SUPPRIMER : Google révoque la propriété dès que la preuve disparaît. -->
+    <meta name="google-site-verification" content="sBve9c3x0M3-Y4MbSwHrgFXB80y3fnF7C1IOdmtsXVM" />
+    <!-- ══ seo ══
+         Tout ce qui est entre ces deux marques est REMPLACÉ par le serveur, page par page, avant
+         l'envoi au navigateur (voir artifacts/api-server/src/lib/seo-html.ts et lib/seo).
+         Le site est une application React : sans cette réécriture, Google voit le même titre et la
+         même description sur /, /work, /pricing et /about, et les traite comme une seule page.
+         Ce qui suit est donc le repli : ce que voient le serveur de développement Vite et un robot
+         qui recevrait le fichier brut. Ne pas y mettre d'adresse canonique — elle dépend de la page. -->
+    <title>Création de site web à Trois-Rivières · Mehdi Jabry</title>
+    <meta name="description" content="Sites web pour les commerces de Trois-Rivières et de la Mauricie. Plutôt qu'un devis, je livre une maquette — et le site est en ligne en 48 heures." />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta property="og:site_name" content="Mehdi Jabry" />
     <meta property="og:locale" content="fr_CA" />
     <meta property="og:locale:alternate" content="en_CA" />
-    <meta property="og:title" content="Mehdi Jabry · Studio web indépendant à Trois-Rivières" />
-    <meta property="og:description" content="Sites web sur mesure pour les commerces de Trois-Rivières et de la Mauricie. En ligne en 48 heures, avec un espace d'administration pour tout modifier vous-même." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og.png" />
+    <meta property="og:url" content="https://mehdijabry.dev/" />
+    <meta property="og:title" content="Création de site web à Trois-Rivières · Mehdi Jabry" />
+    <meta property="og:description" content="Sites web pour les commerces de Trois-Rivières et de la Mauricie. Plutôt qu'un devis, je livre une maquette — et le site est en ligne en 48 heures." />
+    <meta property="og:image" content="https://mehdijabry.dev/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mehdi Jabry · Studio web indépendant à Trois-Rivières" />
-    <meta name="twitter:description" content="Sites web sur mesure pour les commerces de Trois-Rivières et de la Mauricie. En ligne en 48 heures, avec un espace d'administration pour tout modifier vous-même." />
-    <meta name="twitter:image" content="/og.png" />
+    <meta name="twitter:title" content="Création de site web à Trois-Rivières · Mehdi Jabry" />
+    <meta name="twitter:description" content="Sites web pour les commerces de Trois-Rivières et de la Mauricie. Plutôt qu'un devis, je livre une maquette — et le site est en ligne en 48 heures." />
+    <meta name="twitter:image" content="https://mehdijabry.dev/og.png" />
+    <!-- ══ /seo ══ -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo-mark.png" id="apple-icon" />
     <meta name="theme-color" content="#F7F6F2" id="theme-color" />

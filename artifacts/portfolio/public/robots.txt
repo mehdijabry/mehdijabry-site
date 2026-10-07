@@ -1,2 +1,19 @@
+# mehdijabry.dev — studio web indépendant, Trois-Rivières (Québec).
+# Le site public est ouvert à l'exploration. Ce qui suit ne ferme que ce qui n'a rien à faire
+# dans un index : les liens privés envoyés à un client et les adresses techniques.
+
 User-agent: *
 Allow: /
+
+# Factures envoyées par courriel à un client, pixels d'ouverture, liens de suivi, API.
+# Ces adresses ne doivent jamais être explorées, encore moins indexées.
+Disallow: /f/
+Disallow: /o/
+Disallow: /go/
+Disallow: /api/
+
+# L'espace d'administration n'est VOLONTAIREMENT pas bloqué ici : le serveur lui pose une
+# balise « noindex », et un robot doit pouvoir lire cette balise pour en tenir compte. Un
+# « Disallow » produirait l'effet inverse — l'adresse resterait indexable, sans son contenu.
+
+Sitemap: https://mehdijabry.dev/sitemap.xml

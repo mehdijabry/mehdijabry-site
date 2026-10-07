@@ -24,6 +24,7 @@ import AdminSettings from "@/pages/admin/parametres";
 
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
+import { Seo } from "@/components/seo";
 import { Trame } from "@/components/effects/trame";
 import { LanguageProvider } from "@/lib/i18n";
 
@@ -71,6 +72,9 @@ function App() {
           <ScrollProgress />
           <div className="relative z-10">
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              {/* Doit vivre DANS le routeur : il lit l'adresse courante pour remettre à jour le
+                  titre et l'adresse canonique à chaque changement de page. */}
+              <Seo />
               <Router />
             </WouterRouter>
           </div>
