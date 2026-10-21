@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { Monogramme } from "@/components/logo";
 
 /**
  * LA BARRE — « l'instrument », 21 octobre 2026.
@@ -90,8 +91,11 @@ export function Nav() {
   return (
     <>
       <nav className="nav">
+        {/* LE MONOGRAMME, PAS DEUX LETTRES COMPOSÉES. La maquette écrivait « MJ »
+            en Archivo faute d'avoir le dessin sous la main ; le vrai logo a sa
+            plaque, son crochet doré et son point. */}
         <Link href="/" className="nav-marque" aria-label="Mehdi Jabry — mehdijabry.dev">
-          MJ
+          <Monogramme className="h-8 w-8" />
         </Link>
 
         <div className="nav-liens">

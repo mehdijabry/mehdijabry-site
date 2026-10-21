@@ -45,33 +45,34 @@ export function Logo({
   );
 }
 
-/** Le monogramme seul. `currentColor` pour le M, le doré du thème pour le crochet du J. */
+/**
+ * LE MONOGRAMME, AUX COULEURS DU LOGO D'ORIGINE.
+ *
+ * Il était dessiné avec les jetons du thème — `fill-foreground` pour la plaque,
+ * `stroke-background` pour le M — parce que le site avait deux thèmes et que la
+ * marque devait se retourner avec eux. Depuis le 21/10/2026 il n'y en a plus
+ * qu'un, et ce raccourci RETOURNAIT LE LOGO : sur fond noir, `foreground` est
+ * la craie, donc la plaque devenait claire et le M sombre. L'inverse exact de
+ * la marque.
+ *
+ * Les quatre couleurs sont donc celles de `public/favicon.svg`, écrites en
+ * clair : plaque #11110F, M #F4F3EE, crochet du J #B08D57, point #F4F3EE. Un
+ * logo ne suit pas le système, c'est le système qui s'aligne sur lui.
+ *
+ * Le rayon vient aussi de l'original — 32 sur 160, soit un cinquième du côté,
+ * donc 24 sur 120. Il avait été mis à zéro pour coller au `--radius: 0` du
+ * reste du site : même erreur, dans l'autre sens.
+ */
 export function Monogramme({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 120 120" className={cn("block", className)} fill="none" aria-hidden="true">
-      {/* La plaque : encre sur papier, papier sur encre. Le rayon est celui du logo d'origine
-          (32 sur 160, soit un cinquième du côté — ici 24 sur 120). Il avait été carré pour coller
-          au `--radius: 0` du reste du site : c'était une erreur. Le système s'aligne sur la marque,
-          jamais l'inverse. */}
-      <rect width="120" height="120" rx="24" className="fill-foreground" />
+      <rect width="120" height="120" rx="24" fill="#11110F" />
       {/* le M, d'un seul trait brisé */}
-      <path
-        d="M26 84V40l18 19 17-19v44"
-        className="stroke-background"
-        strokeWidth="9"
-        strokeLinecap="square"
-        strokeLinejoin="bevel"
-      />
-      {/* le J, replié en crochet */}
-      <path
-        d="M70 40h25v29c0 9.4-7.6 17-17 17H70"
-        stroke="hsl(var(--vif))"
-        strokeWidth="9"
-        strokeLinecap="square"
-        strokeLinejoin="round"
-      />
+      <path d="M26 84V40l18 19 17-19v44" stroke="#F4F3EE" strokeWidth="9" strokeLinecap="square" strokeLinejoin="bevel" />
+      {/* le J, replié en crochet — la seule pièce dorée */}
+      <path d="M70 40h25v29c0 9.4-7.6 17-17 17H70" stroke="#B08D57" strokeWidth="9" strokeLinecap="square" strokeLinejoin="round" />
       {/* le point du J : le curseur au bout de la ligne */}
-      <rect x="74" y="64" width="9" height="9" className="fill-background" />
+      <rect x="74" y="64" width="9" height="9" fill="#F4F3EE" />
     </svg>
   );
 }

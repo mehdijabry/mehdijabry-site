@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useCopy } from "@/lib/i18n";
+import { Monogramme } from "@/components/logo";
 
 /**
  * LE PIED — « l'instrument », 21 octobre 2026.
@@ -52,7 +53,7 @@ export function Footer() {
     <footer className="pied">
       <div className="pied-haut">
         <div className="pied-col">
-          <div style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 26 }}>MJ</div>
+          <Monogramme className="h-11 w-11" />
           <p style={{ margin: "12px 0 0", color: "var(--sourdine)", fontSize: 13.5, maxWidth: "30ch" }}>
             {t.accroche}
           </p>
