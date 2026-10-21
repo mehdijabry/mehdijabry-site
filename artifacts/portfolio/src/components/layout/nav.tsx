@@ -28,7 +28,6 @@ const COPY = {
   fr: {
     liens: [
       { href: "/", libelle: "Studio" },
-      { href: "/work", libelle: "Réalisations" },
       { href: "/pricing", libelle: "Tarifs" },
       { href: "/about", libelle: "À propos" },
       { href: "/contact", libelle: "Contact" },
@@ -40,7 +39,6 @@ const COPY = {
   en: {
     liens: [
       { href: "/", libelle: "Studio" },
-      { href: "/work", libelle: "Work" },
       { href: "/pricing", libelle: "Pricing" },
       { href: "/about", libelle: "About" },
       { href: "/contact", libelle: "Contact" },

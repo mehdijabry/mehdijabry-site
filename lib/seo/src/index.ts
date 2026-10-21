@@ -105,18 +105,13 @@ export const FICHES: Record<string, Fiche> = {
         "Websites for local businesses in Trois-Rivières and the Mauricie region. Instead of a quote, I deliver a mockup — and the site is live within 48 hours.",
     },
   },
-  "/work": {
-    titre: "Réalisations — sites web pour commerces de la Mauricie",
-    description:
-      "Restaurants, cafés, boulangeries, gîtes et boutiques, de Trois-Rivières à Drummondville. Ouvrez un site : il s'affiche ici, sans quitter la page.",
-    fil: "Réalisations",
-    plan: { priorite: 0.9, frequence: "weekly" },
-    en: {
-      titre: "Selected work — websites for Mauricie businesses",
-      description:
-        "Restaurants, cafés, bakeries, inns and shops, from Trois-Rivières to Drummondville. Open one: it loads right here, without leaving the page.",
-    },
-  },
+  /* `/work` A ÉTÉ SUPPRIMÉE LE 21/10/2026, et son retrait d'ici est la moitié
+     qui compte. Mehdi : « je veux que tu caches cette partie maquettes du site,
+     je ne veux pas que quelqu'un accède à une maquette qui porte un nom légal ».
+     Sans fiche, `introuvable()` renvoie vrai : le serveur répond 404 sur
+     `/work`, et le chemin quitte le plan du site. Enlever seulement le lien de
+     la barre aurait laissé la page vivante pour Google et pour quiconque a
+     déjà l'adresse. */
   "/pricing": {
     titre: "Tarifs — 375 $, 790 $ ou 1 290 $, sans surprise",
     description:
@@ -230,9 +225,6 @@ export function cheminsDuPlan(): Array<{ chemin: string; priorite: number; frequ
 
 // ───────────────────────────── Données structurées ─────────────────────────────
 
-/** Une maquette telle que l'expose /api/portfolio/maquettes. */
-export type MaquettePourSeo = { slug: string; title: string; meta: string; proxyUrl: string };
-
 /**
  * Le studio lui-même, décrit une seule fois et référencé partout ailleurs par son identifiant.
  *
@@ -330,10 +322,7 @@ function catalogue() {
  * Le bloc JSON-LD d'une page. Le robot le lit sans exécuter une ligne de React — c'est tout
  * l'intérêt : le corps de la page, lui, dépend d'un paquet JavaScript de 800 ko.
  */
-export function donneesStructurees(
-  chemin: string,
-  options: { maquettes?: MaquettePourSeo[] } = {},
-): unknown {
+export function donneesStructurees(chemin: string): unknown {
   const c = normaliser(chemin);
   const f = fiche(c);
   if (!f || f.horsIndex) return null;
@@ -342,7 +331,7 @@ export function donneesStructurees(
   const graphe: unknown[] = [studio(), siteWeb()];
 
   const page: Record<string, unknown> = {
-    "@type": c === "/" ? "WebPage" : c === "/work" ? "CollectionPage" : "WebPage",
+    "@type": "WebPage",
     "@id": `${url}#page`,
     url,
     name: f.titre,
@@ -367,21 +356,6 @@ export function donneesStructurees(
 
   if (c === "/pricing") page["mainEntity"] = catalogue();
 
-  // La liste des réalisations est lue en base, jamais recopiée à la main : une maquette suspendue
-  // depuis /admin/maquettes disparaît du site public, elle doit disparaître d'ici au même moment.
-  if (c === "/work" && options.maquettes?.length) {
-    page["mainEntity"] = {
-      "@type": "ItemList",
-      numberOfItems: options.maquettes.length,
-      itemListElement: options.maquettes.map((m, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        name: `${m.title} — ${m.meta}`,
-        url: m.proxyUrl,
-      })),
-    };
-  }
-
   graphe.push(page);
   return { "@context": "https://schema.org", "@graph": graphe };
 }
@@ -403,10 +377,7 @@ export function echapper(valeur: string): string {
  * Le JSON-LD est sérialisé puis son `<` est neutralisé : sans ça, une chaîne contenant
  * « </script> » fermerait la balise et casserait la page.
  */
-export function enTete(
-  chemin: string,
-  options: { maquettes?: MaquettePourSeo[]; indentation?: string } = {},
-): string {
+export function enTete(chemin: string, options: { indentation?: string } = {}): string {
   const c = normaliser(chemin);
   const f = fiche(c) ?? FICHE_INTROUVABLE;
   const url = `${SITE.origine}${c === "/" ? "/" : c}`;
@@ -439,7 +410,7 @@ export function enTete(
   lignes.push(`<meta name="twitter:description" content="${echapper(f.description)}" />`);
   lignes.push(`<meta name="twitter:image" content="${SITE.origine}${SITE.image}" />`);
 
-  const donnees = donneesStructurees(c, options);
+  const donnees = donneesStructurees(c);
   if (donnees) {
     const json = JSON.stringify(donnees).replace(/</g, "\\u003c");
     lignes.push(`<script type="application/ld+json">${json}</script>`);

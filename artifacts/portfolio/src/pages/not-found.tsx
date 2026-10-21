@@ -9,7 +9,6 @@ const COPY = {
     title: "Cette page n'existe pas.",
     body: "Le lien est peut-être périmé, ou l'adresse comporte une faute de frappe. Voici par où reprendre.",
     home: "Retour à l'accueil",
-    work: "Voir les réalisations",
     contact: "Me joindre",
   },
   en: {
@@ -17,7 +16,6 @@ const COPY = {
     title: "This page does not exist.",
     body: "The link may be out of date, or the address has a typo. Here is where to pick back up.",
     home: "Back to home",
-    work: "See the work",
     contact: "Get in touch",
   },
 };
@@ -33,7 +31,6 @@ export default function NotFound() {
           <p className="mt-8 text-lg text-muted-foreground leading-relaxed">{t.body}</p>
           <div className="mt-12 flex flex-wrap gap-6 text-sm">
             <Link href="/" className="text-primary hover:underline underline-offset-4" data-testid="link-404-home">→ {t.home}</Link>
-            <Link href="/work" className="text-primary hover:underline underline-offset-4" data-testid="link-404-work">→ {t.work}</Link>
             <Link href="/contact" className="text-primary hover:underline underline-offset-4" data-testid="link-404-contact">→ {t.contact}</Link>
           </div>
         </FadeIn>

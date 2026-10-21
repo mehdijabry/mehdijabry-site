@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
 import Home from "@/pages/home";
-import Work from "@/pages/work";
 import Pricing from "@/pages/pricing";
 import Start from "@/pages/start";
 import About from "@/pages/about";
@@ -37,7 +36,12 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/work" component={Work} />
+      {/* `/work` A ÉTÉ SUPPRIMÉE LE 21/10/2026. Mehdi : « je veux que tu caches
+          cette partie maquettes du site, je ne veux pas que quelqu'un accède à une
+          maquette qui porte un nom légal ». Ces maquettes portent le nom et
+          l'identité de commerces qui n'ont rien demandé. L'adresse tombe
+          volontairement sur la page introuvable — pas de redirection, qui
+          garderait le chemin vivant aux yeux de Google. */}
       <Route path="/pricing" component={Pricing} />
       <Route path="/start" component={Start} />
       <Route path="/about" component={About} />

@@ -26,7 +26,6 @@ const COPY = {
     accroche: "Studio web indépendant à Trois-Rivières. Des sites construits avant le premier appel.",
     studio: "Studio",
     contact: "Contact",
-    work: "Réalisations",
     pricing: "Tarifs",
     about: "À propos",
     legal: "Mentions légales",
@@ -38,7 +37,6 @@ const COPY = {
     accroche: "Independent web studio in Trois-Rivières. Sites built before the first call.",
     studio: "Studio",
     contact: "Contact",
-    work: "Work",
     pricing: "Pricing",
     about: "About",
     legal: "Legal",
@@ -67,7 +65,6 @@ export function Footer() {
           <h4 className="mono" style={{ margin: "0 0 14px" }}>
             {t.studio}
           </h4>
-          <Link href="/work">{t.work}</Link>
           <Link href="/pricing">{t.pricing}</Link>
           <Link href="/about">{t.about}</Link>
           <Link href="/legal">{t.legal}</Link>

@@ -1,8 +1,5 @@
 import { readFileSync, statSync } from "node:fs";
-import { DEMOS } from "./demo-redirect";
-import { loadMaquetteStates, maquetteState } from "./maquettes";
-import { PUBLIC_BASE_URL } from "./tracking";
-import { enTete, fiche, planDuSite, type MaquettePourSeo } from "@workspace/seo";
+import { enTete, fiche, planDuSite } from "@workspace/seo";
 import { logger } from "./logger";
 
 /**
@@ -51,41 +48,17 @@ export function chargerGabarit(cheminIndexHtml: string): Gabarit {
   return gabarit;
 }
 
-/**
- * Les réalisations publiées, dans la forme qu'attend le JSON-LD de `/work`.
- *
- * Même source que `GET /api/portfolio/maquettes` : une maquette suspendue ou retirée du portfolio
- * depuis `/admin/maquettes` disparaît de la page ET des données structurées au même instant. En
- * cas de panne de base, on renvoie une liste vide — une page sans liste vaut mieux qu'une page
- * qui annonce à Google des réalisations qui ne s'affichent pas.
- */
-async function maquettesPubliees(): Promise<MaquettePourSeo[]> {
-  try {
-    const etats = await loadMaquetteStates();
-    return Object.entries(DEMOS)
-      .filter(([slug]) => {
-        const e = maquetteState(etats, slug);
-        return !e.suspendedAt && e.portfolio;
-      })
-      .map(([slug, d]) => ({
-        slug,
-        title: d.title,
-        meta: d.meta,
-        proxyUrl: `${PUBLIC_BASE_URL}/maquette-v1/${slug}`,
-      }))
-      .reverse();
-  } catch (err) {
-    logger.warn({ err }, "Liste des maquettes indisponible pour le JSON-LD de /work");
-    return [];
-  }
-}
+/* LA LISTE DES MAQUETTES N'EST PLUS LUE ICI (21/10/2026).
+   Elle alimentait le JSON-LD de `/work`, la page des réalisations. Mehdi a
+   demandé de retirer cette partie du site : « je ne veux pas que quelqu'un
+   accède à une maquette qui porte un nom légal ». La page a disparu, et avec
+   elle l'ItemList qui donnait à Google l'adresse de chaque maquette. */
 
 /** La page complète pour un chemin donné. */
 export async function pagePour(cheminIndexHtml: string, chemin: string): Promise<string> {
   const g = chargerGabarit(cheminIndexHtml);
   if (!g.balise) return g.avant;
-  const maquettes = chemin === "/work" ? await maquettesPubliees() : undefined;
-  return g.avant + enTete(chemin, maquettes ? { maquettes } : {}) + g.apres;
+  return g.avant + enTete(chemin) + g.apres;
 }
 
 /** `true` quand l'adresse n'existe pas : le serveur répond alors 404 au lieu d'un 200 trompeur. */

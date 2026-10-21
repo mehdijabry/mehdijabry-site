@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Layout } from "@/components/layout/layout";
 import { Ouverture } from "@/components/instrument/ouverture";
 import { Constellation, type Apercu } from "@/components/instrument/constellation";
-import { usePortfolioMaquettes } from "@/components/maquettes-gallery";
+import { usePortfolioMaquettes } from "@/lib/maquettes";
 import { useCopy, type Lang } from "@/lib/i18n";
 import type { SectionRegle } from "@/components/layout/regle";
 
