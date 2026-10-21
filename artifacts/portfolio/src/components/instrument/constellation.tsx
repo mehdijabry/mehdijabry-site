@@ -34,7 +34,15 @@ import { useEffect, useRef } from "react";
 export type Apercu = { titre: string; img: string };
 
 type Place = { x: number; y: number; z: number };
-type Etat = { place: number; vu: number; age: number; vie: number; parait: number; efface: number; monte: number };
+type Etat = {
+  place: number; vu: number; age: number; vie: number; parait: number; efface: number; monte: number;
+  /* DERNIÈRES VALEURS ÉCRITES. `transform` et `opacity` changent à chaque
+     image — il faut les réécrire. `filter`, `z-index` et `pointer-events` ne
+     bougent qu'au survol, au clic ou quand la dalle renaît ailleurs ; les
+     réassigner soixante fois par seconde redemande une rastérisation du flou
+     pour rien, sur seize dalles. On garde donc la dernière valeur posée. */
+  filtre: string; plan: string; clics: string;
+};
 
 export function Constellation({ apercus }: { apercus: Apercu[] }) {
   const scene = useRef<HTMLDivElement>(null);
@@ -87,7 +95,10 @@ export function Constellation({ apercus }: { apercus: Apercu[] }) {
     }
 
     const etats: Etat[] = apercus.map((_, i) => {
-      const st: Etat = { place: i % PLACES.length, vu: 0, age: 0, vie: 0, parait: 0, efface: 0, monte: 0 };
+      const st: Etat = {
+        place: i % PLACES.length, vu: 0, age: 0, vie: 0, parait: 0, efface: 0, monte: 0,
+        filtre: "", plan: "", clics: "",
+      };
       neuf(st);
       // Âges de départ étalés ET tirés au sort : sans ça elles apparaîtraient
       // toutes ensemble au chargement.
@@ -252,10 +263,14 @@ export function Constellation({ apercus }: { apercus: Apercu[] }) {
         e.style.transform =
           `translate(-50%,-50%) translate(${x.toFixed(2)}vw,${y.toFixed(2)}vh)` +
           ` rotateY(${ry.toFixed(1)}deg) rotateX(${rx.toFixed(1)}deg) scale(${s.toFixed(3)})`;
-        e.style.filter = survol || ouvert ? "none" : `blur(${((1 - pl.z) * 1.9).toFixed(2)}px)`;
         e.style.opacity = (vie * (survol || ouvert ? 1 : 0.58 + pl.z * 0.4)).toFixed(3);
-        e.style.zIndex = String(ouvert ? 40 : survol ? 30 : Math.round(pl.z * 12));
-        e.style.pointerEvents = vie > 0.45 ? "auto" : "none";
+
+        const filtre = survol || ouvert ? "none" : `blur(${((1 - pl.z) * 1.9).toFixed(2)}px)`;
+        if (filtre !== st.filtre) { st.filtre = filtre; e.style.filter = filtre; }
+        const plan = String(ouvert ? 40 : survol ? 30 : Math.round(pl.z * 12));
+        if (plan !== st.plan) { st.plan = plan; e.style.zIndex = plan; }
+        const clics = vie > 0.45 ? "auto" : "none";
+        if (clics !== st.clics) { st.clics = clics; e.style.pointerEvents = clics; }
       }
       boucle = requestAnimationFrame(pas);
     }

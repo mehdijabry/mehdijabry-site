@@ -98,16 +98,26 @@ img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 2px solid var(--lueur); outline-offset: 3px; }
 
-/* Voile de balayage — leur --scanline, à 2,4 % de blanc. */
+/* Voile de balayage — leur --scanline, à 2,4 % de blanc.
+
+   `translateZ(0)` N'EST PAS UN PORTE-BONHEUR ICI. Ce voile est FIXE, il couvre
+   toute la fenêtre et il est posé AU-DESSUS de tout (z-index 90) : sans couche
+   propre, le navigateur doit le repeindre d'un bord à l'autre à chaque image
+   de défilement, et un dégradé répété au pas de 1 px coûte cher à peindre. La
+   promotion en couche le fait composer au lieu d'être repeint. Rien ne change
+   à l'œil. Même raison pour la barre et la colonne de droite, elles aussi
+   fixes au-dessus du contenu qui défile. */
 body::after {
   content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none;
   background: repeating-linear-gradient(0deg, var(--scanline) 0 1px, transparent 1px 3px);
+  transform: translateZ(0);
 }
 
 .mono { font-family: var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color: var(--sourdine); }
 
 /* ── Barre ──────────────────────────────────────────────────────────── */
 .nav { position:fixed; inset:0 0 auto 0; z-index:70; height:var(--barre); display:flex; align-items:stretch;
+       transform:translateZ(0);
        background: color-mix(in srgb, var(--sol) 88%, transparent); backdrop-filter: blur(14px);
        border-bottom:1px solid var(--trait); }
 .nav-marque { width:var(--barre); display:grid; place-items:center; border-right:1px solid var(--trait);
@@ -139,7 +149,8 @@ body::after {
       courbe, qui remonte en pivotant lettre par lettre
    4. la file d'attente du bas : ce qui reste
    ═══════════════════════════════════════════════════════════════════ */
-.bord { position:fixed; top:var(--barre); right:0; bottom:0; width:var(--bord); z-index:60; pointer-events:none; }
+.bord { position:fixed; top:var(--barre); right:0; bottom:0; width:var(--bord); z-index:60; pointer-events:none;
+        transform:translateZ(0); }
 
 .regle { position:absolute; top:0; right:0; bottom:0; width:46px; border-left:1px solid var(--trait); overflow:hidden; }
 .tick { position:absolute; right:0; height:1px; width:8px; background:var(--trait); }

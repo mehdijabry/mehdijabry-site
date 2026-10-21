@@ -230,23 +230,51 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
       }
     }
 
-    /* LE GLISSEMENT. Poser `top = p * h` dans l'écouteur de défilement donne un
-       à-coup par cran de molette. On amortit dans une boucle d'image, qui
-       s'arrête d'elle-même quand l'écart devient invisible. */
+    /* ══ LE GLISSEMENT — DEUX CORRECTIONS DE RYTHME (21/10/2026) ══════════
+       Mehdi : « l'animation de la barre de défilement est buggée, comme si ça
+       laggait ». Deux causes, et aucune n'était la quantité de dessin.
+
+       1. **`majeur()` TOURNAIT À CHAQUE ÉVÉNEMENT DE DÉFILEMENT**, pas une fois
+          par image. Un pavé tactile en produit bien plus de soixante par
+          seconde : à chaque fois on relisait toute la page
+          (`document.body.scrollHeight`, un rectangle par repère, celui de la
+          pile) PUIS on écrivait — les classes, l'opacité, et trois attributs
+          sur chacune des huit à dix lettres. Lire après avoir écrit force le
+          navigateur à recalculer la mise en page séance tenante ; le faire
+          plusieurs fois par image, c'est exactement la saccade décrite.
+          Désormais l'écouteur ne fait QUE lever un drapeau ; tout le travail se
+          fait une seule fois, dans la boucle d'image.
+
+       2. **L'AMORTISSEMENT DÉPENDAIT DE LA CADENCE.** `suivi += ecart * 0.12`
+          avance d'un douzième PAR IMAGE : à 60 images/s le repère rattrape en
+          ~0,13 s, mais à 20 images/s il met trois fois plus longtemps. Sur une
+          page chargée, le trait traînait donc derrière le défilement — ce qui
+          se lit comme un retard, pas comme un amortissement. La constante est
+          maintenant exprimée en SECONDES et corrigée par le temps réellement
+          écoulé : le rattrapage dure 0,12 s quelle que soit la cadence. */
+    const TEMPS_RATTRAPAGE = 0.12;   // secondes
     let suivi = 0;
     let enCours = false;
     let vivant = true;
+    let besoin = false;              // un défilement est survenu depuis la dernière image
+    let derniere = 0;
 
-    function glisse() {
+    function glisse(t: number) {
       if (!vivant) return;
-      const ecart = vise - suivi;
-      suivi += ecart * 0.12;
-      if (Math.abs(ecart) < 0.0002) {
-        suivi = vise;
-        enCours = false;
-      } else {
-        enCours = true;
+      const dt = derniere ? Math.min(0.1, (t - derniere) / 1000) : 1 / 60;
+      derniere = t;
+
+      // Tout le travail de lecture/écriture : UNE fois par image, jamais par événement.
+      if (besoin) {
+        besoin = false;
+        majeur();
       }
+
+      const ecart = vise - suivi;
+      // Amortissement exponentiel au temps réel, pas à l'image.
+      suivi += ecart * (1 - Math.exp(-dt / TEMPS_RATTRAPAGE));
+      const bouge = Math.abs(vise - suivi) >= 0.0002;
+      if (!bouge) suivi = vise;
 
       const parent = elTicks!.parentElement;
       const h = parent ? parent.clientHeight : 0;
@@ -255,15 +283,19 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
       // Le pourcentage se range AU-DESSUS du trait dans le dernier dixième,
       // sinon il sort de la colonne en bas de page.
       elPct!.style.top = `${(suivi > 0.9 ? y - 16 : y + 5).toFixed(1)}px`;
-      elPct!.textContent = `${String(Math.round(suivi * 100)).padStart(3, "0")} %`;
+      const cent = `${String(Math.round(suivi * 100)).padStart(3, "0")} %`;
+      if (elPct!.textContent !== cent) elPct!.textContent = cent;
 
+      enCours = bouge || besoin;
       if (enCours) requestAnimationFrame(glisse);
+      else derniere = 0;
     }
 
     function reveille() {
-      majeur();
+      besoin = true;
       if (!enCours) {
         enCours = true;
+        derniere = 0;
         requestAnimationFrame(glisse);
       }
     }
@@ -277,7 +309,7 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
     dessinerRegle();
     majeur();
     suivi = vise;
-    glisse();
+    requestAnimationFrame(glisse);
     addEventListener("scroll", reveille, { passive: true });
     addEventListener("resize", auRedimensionnement);
 
