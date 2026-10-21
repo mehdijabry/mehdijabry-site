@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { Reveal } from "@/components/effects/reveal";
 import { CtaButton } from "@/components/effects/cta-button";
 import { cn } from "@/lib/utils";
@@ -73,6 +74,19 @@ const COPY = {
   },
 };
 
+/* LES REPÈRES DE LA RÈGLE.
+   Mehdi, 21/10 : « les animations, barre de défilement etc. ne sont que sur la
+   section studio ; sur Réalisations et le reste, rien n'est là ». C'était
+   exact — seule l'accueil déclarait ses repères. Chaque page déclare donc les
+   siens, et ils doivent correspondre à des blocs QUI EXISTENT VRAIMENT dans la
+   page : la règle lit `getElementById(id).offsetTop`, un repère sans élément
+   fige le mot au premier cran. */
+const SECTIONS: SectionRegle[] = [
+  { id: "ecrire", fr: "Écrire", en: "Write" },
+  { id: "brief", fr: "Brief", en: "Brief" },
+  { id: "terrain", fr: "Terrain", en: "Area" },
+];
+
 export default function Contact() {
   const t = useCopy(COPY);
   // Le bouton annonçait « 37 sites » en dur. Le chiffre est compté sur la même source que la galerie
@@ -82,14 +96,14 @@ export default function Contact() {
   const nombreDeMaquettes = maquettes?.length ?? 0;
 
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-4 pt-12 md:pt-20 lg:pt-28 pb-4">
         <div className="max-w-5xl">
           <Reveal>
             <div className="flex flex-wrap items-center gap-4 mb-10">
               <span className="chip">{t.eyebrow}</span>
             </div>
-            <h1 className="text-display text-[clamp(40px,6vw,88px)] leading-[0.95] tracking-[-0.04em]">
+            <h1 id="ecrire" className="text-display text-[clamp(40px,6vw,88px)] leading-[0.95] tracking-[-0.04em]">
               {t.title}
             </h1>
             <p className="mt-8 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
@@ -132,7 +146,7 @@ export default function Contact() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mt-20 md:mt-28">
             <Reveal className="md:col-span-7" delay={0.08}>
-              <h2 className="font-display text-2xl md:text-3xl tracking-[-0.02em] mb-7">{t.helpTitle}</h2>
+              <h2 id="brief" className="font-display text-2xl md:text-3xl tracking-[-0.02em] mb-7">{t.helpTitle}</h2>
               <ul className="space-y-4">
                 {t.help.map((line) => (
                   <li key={line} className="flex gap-4 text-base md:text-lg text-muted-foreground leading-relaxed">
@@ -144,7 +158,7 @@ export default function Contact() {
             </Reveal>
 
             <Reveal className="md:col-span-4 md:col-start-9" delay={0.16}>
-              <h2 className="font-display text-2xl md:text-3xl tracking-[-0.02em] mb-7">{t.areaTitle}</h2>
+              <h2 id="terrain" className="font-display text-2xl md:text-3xl tracking-[-0.02em] mb-7">{t.areaTitle}</h2>
               <p className="text-base text-muted-foreground leading-relaxed">{t.area}</p>
             </Reveal>
           </div>

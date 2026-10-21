@@ -172,6 +172,18 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
 
     let vise = 0;
 
+    /* LA POSITION D'UN REPÈRE SE MESURE EN COORDONNÉES DE DOCUMENT.
+       La maquette lisait `offsetTop`, ce qui marchait parce que ses sections
+       étaient filles directes de `main`. Sur les autres pages, l'ancre est un
+       `<h2>` au fond d'un conteneur, et `offsetTop` se compte depuis le
+       PREMIER ANCÊTRE POSITIONNÉ — pas depuis le haut de la page. Le repère
+       tombait alors à quelques dizaines de pixels et toutes les sections
+       paraissaient franchies dès le chargement. */
+    const hautDe = (id: string) => {
+      const e = document.getElementById(id);
+      return e ? e.getBoundingClientRect().top + scrollY : Number.POSITIVE_INFINITY;
+    };
+
     function majeur() {
       const max = document.body.scrollHeight - innerHeight;
       vise = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
@@ -179,8 +191,7 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
       const y = scrollY + innerHeight * 0.38;
       let cour = 0;
       sections.forEach((s, i) => {
-        const el = document.getElementById(s.id);
-        if (el && el.offsetTop <= y) cour = i;
+        if (hautDe(s.id) <= y) cour = i;
       });
 
       /* LA PROGRESSION DU VOL SE CALCULE D'ABORD : la file d'attente en dépend.
@@ -190,8 +201,8 @@ export function Regle({ sections }: { sections: SectionRegle[] }) {
       const suivante = sections[cour + 1];
       let qVol = 0;
       if (suivante) {
-        const elS = document.getElementById(suivante.id);
-        const reste0 = (elS ? elS.offsetTop : 0) - (scrollY + innerHeight * 0.38);
+        const haut = hautDe(suivante.id);
+        const reste0 = (Number.isFinite(haut) ? haut : 0) - (scrollY + innerHeight * 0.38);
         qVol = Math.min(1, Math.max(0, 1 - reste0 / (innerHeight * 1.15)));
       }
 

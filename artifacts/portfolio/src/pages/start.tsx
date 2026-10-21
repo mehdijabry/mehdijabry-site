@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
 import { useMemo, useState } from "react";
 import {
@@ -79,6 +80,20 @@ function isAddonDisabled(key: AddonKey, projectType: ProjectType): boolean {
   if (key === "bilingual" && projectType === "vitrineplus") return true;
   return false;
 }
+
+/* LES REPÈRES DE LA RÈGLE.
+   Mehdi, 21/10 : « les animations, barre de défilement etc. ne sont que sur la
+   section studio ; sur Réalisations et le reste, rien n'est là ». C'était
+   exact — seule l'accueil déclarait ses repères. Chaque page déclare donc les
+   siens, et ils doivent correspondre à des blocs QUI EXISTENT VRAIMENT dans la
+   page : la règle lit `getElementById(id).offsetTop`, un repère sans élément
+   fige le mot au premier cran. */
+const SECTIONS: SectionRegle[] = [
+  { id: "etape-1", fr: "Projet", en: "Project" },
+  { id: "etape-2", fr: "Délai", en: "Timeline" },
+  { id: "etape-3", fr: "Options", en: "Add-ons" },
+  { id: "etape-4", fr: "Coordonnées", en: "Contact" },
+];
 
 export default function Start() {
   const { lang } = useLang();
@@ -163,7 +178,7 @@ export default function Start() {
   }
 
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-4 py-12 md:py-24 flex flex-col lg:flex-row gap-12 relative">
 
         {/* Form Area */}
@@ -176,7 +191,7 @@ export default function Start() {
 
               {/* Step 1 — Project Type */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step1}</h2>
+                <h2 id="etape-1" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step1}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {(Object.entries(PROJECT_TYPES) as [ProjectType, typeof PROJECT_TYPES[ProjectType]][]).map(([k, v]) => (
                     <button
@@ -202,7 +217,7 @@ export default function Start() {
 
               {/* Step 2 — Timeline */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step2}</h2>
+                <h2 id="etape-2" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step2}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(Object.entries(TIMELINES) as [Timeline, typeof TIMELINES[Timeline]][]).map(([k, v]) => (
                     <button
@@ -223,7 +238,7 @@ export default function Start() {
 
               {/* Step 3 — Add-ons */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step3}</h2>
+                <h2 id="etape-3" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step3}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(Object.entries(ADDONS) as [AddonKey, typeof ADDONS[AddonKey]][]).map(([k, v]) => {
                     const disabled = isAddonDisabled(k, projectType);
@@ -261,7 +276,7 @@ export default function Start() {
 
               {/* Step 4 — Contact Info */}
               <div>
-                <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step4}</h2>
+                <h2 id="etape-4" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.step4}</h2>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card border border-border p-8">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
 import { useCopy } from "@/lib/i18n";
 
@@ -132,8 +133,10 @@ function Rich({ text }: { text: string }) {
   return <>{nodes}</>;
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="font-sans text-xs uppercase tracking-widest text-muted-foreground">{children}</p>;
+/* L'étiquette porte l'ancre : c'est elle qui ouvre chaque bloc, donc c'est sur
+   elle que la règle doit se caler. */
+function Eyebrow({ children, id }: { children: React.ReactNode; id?: string }) {
+  return <p id={id} className="font-sans text-xs uppercase tracking-widest text-muted-foreground">{children}</p>;
 }
 
 function Arrows({ items }: { items: string[] }) {
@@ -149,16 +152,27 @@ function Arrows({ items }: { items: string[] }) {
   );
 }
 
+/* LES REPÈRES DE LA RÈGLE — voir la note identique sur les autres pages :
+   chaque page déclare les siens, et ils doivent correspondre à des blocs qui
+   existent vraiment dans le document. */
+const SECTIONS: SectionRegle[] = [
+  { id: "profil", fr: "Profil", en: "Profile" },
+  { id: "parcours", fr: "Parcours", en: "Path" },
+  { id: "pourquoi", fr: "Pourquoi", en: "Why" },
+  { id: "methode", fr: "Méthode", en: "Process" },
+  { id: "terrain", fr: "Terrain", en: "Area" },
+];
+
 export default function About() {
   const t = useCopy(COPY);
 
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-6 py-24 md:py-32">
         <FadeIn>
           <div className="max-w-3xl mx-auto">
             <Eyebrow>{t.eyebrow}</Eyebrow>
-            <h1 className="font-display text-4xl md:text-6xl mt-4 tracking-tight">{t.title}</h1>
+            <h1 id="profil" className="font-display text-4xl md:text-6xl mt-4 tracking-tight">{t.title}</h1>
             <p className="font-display-wonk text-xl md:text-2xl text-muted-foreground mt-2 italic">{t.tagline}</p>
 
             <div className="mt-12 flex flex-col sm:flex-row gap-8 items-start">
@@ -178,24 +192,24 @@ export default function About() {
 
             <hr className="border-border my-16" />
 
-            <Eyebrow>{t.pathTitle}</Eyebrow>
+            <Eyebrow id="parcours">{t.pathTitle}</Eyebrow>
             {t.path.map((p) => <p key={p} className="mt-6 text-lg leading-relaxed"><Rich text={p} /></p>)}
 
             <hr className="border-border my-16" />
 
-            <Eyebrow>{t.whyTitle}</Eyebrow>
+            <Eyebrow id="pourquoi">{t.whyTitle}</Eyebrow>
             <p className="mt-6 text-lg leading-relaxed">{t.whyIntro}</p>
             <Arrows items={t.why} />
             <p className="mt-8 text-lg leading-relaxed"><Rich text={t.whyClose} /></p>
 
             <hr className="border-border my-16" />
 
-            <Eyebrow>{t.howTitle}</Eyebrow>
+            <Eyebrow id="methode">{t.howTitle}</Eyebrow>
             <Arrows items={t.how} />
 
             <hr className="border-border my-16" />
 
-            <Eyebrow>{t.mapTitle}</Eyebrow>
+            <Eyebrow id="terrain">{t.mapTitle}</Eyebrow>
             <p className="mt-6 text-muted-foreground italic text-base">{t.mapIntro}</p>
             <div className="mt-8 space-y-10">
               {t.map.map((m) => (

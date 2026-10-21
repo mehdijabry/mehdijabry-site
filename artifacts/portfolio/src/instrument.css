@@ -154,6 +154,18 @@ body::after {
 .pct { position:absolute; right:3px; font-family:var(--mono); font-size:9px; letter-spacing:.06em;
        color:var(--lueur-douce); background:var(--sol); padding:2px 3px 1px; }
 
+/* LES NOMS DÉBORDENT LA COLONNE, ET C'EST VOULU : « Comparatif » en 34 px fait
+   bien plus que les 132 px de la gouttière. Dans la maquette, une page unique,
+   ils débordaient sur un héros vide — aucune conséquence. Sur les vraies pages
+   du site, ils tombent sur un tableau de prix aligné à droite et les deux se
+   lisaient l'un dans l'autre.
+
+   D'où ce dégradé : le nom emporte son propre fond, qui s'éteint vers la
+   gauche. Ce n'est pas un rectangle posé sur le contenu — le texte dessous
+   s'efface progressivement, et la superposition se lit comme une couche, pas
+   comme une collision. Même traitement pour la file du bas. */
+.pile, .file { background:linear-gradient(to left, var(--sol) 0, var(--sol) 62%, transparent 100%);
+               padding-left:70px; }
 .pile { position:absolute; top:14px; right:52px; display:flex; flex-direction:column; align-items:flex-end; }
 .pile span { font-family:var(--display); font-weight:700; letter-spacing:-.01em; text-transform:uppercase;
              white-space:nowrap; line-height:1.18;

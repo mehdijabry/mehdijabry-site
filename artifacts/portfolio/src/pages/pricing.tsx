@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "wouter";
 import { useState } from "react";
@@ -147,6 +148,20 @@ const COPY: Record<"fr" | "en", {
   },
 };
 
+/* LES REPÈRES DE LA RÈGLE.
+   Mehdi, 21/10 : « les animations, barre de défilement etc. ne sont que sur la
+   section studio ; sur Réalisations et le reste, rien n'est là ». C'était
+   exact — seule l'accueil déclarait ses repères. Chaque page déclare donc les
+   siens, et ils doivent correspondre à des blocs QUI EXISTENT VRAIMENT dans la
+   page : la règle lit `getElementById(id).offsetTop`, un repère sans élément
+   fige le mot au premier cran. */
+const SECTIONS: SectionRegle[] = [
+  { id: "formules", fr: "Formules", en: "Tiers" },
+  { id: "options", fr: "Options", en: "Add-ons" },
+  { id: "pourquoi", fr: "Pourquoi", en: "Why" },
+  { id: "comparatif", fr: "Comparatif", en: "Compare" },
+];
+
 export default function Pricing() {
   const { lang } = useLang();
   const t = useCopy(COPY);
@@ -154,11 +169,11 @@ export default function Pricing() {
   const [currency, setCurrency] = useState<Currency>("CAD");
 
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-4 py-12 md:py-24">
         <FadeIn>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
-            <h1 className="font-display text-4xl md:text-6xl tracking-tight max-w-3xl uppercase">{t.title}</h1>
+            <h1 id="formules" className="font-display text-4xl md:text-6xl tracking-tight max-w-3xl uppercase">{t.title}</h1>
             <div className="flex bg-card border border-border p-1 shrink-0">
               {(["CAD", "USD", "EUR", "GBP"] as const).map(c => (
                 <button
@@ -220,7 +235,7 @@ export default function Pricing() {
 
           {/* Add-ons Table */}
           <div className="mb-24">
-            <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.addons}</h2>
+            <h2 id="options" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.addons}</h2>
             <div className="border border-border overflow-hidden bg-card">
               <table className="w-full text-left text-sm">
                 <tbody className="divide-y divide-border">
@@ -239,7 +254,7 @@ export default function Pricing() {
 
           {/* Why Fixed Price */}
           <div className="mb-24">
-            <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-8">{t.whyTitle}</h2>
+            <h2 id="pourquoi" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-8">{t.whyTitle}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {t.why.map((w) => (
                 <div key={w.h} className="space-y-4">
@@ -252,7 +267,7 @@ export default function Pricing() {
 
           {/* Comparison Table */}
           <div className="mb-24">
-            <h2 className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.comparison}</h2>
+            <h2 id="comparatif" className="font-sans text-xs uppercase tracking-widest text-muted-foreground mb-6">{t.comparison}</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm min-w-[600px]">
                 <thead>

@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
 import { MaquettesGallery, usePortfolioMaquettes } from "@/components/maquettes-gallery";
 import { useCopy } from "@/lib/i18n";
@@ -72,6 +73,18 @@ const CASE_STUDIES = {
   ],
 };
 
+/* LES REPÈRES DE LA RÈGLE.
+   Mehdi, 21/10 : « les animations, barre de défilement etc. ne sont que sur la
+   section studio ; sur Réalisations et le reste, rien n'est là ». C'était
+   exact — seule l'accueil déclarait ses repères. Chaque page déclare donc les
+   siens, et ils doivent correspondre à des blocs QUI EXISTENT VRAIMENT dans la
+   page : la règle lit `getElementById(id).offsetTop`, un repère sans élément
+   fige le mot au premier cran. */
+const SECTIONS: SectionRegle[] = [
+  { id: "ouverture", fr: "Réalisations", en: "Work" },
+  { id: "local-businesses", fr: "Maquettes", en: "Mockups" },
+];
+
 export default function Work() {
   const t = useCopy(COPY);
   const cases = useCopy(CASE_STUDIES);
@@ -79,10 +92,10 @@ export default function Work() {
   const n = maquettes.data?.length ?? 0;
 
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-4 py-12 md:py-24">
         <FadeIn>
-          <h1 className="font-display text-5xl md:text-6xl tracking-tight mb-4 uppercase">{t.title}</h1>
+          <h1 id="ouverture" className="font-display text-5xl md:text-6xl tracking-tight mb-4 uppercase">{t.title}</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-16">
             {t.lede(
               <a href="https://github.com/mehdijabry/mehdijabry" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-4">GitHub</a>,

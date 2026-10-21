@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/layout";
+import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
 import { useCopy } from "@/lib/i18n";
 
@@ -72,9 +73,9 @@ function Rich({ text }: { text: string }) {
   );
 }
 
-function Section({ title, body }: { title: string; body: readonly string[] }) {
+function Section({ title, body, id }: { title: string; body: readonly string[]; id?: string }) {
   return (
-    <section>
+    <section id={id}>
       <h2 className="font-sans text-xs uppercase tracking-widest text-primary mb-4">{title}</h2>
       <div className="text-muted-foreground space-y-4 leading-relaxed">
         {body.map((line) => <Rich key={line} text={line} />)}
@@ -83,16 +84,25 @@ function Section({ title, body }: { title: string; body: readonly string[] }) {
   );
 }
 
+/* LES REPÈRES DE LA RÈGLE — voir la note identique sur les autres pages :
+   chaque page déclare les siens, et ils doivent correspondre à des blocs qui
+   existent vraiment dans le document. */
+const SECTIONS: SectionRegle[] = [
+  { id: "exploitant", fr: "Exploitant", en: "Operator" },
+  { id: "hebergement", fr: "Hébergement", en: "Hosting" },
+  { id: "donnees", fr: "Données", en: "Data" },
+];
+
 export default function Legal() {
   const t = useCopy(COPY);
   return (
-    <Layout>
+    <Layout sections={SECTIONS}>
       <div className="container mx-auto px-4 py-12 md:py-24 max-w-3xl">
         <FadeIn>
           <h1 className="font-serif text-4xl md:text-5xl mb-12 tracking-tight">{t.title}</h1>
 
           <div className="space-y-12">
-            <section>
+            <section id="exploitant">
               <h2 className="font-sans text-xs uppercase tracking-widest text-primary mb-4">{t.operator}</h2>
               <div className="text-muted-foreground space-y-2 leading-relaxed">
                 <p>Mohamed Mehdi Jabry</p>
@@ -102,9 +112,9 @@ export default function Legal() {
               </div>
             </section>
 
-            <Section title={t.hosting} body={t.hostingBody} />
+            <Section id="hebergement" title={t.hosting} body={t.hostingBody} />
             <Section title={t.taxes} body={t.taxesBody} />
-            <Section title={t.privacy} body={t.privacyBody} />
+            <Section id="donnees" title={t.privacy} body={t.privacyBody} />
             <Section title={t.analytics} body={t.analyticsBody} />
             <Section title={t.cookies} body={t.cookiesBody} />
           </div>
