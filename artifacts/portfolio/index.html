@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
@@ -36,7 +36,7 @@
     <!-- ══ /seo ══ -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/logo-mark.png" id="apple-icon" />
-    <meta name="theme-color" content="#F7F6F2" id="theme-color" />
+    <meta name="theme-color" content="#121316" id="theme-color" />
     <!-- Espace admin installable (PWA). Chrome et Safari lisent le manifest et les balises apple-* dès l'analyse de
          la page, avant React : on les pose ici, de façon synchrone, et seulement sous /admin pour que le site public
          ne soit pas proposé à l'installation. Fichiers : public/admin-manifest.json, admin-sw.js, admin-icon-*.png. -->
@@ -51,22 +51,35 @@
         add("meta", { name: "apple-mobile-web-app-title", content: "MJ Admin" });
         add("link", { rel: "apple-touch-icon", sizes: "180x180", href: "/admin-icon-180.png" });
         var ai = document.getElementById("apple-icon"); if (ai) ai.setAttribute("href", "/admin-icon-180.png");
-        var th = document.getElementById("theme-color"); if (th) th.setAttribute("content", "#F7F6F2");
+        var th = document.getElementById("theme-color"); if (th) th.setAttribute("content", "#121316");
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:ital,wght@0,400..600;1,400..600&display=swap" rel="stylesheet">
-    <!-- Le thème est posé AVANT la première peinture : sans ça, un visiteur en sombre voit
-         un éclair de papier blanc à chaque chargement. Le papier reste le défaut. -->
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- UN SEUL THÈME DEPUIS LE 21/10/2026 : la direction « l'instrument » n'a pas de
+         version claire — son accent EST la lumière, donc sur fond clair il n'y aurait plus
+         d'accent. La classe est écrite dans le gabarit (<html class="dark">), pas posée par
+         un script : rien ne peut la retarder, donc rien ne peut clignoter. Le choix de thème
+         éventuellement gardé en mémoire d'un visiteur n'est plus lu.
+
+         AMORCE DE L'OUVERTURE. Deux gestes, et ils doivent précéder la première peinture :
+         le navigateur ne doit pas restaurer la hauteur de défilement (sinon le héros est
+         hors écran et le monogramme se retrouve coupé), et le voile doit être opaque avant
+         que quoi que ce soit paraisse. -->
     <script>
       (function () {
+        try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch (e) {}
         try {
-          var s = localStorage.getItem("theme");
-          var sombre = s === "dark" || (s !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-          if (sombre) document.documentElement.classList.add("dark");
-          var m = document.getElementById("theme-color");
-          if (m) m.setAttribute("content", sombre ? "#0D0F14" : "#F7F6F2");
+          var racine = document.documentElement;
+          var calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (!calme && location.pathname === "/" && !location.hash) {
+            racine.classList.add("js-ouv");
+            scrollTo(0, 0);
+            addEventListener("load", function () {
+              if (racine.classList.contains("js-ouv")) scrollTo(0, 0);
+            }, { once: true });
+          }
         } catch (e) {}
       })();
     </script>

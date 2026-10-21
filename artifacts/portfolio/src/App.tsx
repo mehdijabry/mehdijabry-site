@@ -23,9 +23,7 @@ import AdminEmails from "@/pages/admin/courriels";
 import AdminSettings from "@/pages/admin/parametres";
 
 import { SmoothScrollProvider } from "@/components/effects/smooth-scroll-provider";
-import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { Seo } from "@/components/seo";
-import { Trame } from "@/components/effects/trame";
 import { LanguageProvider } from "@/lib/i18n";
 
 // No automatic retry and networkMode "always": a failed request must surface as an error right away. With
@@ -68,8 +66,13 @@ function App() {
       <LanguageProvider>
       <TooltipProvider>
         <SmoothScrollProvider>
-          <Trame />
-          <ScrollProgress />
+          {/* LA TRAME ET LA JAUGE ONT ÉTÉ RETIRÉES LE 21/10/2026.
+              La trame peignait douze colonnes en fond de page, et la jauge un filet
+              de progression en haut. Dans « l'instrument », ces deux informations
+              existent déjà et pour de vrai : la grille est dessinée par les filets
+              des sections, et la progression par la règle de droite. Les garder
+              dessinait une seconde grille qui ne tombait pas sur la première, et
+              deux indicateurs de position pour une seule lecture. */}
           <div className="relative z-10">
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               {/* Doit vivre DANS le routeur : il lit l'adresse courante pour remettre à jour le

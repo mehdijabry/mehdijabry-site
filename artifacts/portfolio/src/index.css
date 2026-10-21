@@ -1,41 +1,55 @@
 /* ════════════════════════════════════════════════════════════════════════════
-   mehdijabry.dev — direction artistique « l'établi » (6 octobre 2026)
+   mehdijabry.dev — direction artistique « l'instrument » (21 octobre 2026)
 
-   LA THÈSE. Ce qui distingue ce studio n'est pas un style, c'est une méthode :
-   le site du commerce est construit AVANT le premier contact. La page ne dit
-   donc pas « voici mon travail », elle dit « le vôtre est déjà sur l'établi ».
-   Tout en découle.
+   CE QUI REMPLACE « L'ÉTABLI ». Le fond papier partait d'un raisonnement juste
+   — les miniatures de maquettes étaient le produit, et elles chantaient sur du
+   clair. Deux choses ont changé : la galerie publique de maquettes est retirée
+   de l'interface (elles portent des noms de commerces réels), et le produit
+   n'est plus une vitrine de travaux mais une MÉTHODE. Le site redevient donc
+   un instrument de mesure, pas un cahier d'échantillons.
 
-   LE FOND EST CLAIR, ET C'EST LE CHOIX STRUCTURANT. Tous les portfolios de
-   développeur sont sombres ; celui-ci est en papier. Deux raisons, aucune
-   décorative : les 39 miniatures de maquettes sont le produit, et elles se
-   noyaient dans le brun — sur du papier elles chantent ; et un fond clair
-   pardonne beaucoup moins les approximations de typographie et d'espacement,
-   donc le tenir est en soi la démonstration.
+   LE SOL EST NOIR, ET C'EST STRUCTURANT. Pas un noir de mode : un noir
+   d'appareil, légèrement bleuté (#121316), celui des boîtiers et des écrans de
+   contrôle. Dessus, une craie cassée (#F2F1EE) et des filets à 15 % qui
+   dessinent la grille comme les graduations d'une règle.
 
-   LA RÈGLE QUI PORTE L'INFORMATION : **le doré ne décore jamais.** Il est
-   réservé à ce qui est VRAI AU MOMENT OÙ VOUS LISEZ — le nombre de maquettes
-   en ligne, l'heure à Trois-Rivières, l'état de disponibilité. Tout le reste
-   est à l'encre. Une couleur = une catégorie de vérité, pas un accent.
+   L'ACCENT EST LA LUMIÈRE. Il n'y a pas de couleur d'accent : ce qui doit
+   ressortir est simplement plus blanc. Le doré du monogramme (#B08D57) ne
+   sert QU'AU MONOGRAMME — le J et rien d'autre. Une couleur qui n'apparaît
+   qu'à un seul endroit en dit plus qu'une couleur répandue partout.
 
-   LE TRAIT EST LA GRILLE. Les filets ne séparent pas, ils dessinent les douze
-   colonnes. Les titres de section sont posés dessus comme des cotes sur un
-   plan, avec leur étiquette en chasse fixe.
+   LA COLONNE DE DROITE EST UNE RÈGLE. Graduée de 0 à 100, un repère qui suit
+   la lecture, et le nom des sections qui monte lettre par lettre jusqu'à sa
+   place. C'est la seule ornementation du site, et elle porte une information
+   vraie : où vous en êtes.
 
-   TYPOGRAPHIE À TROIS RÔLES. Bricolage Grotesque pour l'affichage : une
-   grotesque variable, un peu bâtie, qui tient aux très grandes tailles sans
-   devenir lisse. Instrument Sans pour la lecture. JetBrains Mono pour les
-   DONNÉES — jamais comme ornement : elle ne porte que des chiffres, des
-   adresses, des horodatages.
+   TYPOGRAPHIE À QUATRE RÔLES. Archivo pour l'affichage — une grotesque dense
+   qui tient aux très grandes tailles. Instrument Serif en italique pour la
+   seconde moitié de chaque titre : c'est le contraste qui fait la voix.
+   Inter pour la lecture. Geist Mono pour les DONNÉES — étiquettes, chiffres,
+   horodatages, jamais comme ornement.
 
-   LE CURSEUR est conservé : la croix de visée du traceur, et le cadre de
-   sélection à quatre poignées sur tout ce qui est cliquable. On navigue le
-   site comme on en construit un.
+   LE CURSEUR est conservé — la croix de visée et le cadre à quatre poignées —
+   mais recalé sur le fond noir. On navigue le site comme on en construit un.
    ════════════════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..600;1,400..600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
+/* La charpente « l'instrument », portée telle quelle depuis la maquette v2.
+
+   `layer(components)` N'EST PAS UN DÉTAIL. Sans elle, la feuille est NON
+   CLASSÉE, et en CSS une règle non classée bat TOUTES les règles d'une couche —
+   y compris les utilitaires de Tailwind. Son `a { color: inherit }` écrasait
+   donc `text-primary-foreground` sur chaque lien stylé par une classe : sur la
+   page des tarifs, le bouton de la formule recommandée se retrouvait en craie
+   sur fond blanc, illisible, sans que rien ne le signale.
+
+   Dans la couche `components`, la charpente bat la base (la remise à zéro de
+   Tailwind) et perd contre les utilitaires — ce qui est exactement l'ordre
+   voulu. */
+@import "./instrument.css" layer(components);
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
@@ -110,86 +124,98 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ── LE PAPIER (thème par défaut) ──────────────────────────────────────────
-   encre #15161A · papier #F7F6F2 · craie #FFFFFF · graphite #5B6069
-   trait #E2E0D9 · doré #9B7840 (le doré du monogramme, assombri pour tenir
-   4,5:1 sur papier — il ne sert qu'aux données vivantes)
+/* ── LE SOL (thème unique) ─────────────────────────────────────────────────
+   sol #121316 · craie #F2F1EE · craie vive #FFFFFF · sourdine #989898
+   trait #343436 (craie à 15 %) · trait fort #6C6C6C · doré #B08D57
+
+   UN SEUL THÈME, ET C'EST VOULU. L'ancien site proposait papier et bleu de
+   plan ; la v2 est une direction qui ne se retourne pas — l'accent y est la
+   lumière, donc sur fond clair il n'y a plus d'accent du tout. `:root` et
+   `.dark` portent les MÊMES valeurs : ainsi, quel que soit le moment où la
+   classe `dark` est posée sur <html>, il n'y a jamais de flash blanc.
    ─────────────────────────────────────────────────────────────────────────── */
-:root {
-  --background: 45 20% 97%;
-  --foreground: 225 8% 9%;
+:root, .dark {
+  --background: 225 10% 8%;
+  --foreground: 45 13% 94%;
 
-  --border: 45 14% 87%;
-  --input: 45 14% 87%;
-  --ring: 225 8% 9%;
+  --border: 240 2% 21%;
+  --input: 240 2% 21%;
+  --ring: 0 0% 100%;
 
-  --card: 0 0% 100%;
-  --card-foreground: 225 8% 9%;
-  --card-border: 45 14% 87%;
+  --card: 240 11% 7%;
+  --card-foreground: 45 13% 94%;
+  --card-border: 240 2% 21%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 225 8% 9%;
-  --popover-border: 45 14% 87%;
+  --popover: 240 11% 7%;
+  --popover-foreground: 45 13% 94%;
+  --popover-border: 240 2% 21%;
 
-  /* L'action principale est à l'ENCRE, pas dorée : le doré est réservé au vivant. */
-  --primary: 225 8% 9%;
-  --primary-foreground: 45 20% 97%;
+  /* L'action principale est la LUMIÈRE : un pavé blanc sur le noir. */
+  --primary: 0 0% 100%;
+  --primary-foreground: 225 10% 5%;
 
-  --secondary: 45 16% 93%;
-  --secondary-foreground: 225 8% 9%;
+  --secondary: 220 4% 14%;
+  --secondary-foreground: 45 13% 94%;
 
-  --muted: 45 16% 94%;
-  --muted-foreground: 220 7% 38%;
+  --muted: 225 6% 13%;
+  --muted-foreground: 0 0% 60%;
 
-  --accent: 45 16% 93%;
-  --accent-foreground: 225 8% 9%;
+  --accent: 220 4% 14%;
+  --accent-foreground: 0 0% 100%;
 
-  --destructive: 4 72% 47%;
-  --destructive-foreground: 45 20% 97%;
+  --destructive: 4 70% 58%;
+  --destructive-foreground: 45 13% 94%;
 
-  --sidebar: 45 20% 97%;
-  --sidebar-foreground: 225 8% 9%;
-  --sidebar-border: 45 14% 87%;
-  --sidebar-primary: 225 8% 9%;
-  --sidebar-primary-foreground: 45 20% 97%;
-  --sidebar-accent: 45 16% 93%;
-  --sidebar-accent-foreground: 225 8% 9%;
-  --sidebar-ring: 225 8% 9%;
+  --sidebar: 240 11% 7%;
+  --sidebar-foreground: 45 13% 94%;
+  --sidebar-border: 240 2% 21%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 225 10% 5%;
+  --sidebar-accent: 220 4% 14%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 0 0% 100%;
 
-  --chart-1: 36 42% 43%;
-  --chart-2: 220 7% 38%;
-  --chart-3: 225 8% 9%;
-  --chart-4: 45 14% 87%;
-  --chart-5: 45 20% 97%;
+  --chart-1: 0 0% 100%;
+  --chart-2: 0 0% 60%;
+  --chart-3: 36 36% 52%;
+  --chart-4: 240 2% 21%;
+  --chart-5: 225 10% 8%;
 
   /* ── Jetons propres à cette direction ──────────────────────────────────── */
-  /* LE DORÉ NE DÉCORE JAMAIS. Il ne marque que ce qui est vrai à l'instant où
-     la page est lue : un compteur fetché, une heure, un état de disponibilité. */
-  --vif: 36 42% 43%;              /* #9B7840 — doré d'encre, lisible sur papier */
-  --vif-clair: 40 58% 88%;        /* fond de pastille « en direct » */
-  --trait-fort: 45 12% 78%;       /* le trait de la grille, quand il doit se voir */
-  --ombre-portee: 225 10% 9%;
+  /* LE DORÉ NE SERT QU'AU MONOGRAMME. Il n'est ni un accent, ni un marqueur de
+     donnée vivante : c'est la couleur du J, et rien d'autre dans la page. Ce
+     qui doit ressortir ressort en étant plus blanc. */
+  --vif: 36 36% 52%;              /* #B08D57 — le doré du monogramme */
+  --vif-clair: 39 53% 60%;        /* #CFA961 — sa variante claire */
+  --trait-fort: 0 0% 42%;         /* le trait de la grille, quand il doit se voir */
+  --ombre-portee: 240 8% 3%;
 
-  --app-font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --app-font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --app-font-serif: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --app-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  /* `--marge` et `--bord` vivent dans instrument.css, avec les autres
+     ruptures de la charpente. Les déclarer ICI les rendait NON CLASSÉS, donc
+     plus forts que la requête à 1040 px de la charpente : sous 1040 px la
+     colonne disparaissait mais `main` gardait sa gouttière, et on voyait une
+     bande vide au bord droit. */
+
+  --app-font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --app-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --app-font-serif: 'Instrument Serif', Georgia, serif;
+  --app-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --radius: 0rem;
 
-  --button-outline: rgba(21,22,26, .12);
-  --badge-outline: rgba(21,22,26, .07);
-  --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(21,22,26, .035);
-  --elevate-2: rgba(21,22,26, .075);
+  --button-outline: rgba(242,241,238, .22);
+  --badge-outline: rgba(242,241,238, .10);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(242,241,238, .045);
+  --elevate-2: rgba(242,241,238, .09);
 
-  --shadow-2xs: 0px 1px 0px 0px hsl(225 10% 9% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(225 10% 9% / 0.05);
-  --shadow-sm: 0px 1px 2px 0px hsl(225 10% 9% / 0.06);
-  --shadow: 0px 1px 2px 0px hsl(225 10% 9% / 0.06), 0px 1px 3px -1px hsl(225 10% 9% / 0.08);
-  --shadow-md: 0px 2px 4px -1px hsl(225 10% 9% / 0.07), 0px 4px 10px -3px hsl(225 10% 9% / 0.10);
-  --shadow-lg: 0px 4px 8px -2px hsl(225 10% 9% / 0.08), 0px 14px 28px -10px hsl(225 10% 9% / 0.14);
-  --shadow-xl: 0px 8px 16px -4px hsl(225 10% 9% / 0.08), 0px 28px 56px -20px hsl(225 10% 9% / 0.18);
-  --shadow-2xl: 0px 40px 80px -28px hsl(225 10% 9% / 0.24);
+  --shadow-2xs: 0px 1px 0px 0px hsl(240 8% 2% / 0.6);
+  --shadow-xs: 0px 2px 0px 0px hsl(240 8% 2% / 0.6);
+  --shadow-sm: 0px 1px 2px 0px hsl(240 8% 2% / 0.6);
+  --shadow: 0px 1px 2px 0px hsl(240 8% 2% / 0.6), 0px 1px 3px -1px hsl(240 8% 2% / 0.7);
+  --shadow-md: 0px 2px 4px -1px hsl(240 8% 2% / 0.6), 0px 4px 10px -3px hsl(240 8% 2% / 0.7);
+  --shadow-lg: 0px 4px 8px -2px hsl(240 8% 2% / 0.6), 0px 14px 28px -10px hsl(240 8% 2% / 0.8);
+  --shadow-xl: 0px 8px 16px -4px hsl(240 8% 2% / 0.6), 0px 28px 56px -20px hsl(240 8% 2% / 0.85);
+  --shadow-2xl: 0px 40px 80px -28px hsl(240 8% 2% / 0.9);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -202,78 +228,6 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* ── LE BLEU DE PLAN (thème sombre) ────────────────────────────────────────
-   Pas un brun de café : un bleu d'encre de plan d'architecte. Le même système,
-   la même règle du doré, retourné proprement.
-   fond #0D0F14 · surface #151922 · texte #ECEAE3 · trait #262C37 · doré #CFA961
-   ─────────────────────────────────────────────────────────────────────────── */
-.dark {
-  --background: 222 21% 7%;
-  --foreground: 45 18% 91%;
-
-  --border: 220 19% 18%;
-  --input: 220 19% 18%;
-  --ring: 40 48% 73%;
-
-  --card: 221 20% 11%;
-  --card-foreground: 45 18% 91%;
-  --card-border: 220 19% 18%;
-
-  --popover: 221 20% 11%;
-  --popover-foreground: 45 18% 91%;
-  --popover-border: 220 19% 18%;
-
-  /* Sur fond sombre l'action principale redevient claire : c'est le papier qui agit. */
-  --primary: 45 18% 91%;
-  --primary-foreground: 222 21% 7%;
-
-  --secondary: 221 18% 15%;
-  --secondary-foreground: 45 18% 91%;
-
-  --muted: 221 18% 14%;
-  --muted-foreground: 220 10% 64%;
-
-  --accent: 221 18% 15%;
-  --accent-foreground: 45 18% 91%;
-
-  --destructive: 4 70% 58%;
-  --destructive-foreground: 45 18% 91%;
-
-  --sidebar: 222 21% 7%;
-  --sidebar-foreground: 45 18% 91%;
-  --sidebar-border: 220 19% 18%;
-  --sidebar-primary: 45 18% 91%;
-  --sidebar-primary-foreground: 222 21% 7%;
-  --sidebar-accent: 221 18% 15%;
-  --sidebar-accent-foreground: 45 18% 91%;
-  --sidebar-ring: 40 48% 73%;
-
-  --chart-1: 40 48% 73%;
-  --chart-2: 220 10% 64%;
-  --chart-3: 45 18% 91%;
-  --chart-4: 220 19% 18%;
-  --chart-5: 222 21% 7%;
-
-  --vif: 40 48% 73%;              /* #CFA961 — le doré du monogramme, sur fond sombre */
-  --vif-clair: 40 30% 18%;
-  --trait-fort: 220 16% 28%;
-  --ombre-portee: 222 30% 3%;
-
-  --button-outline: rgba(236,234,227, .12);
-  --badge-outline: rgba(236,234,227, .06);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(236,234,227, .045);
-  --elevate-2: rgba(236,234,227, .09);
-
-  --shadow-2xs: 0px 1px 0px 0px hsl(222 30% 3% / 0.6);
-  --shadow-xs: 0px 2px 0px 0px hsl(222 30% 3% / 0.6);
-  --shadow-sm: 0px 1px 2px 0px hsl(222 30% 3% / 0.6);
-  --shadow: 0px 1px 2px 0px hsl(222 30% 3% / 0.6), 0px 1px 3px -1px hsl(222 30% 3% / 0.7);
-  --shadow-md: 0px 2px 4px -1px hsl(222 30% 3% / 0.6), 0px 4px 10px -3px hsl(222 30% 3% / 0.7);
-  --shadow-lg: 0px 4px 8px -2px hsl(222 30% 3% / 0.6), 0px 14px 28px -10px hsl(222 30% 3% / 0.8);
-  --shadow-xl: 0px 8px 16px -4px hsl(222 30% 3% / 0.6), 0px 28px 56px -20px hsl(222 30% 3% / 0.85);
-  --shadow-2xl: 0px 40px 80px -28px hsl(222 30% 3% / 0.9);
-}
 
 @layer base {
   * {
@@ -287,8 +241,22 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Archivo est dense : elle demande un interlettrage négatif franc aux grandes
+     tailles, sinon les titres paraissent lâches. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-medium tracking-tight;
+    @apply font-display font-bold;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+
+  /* LA VOIX DU SITE : la seconde moitié d'un titre bascule en italique serif.
+     C'est le contraste qui porte le ton — « Trois jours. *Aucune ambiguïté.* » */
+  h1 em, h2 em, h3 em, .titre em {
+    @apply font-serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -430,31 +398,12 @@
     color: hsl(var(--muted-foreground));
   }
 
-  /* ── LA GRILLE, DESSINÉE ─────────────────────────────────────────────────
-     Douze colonnes réellement tracées en fond de section. Ce n'est pas une
-     texture : c'est la grille sur laquelle le contenu est posé, rendue
-     visible. Elle s'efface sous 768 px, où il n'y a plus douze colonnes. */
-  .grille {
-    position: relative;
-    isolation: isolate;
-  }
-  .grille::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: repeating-linear-gradient(
-      to right,
-      hsl(var(--border)) 0 1px,
-      transparent 1px calc(100% / 12)
-    );
-    background-size: 100% 100%;
-    opacity: .5;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-            mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-  }
-  @media (max-width: 767px) { .grille::before { display: none } }
+  /* LA GRILLE DESSINÉE A ÉTÉ RETIRÉE LE 21/10/2026, et le nom libéré.
+     Elle traçait douze colonnes en fond de section avec `.grille::before`.
+     Dans « l'instrument », `.grille` désigne la grille de cellules de la
+     charpente (`.grille.trois`) : les deux règles s'appliquaient ensemble et
+     peignaient des filets verticaux en travers des trois cellules. La grille
+     du site est maintenant dessinée par les vrais filets des sections. */
 
   /* ── LA SÉQUENCE D'OUVERTURE ─────────────────────────────────────────────
      La page se construit : les traits se tirent d'abord, de gauche à droite,
@@ -579,12 +528,13 @@
    visitor browses the site the way we build one. Drawn by the OS via `cursor: url()` (zero JS, zero
    lag). A contrasting halo under every stroke keeps it legible on photos, aurora and both themes.
    Colours are hard-coded because cursor data-URIs cannot read CSS variables — one set per theme:
-   clair = encre #15161A / doré #9B7840, sombre = papier #ECEAE3 / doré #CFA961. */
+   Depuis le 21/10/2026 le site n'a plus qu'un thème : un seul jeu, craie #ECEAE3 sur
+   halo noir, avec le doré #B08D57 du monogramme au centre de la visée. */
 @media (hover: hover) and (pointer: fine) {
   html,
   body {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%2315161A' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 10 10,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23000000' stroke-opacity='0.55' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ECEAE3' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%23B08D57' stroke='%23000000' stroke-opacity='0.55' stroke-width='1'/></svg>") 10 10,
       crosshair;
   }
   a,
@@ -594,13 +544,13 @@
   summary,
   label[for] {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%2315161A' stroke-width='1'/><g fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%239B7840' stroke='%23ffffff' stroke-opacity='0.9' stroke-width='1'/></svg>") 16 16,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23000000' stroke-opacity='0.55' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ECEAE3' stroke-width='1'/><g fill='%23B08D57' stroke='%23000000' stroke-opacity='0.55' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%23B08D57' stroke='%23000000' stroke-opacity='0.55' stroke-width='1'/></svg>") 16 16,
       pointer;
   }
   html.dark,
   html.dark body {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ECEAE3' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 10 10,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3' stroke-linecap='round'/><path d='M10 1.5v5M10 13.5v5M1.5 10h5M13.5 10h5' fill='none' stroke='%23ECEAE3' stroke-width='1.2' stroke-linecap='round'/><circle cx='10' cy='10' r='1.7' fill='%23B08D57' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 10 10,
       crosshair;
   }
   html.dark a,
@@ -610,7 +560,7 @@
   html.dark summary,
   html.dark label[for] {
     cursor:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ECEAE3' stroke-width='1'/><g fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%23CFA961' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 16 16,
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23000000' stroke-opacity='0.6' stroke-width='3'/><rect x='6' y='6' width='20' height='20' fill='none' stroke='%23ECEAE3' stroke-width='1'/><g fill='%23B08D57' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'><rect x='3.5' y='3.5' width='5' height='5'/><rect x='3.5' y='23.5' width='5' height='5'/><rect x='23.5' y='3.5' width='5' height='5'/><rect x='23.5' y='23.5' width='5' height='5'/></g><circle cx='16' cy='16' r='1.7' fill='%23B08D57' stroke='%23000000' stroke-opacity='0.6' stroke-width='1'/></svg>") 16 16,
       pointer;
   }
   input,

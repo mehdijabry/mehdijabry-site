@@ -1,0 +1,454 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   « L'INSTRUMENT » — la charpente, reprise telle quelle de la maquette v2.
+
+   Ce fichier est le PORTAGE de `site dev/mehdijabry-maquette-v2/construire.py`.
+   Les règles y sont volontairement identiques à celles de la maquette : barre,
+   colonne-règle, héros et sa constellation, ouverture au monogramme, sections,
+   cartes, pied. Les corriger ici sans les corriger là-bas fait diverger les
+   deux, et la maquette est la référence que Mehdi regarde.
+
+   TROIS NOMS ONT ÉTÉ CHANGÉS À L'IMPORT, et seulement trois : `--accent`,
+   `--accent-clair` et `--trait-fort` existent déjà comme jetons shadcn du site
+   (des triplets HSL lus par `hsl(var(--…))`). Les laisser aurait rendu
+   `hsl(#FFFFFF)` invalide et éteint la moitié des composants. Ils deviennent
+   `--lueur`, `--lueur-douce` et `--trait-net`.
+
+   LA FEUILLE EST IMPORTÉE DANS `layer(components)`. Non classée, son
+   `a { color: inherit }` battait les utilitaires de Tailwind — un bouton
+   `text-primary-foreground` se retrouvait en craie sur fond blanc.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --sol:         #121316;   /* --bg */
+  --sol-haut:    #101014;   /* --bg-raised */
+  --sol-bas:     #060607;   /* --bg-sunken */
+  --craie:       #F2F1EE;   /* --ink */
+  --craie-vif:   #FFFFFF;   /* --ink-strong */
+  --sourdine:    rgba(242,241,238,.6);
+  --pale:        rgba(242,241,238,.38);
+  --trait:       rgba(242,241,238,.15);
+  --trait-net:  rgba(242,241,238,.4);
+  --lueur:      #FFFFFF;                  /* l'accent est la lumière */
+  --lueur-douce:rgba(242,241,238,.78);
+  --inverse-fond:#FFFFFF;
+  --inverse-texte:#0B0B0C;
+  --danger:      rgba(242,241,238,.9);
+  --scanline:    rgba(255,255,255,.024);
+
+  /* UNE SEULE MARGE À GAUCHE POUR TOUTE LA PAGE.
+     Mehdi, 21/10 : « le A de Aucune ambiguïté dépasse le cadre de la fenêtre
+     même… aussi Transparent par rapport à Vous briefez ». Les deux viennent
+     du même endroit : chaque bloc portait son propre retrait (24, 20, 22, 34,
+     26, 16 px) et le corps de section n'en avait AUCUN sur grand écran — sa
+     seule règle vivait dans la requête mobile. Le titre commençait donc à
+     zéro, et l'italique d'Instrument Serif, dont le A déborde à gauche de sa
+     chasse, se faisait couper par le bord de la fenêtre.
+     Désormais tout ce qui touche le bord gauche part de --marge. */
+
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --corps:'Inter',system-ui,-apple-system,sans-serif;
+
+  /* UNE SEULE MARGE À GAUCHE POUR TOUTE LA PAGE : chaque bloc portait la
+     sienne (16, 20, 22, 24, 26, 34 px) et rien ne tombait sur la même
+     verticale. */
+  --marge: 26px;
+  --barre: 56px;
+  --bord: 132px;   /* la colonne de droite : règle + noms de sections */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-size: 15px; line-height: 1.6;
+  overflow-x: hidden;
+}
+/* ── LA BARRE DE DÉFILEMENT, VISIBLE ET HABILLÉE ──────────────────────
+   Leur site la supprime (`width: 0`, mesuré). Mais sur macOS, Safari pose
+   par-dessus sa propre barre flottante — c'est elle qu'on voit dans
+   l'enregistrement, et Mehdi la veut. On la garde donc, en l'habillant aux
+   couleurs de la page plutôt qu'en la laissant grise.
+
+   Déclarer une largeur explicite FORCE une barre permanente : sans ça,
+   macOS la fait disparaître dès qu'on arrête de défiler. C'est tout
+   l'enjeu — « elle n'est toujours pas visible ».
+
+   Elle ne chevauche pas la règle : une barre classique est retirée de la
+   largeur de la fenêtre, donc `right: 0` de la colonne tombe juste à sa
+   gauche. */
+/* SANS SÉLECTEUR, donc valable pour TOUT élément qui défile.
+   Viser `html` ne suffisait pas : dans le visualiseur d'artefacts la page
+   vit dans une iframe, et ce n'est pas forcément la racine qui porte le
+   défilement — la barre restait invisible. */
+html, body { scrollbar-width: thin; scrollbar-color: var(--lueur) var(--sol-bas); }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--sol-bas); border-left: 1px solid var(--trait); }
+::-webkit-scrollbar-thumb {
+  background: var(--lueur);
+  border: 2px solid var(--sol-bas);   /* une marge, pour que le curseur ne colle pas aux bords */
+  border-radius: 6px;
+  box-shadow: 0 0 9px rgba(242,241,238,.35);
+  min-height: 42px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--lueur-douce); }
+::-webkit-scrollbar-corner { background: var(--sol-bas); }
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--lueur); outline-offset: 3px; }
+
+/* Voile de balayage — leur --scanline, à 2,4 % de blanc. */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  background: repeating-linear-gradient(0deg, var(--scanline) 0 1px, transparent 1px 3px);
+}
+
+.mono { font-family: var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color: var(--sourdine); }
+
+/* ── Barre ──────────────────────────────────────────────────────────── */
+.nav { position:fixed; inset:0 0 auto 0; z-index:70; height:var(--barre); display:flex; align-items:stretch;
+       background: color-mix(in srgb, var(--sol) 88%, transparent); backdrop-filter: blur(14px);
+       border-bottom:1px solid var(--trait); }
+.nav-marque { width:var(--barre); display:grid; place-items:center; border-right:1px solid var(--trait);
+              font-family:var(--display); font-weight:800; font-size:19px; }
+.nav-liens { display:flex; align-items:stretch; }
+.nav-liens a { display:flex; align-items:center; padding:0 18px; font-family:var(--mono); font-size:10.5px;
+               letter-spacing:.18em; text-transform:uppercase; color:var(--sourdine); transition:color .2s, background .2s; }
+.nav-liens a:hover { color:var(--craie); background:rgba(242,241,238,.05); }
+.nav-liens a.actif { color:var(--inverse-texte); background:var(--inverse-fond); }
+.nav-fin { margin-left:auto; display:flex; align-items:stretch; }
+
+.nav-bouton { display:flex; align-items:center; padding:0 16px; border:0; border-left:1px solid var(--trait);
+              background:none; color:var(--sourdine); font-family:var(--mono); font-size:10.5px;
+              letter-spacing:.18em; text-transform:uppercase; cursor:pointer; transition:color .2s, background .2s; }
+.nav-bouton:hover { color:var(--craie); background:rgba(242,241,238,.05); }
+/* Le bouton de menu n'existe que sous 1040 px. DEUX classes dans le sélecteur,
+   pas une : l'élément porte `nav-bouton nav-menu`, et `.nav-bouton` déclare
+   `display:flex` — à spécificité égale la règle la plus tardive l'emporte, donc
+   un simple `.nav-menu` ne cachait rien. */
+.nav-bouton.nav-menu { display:none; }
+.nav-cta { display:flex; align-items:center; padding:0 26px; background:var(--inverse-fond);
+           color:var(--inverse-texte); font-family:var(--mono); font-size:10.5px; letter-spacing:.18em;
+           text-transform:uppercase; font-weight:500; }
+
+/* ══ LA COLONNE DE DROITE — les quatre étages ═════════════════════════
+   1. la règle graduée, tout au bord
+   2. la pile du haut : sections passées en petit, section courante en grand
+   3. le texte sur arc : le nom de la section SUIVANTE, couché sur une
+      courbe, qui remonte en pivotant lettre par lettre
+   4. la file d'attente du bas : ce qui reste
+   ═══════════════════════════════════════════════════════════════════ */
+.bord { position:fixed; top:var(--barre); right:0; bottom:0; width:var(--bord); z-index:60; pointer-events:none; }
+
+.regle { position:absolute; top:0; right:0; bottom:0; width:46px; border-left:1px solid var(--trait); overflow:hidden; }
+.tick { position:absolute; right:0; height:1px; width:8px; background:var(--trait); }
+.tick.majeur { width:17px; background:var(--trait-net); }
+.tick-num { position:absolute; right:22px; transform:translateY(-50%); font-family:var(--mono); font-size:9px; color:var(--pale); }
+/* Le trait de position : il couvre TOUTE la largeur de la colonne et
+   porte une lueur — chez eux il se détache nettement des graduations
+   grises, c'est le seul élément coloré du bord droit. */
+.curseur { position:absolute; right:0; width:46px; height:2px; background:var(--lueur);
+           box-shadow:0 0 10px 1px rgba(242,241,238,.40); }
+/* Le pourcentage est POSÉ SOUS le trait, pas centré dessus. */
+.pct { position:absolute; right:3px; font-family:var(--mono); font-size:9px; letter-spacing:.06em;
+       color:var(--lueur-douce); background:var(--sol); padding:2px 3px 1px; }
+
+.pile { position:absolute; top:14px; right:52px; display:flex; flex-direction:column; align-items:flex-end; }
+.pile span { font-family:var(--display); font-weight:700; letter-spacing:-.01em; text-transform:uppercase;
+             white-space:nowrap; line-height:1.18;
+             font-size:13px; color:var(--pale);
+             transition:font-size .45s cubic-bezier(.2,.7,.2,1), color .45s, opacity .45s, letter-spacing .45s;
+             opacity:0; height:0; overflow:hidden; }
+.pile span.passee { opacity:1; height:auto; }
+.pile span.courante { opacity:1; height:auto; font-size:clamp(22px,2.5vw,34px); color:var(--craie-vif); letter-spacing:-.03em; }
+
+.file { position:absolute; bottom:22px; right:52px; display:flex; flex-direction:column; align-items:flex-end; }
+.file span { font-family:var(--display); font-weight:700; font-size:13px; letter-spacing:-.01em;
+             text-transform:uppercase; color:var(--pale); line-height:1.18; white-space:nowrap;
+             transition:opacity .4s; }
+.file span.partie { opacity:0; }
+
+/* L'arc : un textPath, donc les glyphes pivotent d'eux-mêmes le long de la
+   tangente — c'est exactement ce que fait leur effet. */
+/* z-index : la règle est déclarée après dans le balisage, donc elle
+   peindrait PAR-DESSUS les lettres. Elles doivent rester lisibles. */
+.arc { position:absolute; inset:0; width:100%; height:100%; overflow:visible; z-index:3; }
+.arc text { font-family:var(--display); font-weight:700; font-size:15px; letter-spacing:.02em;
+            text-transform:uppercase; fill:var(--pale); }
+
+/* ══ HÉROS — la constellation ════════════════════════════════════════ */
+/* `overflow:hidden` NE DÉCOUPE PAS les descendants en transformation 3D
+   sur Safari : les vignettes s'échappaient du héros, passaient sur la règle
+   et sous la barre, et surtout ELLES ÉLARGISSAIENT LA PAGE — d'où un
+   défilement horizontal qui décalait tout le contenu. `clip-path` découpe,
+   lui, quelle que soit la transformation. On garde les deux : `overflow`
+   pour les navigateurs qui s'en contentent, `clip-path` pour les autres. */
+.ciel { position:relative; min-height:calc(100vh - var(--barre)); display:grid; place-items:center;
+        overflow:hidden; clip-path:inset(0); border-bottom:1px solid var(--trait); }
+.arcs { position:absolute; inset:-20%; width:140%; height:140%; pointer-events:none; opacity:.55; }
+.arcs ellipse { fill:none; stroke-width:1.1; }
+
+.cartes { position:absolute; inset:0; pointer-events:none; perspective:1500px; perspective-origin:50% 45%; }
+
+/* ── LA SILHOUETTE DE TÉLÉVISEUR ────────────────────────────────────────
+   Mehdi, 21/10 : « la forme des projets n'est pas vraiment rectangle,
+   comme des télés anciennes dessinées ».
+   Un `border-radius` arrondit les coins mais ne BOMBE pas les arêtes. Il
+   faut un tracé : les coins rentrent vers l'intérieur pendant que le
+   milieu de chaque arête reste au bord — l'œil lit alors une dalle
+   convexe. `clipPathUnits="objectBoundingBox"` fait que le MÊME tracé
+   sert les seize cartes quelle que soit leur taille. */
+.carte { position:absolute; left:50%; top:50%; pointer-events:auto; cursor:pointer;
+         background:var(--sol-bas); will-change:transform,filter,opacity;
+         clip-path:url(#ecran); transform-style:preserve-3d;
+         transition:filter .25s ease; }
+.carte img { width:100%; aspect-ratio:16/10; object-fit:cover; object-position:top center; }
+/* Le cerne et la lueur : sans eux la dalle découpée flotte sans matière.
+   Posés en pseudo-élément parce que le clip-path rognerait une bordure. */
+.carte::after { content:""; position:absolute; inset:0; clip-path:url(#ecran);
+                box-shadow:inset 0 0 0 1px rgba(242,241,238,.22), inset 0 0 22px rgba(0,0,0,.42);
+                pointer-events:none; }
+.carte .etiq { position:absolute; inset:auto 0 0 0; padding:9px 11px 11px;
+               background:linear-gradient(transparent,rgba(6,6,7,.94));
+               font-family:var(--mono); font-size:8.5px; letter-spacing:.14em; text-transform:uppercase;
+               color:var(--craie); opacity:0; transition:opacity .28s;
+               white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.carte:hover .etiq, .carte[data-ouvert] .etiq { opacity:1; }
+
+.heros-texte { position:relative; z-index:6; text-align:center; padding:0 24px; pointer-events:none; }
+.heros-texte a, .heros-texte button { pointer-events:auto; }
+.mot-geant { font-family:var(--display); font-weight:800; font-size:clamp(46px,10.5vw,152px);
+             line-height:.88; letter-spacing:-.04em; text-transform:uppercase; margin:0 0 20px; color:var(--craie-vif); }
+
+/* ── L'OUVERTURE ───────────────────────────────────────────────────────
+   Mehdi, 21/10 : « le M et le J du logo s'écartent chacun de leur côté
+   jusqu'à atteindre leurs places respectives et laissent place au reste ».
+
+   D'où un changement de méthode. Ma première version écrasait la LARGEUR
+   des lettres cachées : le mot s'élargissait, mais ça se lit comme un
+   surgissement, pas comme un écartement. Ici le nom garde sa largeur
+   FINALE du premier instant — seules les lettres sont déplacées par
+   `translateX`. Le M et le J partent collés au centre et voyagent vers
+   leur vraie place ; les autres suivent en paraissant.
+
+   Une translation ne touche pas à la mise en page : rien ne pousse rien,
+   et le reste de la page ne bouge pas d'un pixel pendant l'ouverture.
+
+   TOUT EST POSÉ PAR LE JAVASCRIPT. Si le script ne tourne pas, la page
+   s'affiche entière, tout de suite. */
+.js-ouv #nom { opacity:0; }
+.js-ouv.pret #nom { opacity:1; }
+.mot-geant .l { display:inline-block; white-space:pre; will-change:transform, opacity; }
+/* Les glyphes du monogramme. Leur boîte est dimensionnée en `em` depuis le
+   viewBox d'origine, donc ils suivent la taille du titre sans réglage. */
+.mot-geant .gl { position:relative; }
+.mot-geant .gl svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+/* 1,45 s, et non 0,9. Le sigle part désormais du CENTRE DE LA FENÊTRE :
+   le chemin est trois fois plus long qu'au temps où il partait du titre, et
+   à durée égale le mouvement devient une précipitation. */
+.js-ouv.pret .mot-geant .l {
+  transition: transform 1.45s cubic-bezier(.16,1,.3,1), opacity .45s ease;
+}
+/* Les lettres ordinaires ont leur propre durée : leur trajet est court
+   (elles ne font que sortir de sous le sigle) et il doit se jouer APRÈS
+   celui du M et du J, pas en même temps. */
+.js-ouv.pret .mot-geant .l:not([data-sigle]):not([data-point]) {
+  transition: transform .75s cubic-bezier(.16,1,.3,1), opacity .45s ease;
+}
+
+/* PENDANT LE MAINTIEN, ON NE VOIT QUE LE MONOGRAMME.
+   Mehdi, 21/10 : « quand on actualise, l'entièreté du site reste tel quel,
+   juste le logo qui s'anime ». C'était exact : la barre de navigation, la
+   colonne de droite, la ligne du bas et la rangée de métas restaient
+   affichées pendant que le sigle se dépliait au milieu. Il faut que la
+   page entière soit éteinte, et qu'elle s'allume derrière le nom. */
+.js-ouv .nav,
+.js-ouv .bord,
+.js-ouv .heros-pied,
+.js-ouv .cadre { opacity:0; transition:opacity .85s ease .55s; }
+.js-ouv.ouvert .nav,
+.js-ouv.ouvert .bord,
+.js-ouv.ouvert .heros-pied,
+.js-ouv.ouvert .cadre { opacity:1; }
+
+/* LA PAGE EST TENUE EN HAUT, ET RIEN NE SE VOIT AVANT LE SIGLE.
+   Les `opacity:0` ci-dessus éteignent les éléments un par un, mais ils ne
+   répondent de rien pendant les quelques dizaines de millisecondes qui
+   précèdent l'exécution du script, ni de la dernière image que le
+   navigateur garde à l'écran pendant un rechargement. Un vrai voile opaque,
+   posé par CSS dès la première peinture, règle les deux.
+
+   Le blocage du défilement évite en outre qu'un coup de molette pendant le
+   maintien ne déplace le héros sous le sigle. */
+html.js-ouv, html.js-ouv body { overflow:hidden !important; }
+.voile { display:none; }
+.js-ouv .voile { display:block; position:fixed; inset:0; background:var(--sol);
+                 z-index:80; opacity:1; pointer-events:none;
+                 transition:opacity .9s ease .25s; }
+.js-ouv.ouvert .voile { opacity:0; }
+/* Le héros passe DEVANT le voile : c'est lui qui porte le nom. Tout ce
+   qu'il contient d'autre (aperçus, arcs) est encore à `opacity:0`. */
+.js-ouv .ciel { z-index:81; }
+
+.js-ouv .ouvre { opacity:0; transform:translateY(16px); }
+.js-ouv .ouvre { transition:opacity .8s ease, transform .8s cubic-bezier(.16,1,.3,1); }
+.js-ouv.ouvert .ouvre { opacity:1; transform:none; }
+.js-ouv .ouvre:nth-of-type(1) { transition-delay:.52s; }
+.js-ouv .ouvre:nth-of-type(2) { transition-delay:.62s; }
+.js-ouv .ouvre:nth-of-type(3) { transition-delay:.72s; }
+/* Les aperçus n'arrivent qu'en dernier : le nom doit avoir le premier mot. */
+.js-ouv .cartes { opacity:0; transition:opacity 1.2s ease .9s; }
+.js-ouv.ouvert .cartes { opacity:1; }
+.js-ouv .arcs { opacity:0; transition:opacity 1.5s ease .7s; }
+.js-ouv.ouvert .arcs { opacity:.55; }
+@media (prefers-reduced-motion: reduce) {
+  .js-ouv .mot-geant .l { transform:none !important; opacity:1 !important; }
+  .js-ouv .ouvre, .js-ouv .cartes, .js-ouv .arcs { opacity:1 !important; transform:none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RÈGLES RESTAURÉES (21/10/2026).
+   En réécrivant le bloc de l'ouverture d'un seul tenant, j'ai supprimé tout
+   ce qui se trouvait entre lui et `.titre` : la mise en page du héros, les
+   boutons, et surtout le décalage de `main`. Conséquences visibles chez
+   Mehdi : le contenu passait SOUS la barre fixe et SOUS la colonne de
+   droite, les en-têtes de section perdaient leur `space-between` (les deux
+   libellés se collaient), et le bouton n'avait plus de cadre.
+   ══════════════════════════════════════════════════════════════════════ */
+.sous-titre { font-family:var(--display); font-weight:700; font-size:clamp(23px,3.4vw,42px);
+              letter-spacing:-.025em; margin:0 0 16px; }
+.sous-titre em { font-family:var(--serif); font-style:italic; font-weight:400; }
+.heros-lede { max-width:46ch; margin:0 auto 26px; color:var(--sourdine); font-size:15px; line-height:1.68; }
+.actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+.btn { display:inline-flex; align-items:center; gap:8px; padding:12px 22px; border:1px solid var(--trait-net);
+       font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+       transition:background .2s,color .2s,border-color .2s; }
+.btn:hover { background:var(--inverse-fond); color:var(--inverse-texte); border-color:var(--inverse-fond); }
+.btn.plein { background:var(--inverse-fond); border-color:var(--inverse-fond); color:var(--inverse-texte); }
+.btn.plein:hover { background:var(--lueur); border-color:var(--lueur); color:var(--inverse-texte); }
+.heros-pied { position:absolute; left:0; right:0; bottom:18px; display:flex; justify-content:space-between;
+              padding:0 var(--marge); z-index:6; }
+
+/* LE DÉCALAGE DU CONTENU — la règle la plus coûteuse à perdre.
+   `.nav` est `fixed` en haut et `.bord` `fixed` à droite : sans ces deux
+   retraits, le contenu passe dessous et tout paraît mal posé. */
+main { padding-top:var(--barre); }
+/* Le retrait de droite ne vaut QUE si la règle est là. Une page sans repères
+   (mentions légales, 404, l'admin) n'a pas de colonne : lui laisser la gouttière
+   de 132 px ferait un vide inexpliqué au bord droit. C'est `<Layout>` qui pose
+   la classe, au même endroit qu'il décide de monter `<Regle>`. */
+main.avec-regle { padding-right:var(--bord); }
+.cadre { border-left:1px solid var(--trait); }
+.section { border-top:1px solid var(--trait); }
+.section-haut { display:flex; justify-content:space-between; padding:14px var(--marge);
+                border-bottom:1px solid var(--trait); }
+
+/* RÈGLE MANQUANTE, RESTAURÉE LE 21/10 : sur grand écran `.section-corps`
+   n'avait aucune règle — seulement celle de la requête mobile, plus bas.
+   Les titres commençaient donc à zéro, collés au bord de la fenêtre. */
+.section-corps { padding:44px var(--marge) 48px; }
+.titre { font-family:var(--display); font-weight:700; font-size:clamp(28px,4.6vw,56px); line-height:1.03;
+         letter-spacing:-.03em; margin:0 0 18px; max-width:17ch; text-wrap:balance; }
+.titre em { font-family:var(--serif); font-style:italic; font-weight:400; }
+.lede { max-width:56ch; color:var(--sourdine); font-size:15px; line-height:1.7; margin:0 0 26px; }
+
+.metas { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--trait); }
+.meta { padding:20px var(--marge); border-right:1px solid var(--trait); }
+.meta:last-child { border-right:0; }
+.meta b { display:block; font-family:var(--display); font-weight:700; font-size:20px; margin:6px 0 3px; letter-spacing:-.01em; }
+.meta p { margin:0; font-size:12.5px; color:var(--sourdine); line-height:1.5; }
+
+.grille { display:grid; border-top:1px solid var(--trait); }
+.grille.trois { grid-template-columns:repeat(3,1fr); }
+.cellule { border-right:1px solid var(--trait); border-bottom:1px solid var(--trait); display:flex; flex-direction:column;
+           transition:background .25s; }
+.cellule:hover { background:var(--sol-haut); }
+.cellule-bandeau { display:flex; justify-content:space-between; padding:10px var(--marge); border-bottom:1px solid var(--trait);
+                   font-family:var(--mono); font-size:9.5px; letter-spacing:.17em; text-transform:uppercase; color:var(--pale); }
+.cellule-bandeau .num { color:var(--lueur-douce); }
+.cellule-media { aspect-ratio:16/10; overflow:hidden; background:var(--sol-bas); }
+.cellule-media img { width:100%; height:100%; object-fit:cover; object-position:top center;
+                     filter:grayscale(.4) contrast(1.03); transition:filter .4s, transform .5s; }
+.cellule:hover .cellule-media img { filter:none; transform:scale(1.03); }
+.cellule-pied { padding:16px var(--marge); }
+.cellule-pied h3 { margin:0; font-family:var(--display); font-weight:700; font-size:16.5px; letter-spacing:-.012em; }
+
+.etape { padding:24px var(--marge) 30px; }
+.etape .jour { color:var(--lueur-douce); }
+.etape h3 { margin:12px 0 8px; font-family:var(--display); font-weight:700; font-size:21px; letter-spacing:-.015em; }
+.etape p { margin:0; color:var(--sourdine); font-size:13.5px; line-height:1.65; }
+
+.tarif { padding:26px var(--marge) 28px; display:flex; flex-direction:column; }
+.tarif.vedette { background:var(--sol-haut); }
+.tarif-nom { font-family:var(--display); font-weight:700; font-size:24px; letter-spacing:-.015em; margin:10px 0 2px; }
+.tarif-prix { font-family:var(--display); font-weight:800; font-size:42px; letter-spacing:-.035em; margin:14px 0 2px; color:var(--craie-vif); }
+.tarif-prix sup { font-size:16px; font-weight:600; vertical-align:super; margin-left:3px; }
+.tarif ul { list-style:none; margin:18px 0 22px; padding:0; }
+.tarif li { padding:8px 0 8px 18px; position:relative; font-size:13.5px; color:var(--sourdine);
+            line-height:1.55; border-top:1px solid var(--trait); }
+.tarif li::before { content:""; position:absolute; left:0; top:16px; width:6px; height:1px; background:var(--lueur); }
+.tarif .btn { margin-top:auto; justify-content:center; }
+
+.contact { display:grid; grid-template-columns:1.3fr 1fr; }
+.contact-bloc { padding:46px var(--marge); }
+.contact-bloc + .contact-bloc { border-left:1px solid var(--trait); }
+.ligne-info { display:flex; justify-content:space-between; gap:14px; padding:14px 0; border-top:1px solid var(--trait); font-size:14px; }
+.ligne-info span:first-child { color:var(--pale); font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; }
+
+.pied { border-top:1px solid var(--trait); }
+.pied-haut { display:grid; grid-template-columns:1.8fr 1fr 1fr; }
+.pied-col { padding:36px var(--marge); border-right:1px solid var(--trait); }
+.pied-col:last-child { border-right:0; }
+.pied-col a { display:block; padding:5px 0; font-size:13.5px; color:var(--sourdine); transition:color .2s; }
+.pied-col a:hover { color:var(--craie); }
+.pied-bas { display:flex; justify-content:space-between; gap:14px; padding:14px var(--marge); border-top:1px solid var(--trait); }
+
+/* Apparition : LE CONTENU EST VISIBLE PAR DÉFAUT. Un bloc qui part caché
+   et dont l'observateur ne se déclenche pas disparaît pour toujours. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .monte { opacity:0; transform:translateY(13px); transition:opacity .6s, transform .6s; }
+  .js .monte.vu { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce) { .arcs { display:none; } }
+
+@media (max-width: 1040px) {
+  :root { --bord: 0px; }
+  .bord { display:none; }
+  main.avec-regle { padding-right:0; }
+  .grille.trois, .contact, .pied-haut { grid-template-columns:1fr; }
+  .metas { grid-template-columns:repeat(2,1fr); }
+  .meta:nth-child(2) { border-right:0; }
+  .contact-bloc + .contact-bloc { border-left:0; border-top:1px solid var(--trait); }
+  .pied-col { border-right:0; border-bottom:1px solid var(--trait); }
+  :root { --marge: 20px; }
+  .section-corps { padding:34px var(--marge) 32px; }
+  .nav-liens { display:none; }
+  /* Sous 1040 px la rangée de liens disparaît : c'est le bouton de menu qui
+     prend le relais. Au-dessus, il n'a pas de raison d'être. */
+  .nav-bouton.nav-menu { display:flex; }
+  .nav-cta { padding:0 16px; font-size:9.5px; }
+}
+
+/* ── LE MENU PLEIN ÉCRAN ────────────────────────────────────────────────
+   Il n'existait pas dans la maquette, qui était une page unique avec des
+   ancres. Le vrai site a cinq pages publiques : il lui faut une sortie sur
+   petit écran. Même grammaire que le reste — filets, chasse fixe, rien
+   d'arrondi — et le fond est OPAQUE, pas flouté : un flou laisserait lire
+   la page dessous et la liste deviendrait illisible sur les aperçus. */
+.nav-plein { position:fixed; inset:var(--barre) 0 0 0; z-index:69; background:var(--sol);
+             display:flex; flex-direction:column; overflow-y:auto; }
+.nav-plein a { display:flex; align-items:center; padding:22px var(--marge);
+               border-bottom:1px solid var(--trait); font-family:var(--display);
+               font-weight:700; font-size:28px; letter-spacing:-.03em; color:var(--craie); }
+.nav-plein a:hover { background:var(--sol-haut); color:var(--craie-vif); }
+.nav-plein .nav-plein-cta { margin-top:auto; border-bottom:0; border-top:1px solid var(--trait);
+                            background:var(--inverse-fond); color:var(--inverse-texte);
+                            font-family:var(--mono); font-size:11px; letter-spacing:.18em;
+                            text-transform:uppercase; justify-content:center; }
+.nav-plein .nav-plein-cta:hover { background:var(--lueur); color:var(--inverse-texte); }
+
+
+/* Les arcs du héros tournaient grâce à un <style> posé DANS le <svg> de la
+   maquette. En React le SVG est un composant : l'animation vient ici. */
+@keyframes tourne { to { transform: rotate(360deg); } }
