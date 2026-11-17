@@ -54,9 +54,10 @@
         var th = document.getElementById("theme-color"); if (th) th.setAttribute("content", "#121316");
       })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- POLICES AUTO-HÉBERGÉES (17/11/2026). Elles venaient de Google Fonts : chaque visite
+         envoyait l'adresse IP du visiteur à Google avant tout consentement. Les mêmes
+         quatre familles vivent désormais dans public/polices/, aucune requête ne sort. -->
+    <link rel="stylesheet" href="/polices/polices.css">
     <!-- UN SEUL THÈME DEPUIS LE 21/10/2026 : la direction « l'instrument » n'a pas de
          version claire — son accent EST la lumière, donc sur fond clair il n'y aurait plus
          d'accent. La classe est écrite dans le gabarit (<html class="dark">), pas posée par

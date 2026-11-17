@@ -475,3 +475,60 @@ main.avec-regle { padding-right:var(--bord); }
 /* Les arcs du héros tournaient grâce à un <style> posé DANS le <svg> de la
    maquette. En React le SVG est un composant : l'animation vient ici. */
 @keyframes tourne { to { transform: rotate(360deg); } }
+
+/* ── LE CONSENTEMENT (17/11/2026) ─────────────────────────────────────
+   Le bandeau est une fiche posée en bas, dans la grammaire du site : sol,
+   filets, chasse fixe. Trois boutons de même poids. Le panneau est une
+   feuille centrée. Les deux passent au-dessus de la barre et de la règle
+   (70, 60) mais sous le voile d'ouverture (80), qui doit finir avant. */
+.cs-bandeau { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:75;
+  width:min(760px, calc(100vw - 24px)); background:var(--sol-haut); color:var(--craie);
+  border:1px solid var(--trait-net); padding:18px 20px 16px;
+  box-shadow:0 1px 2px rgba(0,0,0,.4), 0 24px 60px -24px rgba(0,0,0,.8);
+  display:grid; grid-template-columns:48px 1fr; column-gap:14px; align-items:start; font-family:var(--corps); }
+.cs-icone { grid-row:1 / span 4; width:48px; height:48px; margin-top:2px; }
+.cs-titre, .cs-corps, .cs-actions, .cs-doc { grid-column:2; }
+.cs-titre { margin:0 0 8px; font-family:var(--display); font-size:1.05rem; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
+.cs-corps { margin:0 0 6px; font-size:.9rem; line-height:1.5; color:var(--sourdine); }
+.cs-corps code, .cs-bouton code, .cs-liste code { font-family:var(--mono); font-size:.86em; color:var(--craie); background:rgba(242,241,238,.08); padding:0 5px; border-radius:3px; }
+.cs-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.cs-bouton { display:inline-flex; align-items:center; gap:6px; height:40px; padding:0 14px; border:1px solid var(--trait-net);
+  background:transparent; color:var(--craie); font-family:var(--corps); font-size:.86rem; cursor:pointer;
+  transition:background .2s, color .2s, border-color .2s; }
+.cs-bouton:hover { background:var(--inverse-fond); color:var(--inverse-texte); border-color:var(--inverse-fond); }
+.cs-bouton:hover code { color:inherit; background:rgba(0,0,0,.08); }
+.cs-bouton:focus-visible, .cs-fermer:focus-visible, .pied-lien:focus-visible,
+.cs-interrupteur input:focus-visible + .cs-glissiere { outline:2px solid var(--craie); outline-offset:2px; }
+.cs-doc { margin:12px 0 0; font-size:.82rem; color:var(--pale); }
+.cs-doc a { color:var(--sourdine); text-decoration:underline; text-underline-offset:3px; }
+.cs-doc a:hover { color:var(--craie); }
+.cs-voile { position:fixed; inset:0; z-index:76; background:rgba(0,0,0,.6); display:grid; place-items:center; padding:16px; overflow:auto; }
+.cs-panneau { width:min(680px, 100%); max-height:calc(100vh - 32px); overflow:auto; background:var(--sol-haut); color:var(--craie);
+  border:1px solid var(--trait-net); padding:22px 24px 20px; font-family:var(--corps);
+  box-shadow:0 24px 60px -24px rgba(0,0,0,.9); }
+.cs-panneau-tete { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:6px; }
+.cs-panneau-tete h2 { margin:0; font-size:.78rem; letter-spacing:.14em; text-transform:uppercase; color:var(--sourdine); line-height:1.4; }
+.cs-fermer { flex:none; width:36px; height:36px; border:1px solid var(--trait); background:transparent; color:var(--sourdine); font-size:1.4rem; line-height:1; cursor:pointer; }
+.cs-fermer:hover { color:var(--craie); border-color:var(--trait-net); }
+.cs-categorie { margin-top:18px; padding-top:16px; border-top:1px solid var(--trait); }
+.cs-categorie-tete { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.cs-categorie h3 { margin:0; font-family:var(--display); font-size:1rem; font-weight:600; }
+.cs-categorie-desc { margin:6px 0 0; font-size:.88rem; line-height:1.5; color:var(--sourdine); max-width:60ch; }
+.cs-liste { margin:8px 0 0; padding-left:18px; font-size:.84rem; line-height:1.55; color:var(--sourdine); }
+.cs-liste li { margin:3px 0; }
+.cs-etat { font-size:.72rem; color:var(--pale); white-space:nowrap; }
+.cs-interrupteur { display:inline-flex; align-items:center; cursor:pointer; flex:none; }
+.cs-interrupteur input { position:absolute; opacity:0; width:1px; height:1px; }
+.cs-glissiere { position:relative; width:40px; height:22px; border-radius:999px; background:var(--trait-net); transition:background .18s; }
+.cs-glissiere::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:var(--sol); transition:transform .18s; }
+.cs-interrupteur input:checked + .cs-glissiere { background:var(--craie); }
+.cs-interrupteur input:checked + .cs-glissiere::after { transform:translateX(18px); }
+.pied-lien { display:block; padding:5px 0; font:inherit; font-size:13.5px; color:var(--sourdine); background:none; border:0; cursor:pointer; text-align:left; transition:color .2s; }
+.pied-lien:hover { color:var(--craie); }
+@media (max-width:640px) {
+  .cs-bandeau { bottom:0; left:0; transform:none; width:100%; padding:16px 16px 14px; grid-template-columns:40px 1fr; column-gap:10px; }
+  .cs-icone { width:40px; height:40px; }
+  .cs-actions .cs-bouton { flex:1 1 auto; justify-content:center; }
+  .cs-panneau { padding:18px 16px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .cs-glissiere, .cs-glissiere::after, .cs-bouton { transition:none; } }

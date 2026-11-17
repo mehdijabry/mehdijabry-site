@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useCopy } from "@/lib/i18n";
 import { Monogramme } from "@/components/logo";
+import { ouvrir } from "@/lib/consentement";
 
 /**
  * LE PIED — « l'instrument », 21 octobre 2026.
@@ -30,6 +31,7 @@ const COPY = {
     pricing: "Tarifs",
     about: "À propos",
     legal: "Mentions légales",
+    cookies: "Cookies et données locales",
     courriel: "Courriel",
     ville: "Trois-Rivières, Québec",
     pile: "React · Vite · Express · Postgres · Cloudflare",
@@ -41,6 +43,7 @@ const COPY = {
     pricing: "Pricing",
     about: "About",
     legal: "Legal",
+    cookies: "Cookies & local data",
     courriel: "Email",
     ville: "Trois-Rivières, Quebec",
     pile: "React · Vite · Express · Postgres · Cloudflare",
@@ -69,6 +72,7 @@ export function Footer() {
           <Link href="/pricing">{t.pricing}</Link>
           <Link href="/about">{t.about}</Link>
           <Link href="/legal">{t.legal}</Link>
+          <button type="button" className="pied-lien" onClick={ouvrir} data-consentement-ouvrir>{t.cookies}</button>
         </div>
 
         <div className="pied-col">

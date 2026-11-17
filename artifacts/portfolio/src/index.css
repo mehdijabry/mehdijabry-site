@@ -32,10 +32,8 @@
    LE CURSEUR est conservé — la croix de visée et le cadre à quatre poignées —
    mais recalé sur le fond noir. On navigue le site comme on en construit un.
    ════════════════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap');
+/* Les polices sont auto-hébergées (public/polices/polices.css, lié dans index.html) :
+   plus aucun @import vers Google Fonts, donc plus aucune adresse IP transmise sans accord. */
 @import "tailwindcss";
 /* La charpente « l'instrument », portée telle quelle depuis la maquette v2.
 

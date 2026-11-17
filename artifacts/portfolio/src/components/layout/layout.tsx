@@ -1,6 +1,7 @@
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { Regle, type SectionRegle } from "@/components/layout/regle";
+import { Consentement } from "@/components/consentement";
 
 /**
  * LA CHARPENTE — « l'instrument », 21 octobre 2026.
@@ -35,6 +36,7 @@ export function Layout({
       {sections && sections.length > 0 && <Regle sections={sections} />}
       <main className={`flex-1${sections && sections.length > 0 ? " avec-regle" : ""}`}>{children}</main>
       <Footer />
+      <Consentement />
     </div>
   );
 }

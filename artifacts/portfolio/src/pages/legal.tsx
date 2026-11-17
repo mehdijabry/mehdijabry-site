@@ -1,7 +1,8 @@
 import { Layout } from "@/components/layout/layout";
 import type { SectionRegle } from "@/components/layout/regle";
 import { FadeIn } from "@/components/ui/fade-in";
-import { useCopy } from "@/lib/i18n";
+import { useCopy, useLang } from "@/lib/i18n";
+import { REGLES, ouvrir } from "@/lib/consentement";
 
 const COPY = {
   fr: {
@@ -24,13 +25,16 @@ const COPY = {
     ],
     analytics: "Statistiques de visite",
     analyticsBody: [
-      "Ce site utilise **Plausible Analytics**, un outil de mesure respectueux de la vie privée.",
-      "Il ne collecte aucune donnée personnelle, n'utilise aucun témoin et respecte le RGPD, la CCPA et le PECR.",
+      "Si vous l'acceptez dans le bandeau, ce site charge **Plausible Analytics**, un outil de mesure sans témoin ni identifiant, qui compte les visites sans suivre les personnes.",
+      "Sans votre accord, **aucun script de mesure n'est chargé** : la porte posée dans le navigateur refuse toute écriture qui ne figure pas dans la table ci-dessous.",
     ],
     cookies: "Témoins (cookies)",
     cookiesBody: [
-      "Ce site n'utilise aucun témoin de pistage ni de publicité. Seul un élément de stockage local peut être conservé, pour retenir votre préférence de thème clair ou sombre et votre langue d'affichage.",
+      "Ce site n'utilise aucun témoin de pistage ni de publicité, et ne charge aucune police depuis un serveur tiers. Voici, sans exception, ce qu'il peut écrire dans votre navigateur, et avec quel accord :",
     ],
+    categorie: { necessaire: "Nécessaire", mesure: "Avec votre accord" },
+    modifier: "Modifier mes choix",
+    retrait: "Vous pouvez retirer votre accord à tout moment : les données des catégories retirées sont effacées sur-le-champ.",
   },
   en: {
     title: "Legal & Privacy",
@@ -52,13 +56,16 @@ const COPY = {
     ],
     analytics: "Analytics",
     analyticsBody: [
-      "This site uses **Plausible Analytics**, a privacy-focused analytics tool.",
-      "It collects zero personal data, uses no cookies, and complies with GDPR, CCPA and PECR.",
+      "If you accept it in the banner, this site loads **Plausible Analytics**, a cookie-free, identifier-free measurement tool that counts visits without following people.",
+      "Without your consent, **no measurement script is loaded**: the gate set in the browser refuses any write that is not in the table below.",
     ],
     cookies: "Cookies",
     cookiesBody: [
-      "This website uses no tracking or advertising cookies. A single local storage item may be used to remember your light/dark theme preference and your display language.",
+      "This website uses no tracking or advertising cookies, and loads no font from a third-party server. Here is, without exception, what it may write in your browser, and with which consent:",
     ],
+    categorie: { necessaire: "Necessary", mesure: "With your consent" },
+    modifier: "Change my choices",
+    retrait: "You can withdraw your consent at any time: the data of withdrawn categories is erased immediately.",
   },
 };
 
@@ -93,6 +100,36 @@ const SECTIONS: SectionRegle[] = [
   { id: "donnees", fr: "Données", en: "Data" },
 ];
 
+/** La table des témoins et clés de stockage, tirée de la même source que la porte : elle ne peut pas mentir. */
+function TableTemoins() {
+  const t = useCopy(COPY);
+  const { lang } = useLang();
+  return (
+    <div className="text-muted-foreground space-y-4 leading-relaxed">
+      <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+        <thead>
+          <tr style={{ borderBottom: "1px solid var(--trait)" }}>
+            <th className="text-left py-2 pr-3 font-normal mono" style={{ fontSize: 11 }}>{lang === "fr" ? "Clé" : "Key"}</th>
+            <th className="text-left py-2 pr-3 font-normal mono" style={{ fontSize: 11 }}>{lang === "fr" ? "Usage" : "Use"}</th>
+            <th className="text-left py-2 font-normal mono" style={{ fontSize: 11 }}>{lang === "fr" ? "Accord" : "Consent"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {REGLES.map((r) => (
+            <tr key={String(r.cle)} style={{ borderBottom: "1px solid var(--trait)" }}>
+              <td className="py-2 pr-3 align-top"><code className="mono" style={{ fontSize: 12 }}>{String(r.cle)}</code></td>
+              <td className="py-2 pr-3 align-top">{r.quoi[lang]}</td>
+              <td className="py-2 align-top whitespace-nowrap">{t.categorie[r.categorie]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>{t.retrait}</p>
+      <button type="button" className="btn" onClick={ouvrir} data-consentement-ouvrir>{t.modifier}</button>
+    </div>
+  );
+}
+
 export default function Legal() {
   const t = useCopy(COPY);
   return (
@@ -116,7 +153,8 @@ export default function Legal() {
             <Section title={t.taxes} body={t.taxesBody} />
             <Section id="donnees" title={t.privacy} body={t.privacyBody} />
             <Section title={t.analytics} body={t.analyticsBody} />
-            <Section title={t.cookies} body={t.cookiesBody} />
+            <Section id="temoins" title={t.cookies} body={t.cookiesBody} />
+            <TableTemoins />
           </div>
         </FadeIn>
       </div>
